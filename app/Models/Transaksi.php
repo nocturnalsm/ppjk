@@ -2480,11 +2480,11 @@ class Transaksi extends Model
     		}
     		return $datarate;
     }
-    public static function browseSPTNP($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
+    public static function browseSPTNP($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2, $kategori3, $dari3, $sampai3)
     {
-        $array1 =  Array("Nopen" => "NOPEN","No SPTNP" => "NO_SPTNP","Jenis SPTNP" => "JENIS_SPTNP");
+        $array1 =  Array("Nopen" => "NOPEN","No SPTNP" => "NO_SPTNP","Jenis Notul" => "JENIS_SPTNP");
 
-        $array2 = Array("Tanggal Jatuh Tempo" => "TGL_JATUH_TEMPO_SPTNP", "Tanggal SPTNP" => "TGL_SPTNP", "Tanggal BRT" => "TGL_BRT");
+        $array2 = Array("Tanggal Nopen" => "TGL_NOPEN", "Tanggal Lunas" => "TGL_LUNAS","Tanggal Jatuh Tempo" => "TGL_JATUH_TEMPO_SPTNP", "Tanggal SPTNP" => "TGL_SPTNP", "Tanggal BRT" => "TGL_BRT");
         $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
@@ -2510,22 +2510,37 @@ class Transaksi extends Model
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
+        if ($kategori3 != ""){
+            if (trim($dari3) == "" && trim($sampai3) == ""){
+                $where  .=  " AND (" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+            }
+            else {
+                if (trim($dari3) == ""){
+                    $dari3 = "0000-00-00";
+                }
+                if (trim($sampai3) == ""){
+                    $sampai3 = "9999-99-99";
+                }
+                $where  .=  " AND (" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
+            }
+        }
         if (trim($importir) != ""){
-            $where .= " AND IMPORTIR = '" .$importir ."'";
+            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
             $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
         }
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
-                    ->selectRaw("ID, NO_SPTNP, HSL_BRT, DENDA_TB, JENIS_SPTNP, NOAJU, NOPEN,"
-                              ."c.nama_customer AS CUSTOMER, i.NAMA AS IMPORTIR,"
-                              ."DATE_FORMAT(TGL_SPTNP, '%d-%m-%Y') AS TGLSPTNP,"
+                    ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_SPTNP, NOPEN, NOAJU, DENDA_TB, "
+                              ."i.NAMA AS NAMAIMPORTIR, BMTB, BMTTB, PPNTB, PPNBM, PPHTB, JENIS_SPTNP, "
                               ."DATE_FORMAT(TGL_JATUH_TEMPO_SPTNP, '%d-%m-%Y') AS TGLJTHTEMPOSPTNP,"
-                              ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,"
+                              ."DATE_FORMAT(TGL_SPTNP, '%d-%m-%Y') AS TGLSPTNP,"
+                              ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,NO_KEP_BDG,"
                               ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN,"
                               ."DATE_FORMAT(TGL_LUNAS, '%d-%m-%Y') AS TGLLUNAS,"
                               ."IFNULL(BMTB,0)+IFNULL(PPNBM,0)+IFNULL(BMKITE,0)+IFNULL(BMTTB,0)+IFNULL(PPNTB,0)+IFNULL(PPHTB,0)+IFNULL(DENDA_TB,0) AS TOTAL_TB")
-                    ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "h.CUSTOMER", "=", "c.id_customer")
+                    ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
                     ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
         if (trim($where) != ""){
             $data->whereRaw($where);
@@ -2555,19 +2570,21 @@ class Transaksi extends Model
                         "Tanggal SPTNP" => "TGL_SPTNP", "Tanggal BRT" => "TGL_BRT",
                         "Tanggal Lunas" => "TGL_LUNAS", "Tgl Jatuh Tempo Bdg" => "TGL_JTHTEMPO_BDG");
 
-        $where = "1=1";
+        $where = "";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
-
         }
         if ($kategori2 != ""){
+            if ($where != ""){
+                $where .= " AND ";
+            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -2576,12 +2593,12 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if (trim($importir) != ""){
-            $where .= " AND IMPORTIR = '" .$importir ."'";
+            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
             $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";

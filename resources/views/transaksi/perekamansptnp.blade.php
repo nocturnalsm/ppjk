@@ -76,6 +76,25 @@
                             <input autocomplete="off" type="text" id="sampai2" name="sampai2" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            Kategori
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control form-control-sm" id="kategori3" name="kategori3">
+                                <option value=""></option>
+                                @foreach($datakategori2 as $kat)
+                                <option value="{{ $kat }}">{{ $kat }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <label class="px-sm-3 col-sm-1">Periode</label>
+                        <div class="col-md-5">
+                            <input autocomplete="off" type="text" id="dari3" name="dari3" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                            &nbsp;&nbsp;sampai&nbsp;&nbsp;
+                            <input autocomplete="off" type="text" id="sampai3" name="sampai3" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                        </div>
+                    </div>
             </div>
         </div>
         <div class="row">
@@ -87,23 +106,22 @@
         </form>
         <div class="row mt-4 pt-4">
             <div class="col" id="divtable">
-                <table width="100%" id="grid" class="table">
+                <table style="width:100%" id="grid" class="table nowrap">
                     <thead>
                         <th>Opsi</th>
-                        <th>Importir</th>
-                        <th>Customer</th>
-                        <th>No Aju</th>
-                        <th>Nopen</th>
-                        <th>Tgl Nopen</th>
-                        <th>No SPTNP</th>
-                        <th>Tgl SPTNP</th>
-                        <th>Tgl Jth Tempo</th>
+                        <th>Ktr</th>
+                        <th>Importir<br>No Aju</th>
+                        <th>No SPTNP<br>Tgl SPTNP</th>
+                        <th>Nopen<br>Tgl Nopen</th>
+                        <th>BM<br>BMT</th>
+                        <th>PPn<br>PPnBM</th>
+                        <th>PPh 22</th>
+                        <th>Denda</th>
+                        <th>Total</th>
+                        <th>Jns Notul</th>
+                        <th>Jth Tempo</th>
                         <th>Tgl Lunas</th>
-                        <th>Tgl BRT</th>
-                        <th>Hasil BRT</th>
-                        <th>Denda TB</th>
-                        <th>Total TB</th>
-                        <th>Jenis SPTNP</th>
+                        <th>Tgl Brt</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -133,17 +151,18 @@ $(function(){
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
 
-    var columns = [{target: 0, data: null}, {target: 1, data: "IMPORTIR"}, {target: 2, data: "CUSTOMER"}, {target: 3, data: "NOAJU"},
-    {target: 4, data: "NOPEN"}, {target: 5, data: "TGLNOPEN"}, {target: 6, data: "NO_SPTNP"},
-    {target: 7, data: "TGLSPTNP"}, {target: 8, data: "TGLJTHTEMPOSPTNP"}, {target: 9, data: "TGLLUNAS"}, {target: 10, data: "TGLBRT"},
-    {target: 11, data: "HSL_BRT"},
-    {target: 12, data: "DENDA_TB"},
-    {target: 13, data: "TOTAL_TB"},
-    {target: 14, data: "JENIS_SPTNP"}
+    var columns = [{target: 0, data: null}, {target: 1, data: "KODEKANTOR"}, {target: 2, data: "NAMAIMPORTIR"}, {target: 3, data: "NO_SPTNP"},
+    {target: 4, data: "NOPEN"}, {target: 5, data: "BMTB"}, {target: 6, data: "PPNTB"},
+    {target: 7, data: "PPHTB"}, {target: 8, data: "DENDA_TB"}, {target: 9, data: "TOTAL_TB"},
+    {target: 10, data: "JENIS_SPTNP"},
+    {target: 11, data: "TGLJTHTEMPOSPTNP"},
+    {target: 12, data: "TGLLUNAS"},
+    {target: 13, data: "TGLBRT"}
     ];
 
     var grid = $("#grid").DataTable({responsive: false,
         dom: "rtip",
+        scrollX: true,
         "language":
         {
             "lengthMenu": "Menampilkan _MENU_ record per halaman",
@@ -163,8 +182,14 @@ $(function(){
         {
             $(row).attr("id-transaksi", data[0]);
             $('td:eq(0)', row).html('<a title="Edit" href="/transaksi/usersptnp/' + data.ID + '"><i class="fa fa-edit"></i></a>');
-            $('td:eq(12)', row).html(parseFloat(data.DENDA_TB).formatMoney(2,"",",","."));
-            $('td:eq(13)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
+            $('td:eq(2)', row).html('<div class="importir">' +data.NAMAIMPORTIR + '</div><div class="noaju">' + data.NOAJU + "</div>");
+            $('td:eq(3)', row).html('<div class="nosptnp">' +data.NO_SPTNP + '</div><div class="tglsptnp">' + (data.TGLSPTNP || '') + "</div>");
+            $('td:eq(4)', row).html('<div class="nopen">' +data.NOPEN + '</div><div class="tglnopen">' + (data.TGLNOPEN || '') + "</div>");
+            $('td:eq(5)', row).html('<div class="bmtb">' +parseFloat(data.BMTB).formatMoney(2,"",",",".") + '</div><div class="bmttb">' + parseFloat(data.BMTTB).formatMoney(2,"",",",".") + "</div>");
+            $('td:eq(6)', row).html('<div class="ppn">' +parseFloat(data.PPNTB).formatMoney(2,"",",",".") + '</div><div class="ppnbm">' + parseFloat(data.PPNBM).formatMoney(2,"",",",".") + "</div>");
+            $('td:eq(7)', row).html(parseFloat(data.PPHTB).formatMoney(2,"",",","."));
+            $('td:eq(8)', row).html(parseFloat(data.DENDA_TB).formatMoney(2,"",",","."));
+            $('td:eq(9)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
         },
         columnDefs: [
             { "orderable": false, "targets": 0 }
@@ -172,7 +197,7 @@ $(function(){
     });
     $("#kategori1").on("change", function(){
         var value = $(this).val();
-        if (value == "Status VO"){
+        if (value == "Jenis Notul"){
             $("#isikategori1_text").css("display","none");
             $("#isikategori1_text").prop("disabled", true);
             $("#isikategori1_select").css("display","inline");

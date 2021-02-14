@@ -865,9 +865,12 @@ class TransaksiController extends Controller {
 			$postKategori2 = $request->input("kategori2");
 			$dari2 = $request->input("dari2");
 			$sampai2 = $request->input("sampai2");
+			$postKategori3 = $request->input("kategori3");
+			$dari3 = $request->input("dari3");
+			$sampai3 = $request->input("sampai3");
 
 			$data = Transaksi::browseSPTNP($postKantor, $postImportir, $postKategori1,
-									$isikategori1, $postKategori2, $dari2, $sampai2);
+									$isikategori1, $postKategori2, $dari2, $sampai2, $postKategori3, $dari3, $sampai3);
 			if ($data){
 				$export = $request->input("export");
 				if ($export == "1"){
@@ -901,37 +904,45 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'Importir');
-					$sheet->setCellValue('B' .$lastrow, 'Customer');
-				    $sheet->setCellValue('C' .$lastrow, 'No Aju');
-				    $sheet->setCellValue('D' .$lastrow, 'Nopen');
-				    $sheet->setCellValue('E' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('F' .$lastrow, 'No SPTNP');
-					$sheet->setCellValue('G' .$lastrow, 'Tgl SPTNP');
-					$sheet->setCellValue('H' .$lastrow, 'Tgl Jth Tempo');
-					$sheet->setCellValue('I' .$lastrow, 'Tgl Lunas');
-					$sheet->setCellValue('J' .$lastrow, 'Tgl BRT');
-					$sheet->setCellValue('K' .$lastrow, 'Hsl BRT');
-					$sheet->setCellValue('L' .$lastrow, 'Denda TB');
-					$sheet->setCellValue('M' .$lastrow, 'Total TB');
-					$sheet->setCellValue('N' .$lastrow, 'Jenis SPTNP');
+					$sheet->setCellValue('A' .$lastrow, 'Kantor');
+					$sheet->setCellValue('B' .$lastrow, 'Importir');
+			    $sheet->setCellValue('B' .($lastrow+1), 'No Aju');
+					$sheet->setCellValue('C' .$lastrow, 'No SPTNP');
+					$sheet->setCellValue('C' .($lastrow+1), 'Tgl SPTNP');
+			    $sheet->setCellValue('D' .$lastrow, 'Nopen');
+			    $sheet->setCellValue('D' .($lastrow+1), 'Tgl Nopen');
+					$sheet->setCellValue('E' .$lastrow, 'BM');
+			    $sheet->setCellValue('E' .($lastrow+1), 'BMT');
+					$sheet->setCellValue('F' .$lastrow, 'PPN');
+					$sheet->setCellValue('F' .($lastrow+1), 'PPNBm');
+					$sheet->setCellValue('G' .$lastrow, 'PPH 22');
+					$sheet->setCellValue('H' .$lastrow, 'Denda');
+					$sheet->setCellValue('I' .$lastrow, 'Total');
+					$sheet->setCellValue('J' .$lastrow, 'Jns Notul');
+					$sheet->setCellValue('K' .$lastrow, 'Jth Tempo');
+					$sheet->setCellValue('L' .$lastrow, 'Tgl Lunas');
+					$sheet->setCellValue('M' .$lastrow, 'Tgl BRT');
 
 					foreach ($data as $dt){
-						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('B' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('C' .$lastrow, $dt->NOAJU);
+						$lastrow += 2;
+						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
+						$sheet->setCellValue('B' .$lastrow, $dt->NAMAIMPORTIR);
+						$sheet->setCellValue('B' .($lastrow+1), $dt->NOAJU);
+						$sheet->setCellValue('C' .$lastrow, $dt->NO_SPTNP);
+						$sheet->setCellValue('C' .($lastrow+1), $dt->TGLSPTNP);
 						$sheet->setCellValue('D' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('E' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('F' .$lastrow, $dt->NO_SPTNP);
-						$sheet->setCellValue('G' .$lastrow, $dt->TGLSPTNP);
-						$sheet->setCellValue('H' .$lastrow, $dt->TGLJTHTEMPOSPTNP);
-						$sheet->setCellValue('I' .$lastrow, $dt->TGLLUNAS);
-						$sheet->setCellValue('J' .$lastrow, $dt->TGLBRT);
-						$sheet->setCellValue('K' .$lastrow, $dt->HSL_BRT);
-						$sheet->setCellValue('L' .$lastrow, $dt->DENDA_TB);
-						$sheet->setCellValue('M' .$lastrow, $dt->TOTAL_TB);
-						$sheet->setCellValue('N' .$lastrow, $dt->JENIS_SPTNP);
+						$sheet->setCellValue('D' .($lastrow+1), $dt->TGLNOPEN);
+						$sheet->setCellValue('E' .$lastrow, $dt->BMTB);
+						$sheet->setCellValue('E' .($lastrow+1), $dt->BMTTB);
+						$sheet->setCellValue('F' .$lastrow, $dt->PPNTB);
+						$sheet->setCellValue('F' .($lastrow+1), $dt->PPNBM);
+						$sheet->setCellValue('G' .$lastrow, $dt->PPHTB);
+						$sheet->setCellValue('H' .$lastrow, $dt->DENDA_TB);
+						$sheet->setCellValue('I' .$lastrow, $dt->TOTAL_TB);
+						$sheet->setCellValue('J' .$lastrow, $dt->JENIS_SPTNP);
+						$sheet->setCellValue('K' .$lastrow, $dt->TGLJTHTEMPOSPTNP);
+						$sheet->setCellValue('L' .$lastrow, $dt->TGLLUNAS);
+						$sheet->setCellValue('M' .$lastrow, $dt->TGLBRT);
 					}
 
 					$writer = new Xlsx($spreadsheet);
@@ -952,13 +963,14 @@ class TransaksiController extends Controller {
 		else {
 
 			$breadcrumb[] = Array("link" => "../", "text" => "Home");
-			$breadcrumb[] = Array("text" => "Perekaman SPTNP");
+			$breadcrumb[] = Array("text" => "Browse SPTNP");
 			$kantor = Transaksi::getKantor();
 			$importir = Transaksi::getImportir();
 			return view("transaksi.perekamansptnp",["breads" => $breadcrumb,
 										"datakantor" => $kantor, "dataimportir" => $importir,
-										"datakategori1" => Array("Nopen","No SPTNP","Jenis SPTNP"),
-										"datakategori2" => Array("Tanggal Jatuh Tempo","Tanggal SPTNP", "Tanggal BRT")
+										"datakategori1" => Array("Nopen","No SPTNP","Jenis Notul"),
+										"datakategori2" => Array("Tanggal Nopen", "Tanggal Lunas", "Tanggal Jatuh Tempo","Tanggal SPTNP", "Tanggal BRT"),
+										"datakategori3" => Array("Tanggal Nopen", "Tanggal Lunas", "Tanggal Jatuh Tempo","Tanggal SPTNP", "Tanggal BRT")
 										]);
 		}
 	}
