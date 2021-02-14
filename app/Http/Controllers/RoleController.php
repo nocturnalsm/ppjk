@@ -63,7 +63,7 @@ class RoleController extends Controller {
 	public function create()
 	{
 			$data = new Role;
-	    $permissions = Permission::all();
+	    $permissions = Permission::orderBy("name")->get();
 			return view('admin.roles.form', ["data" => $data, "permissions" => $permissions,
 									"userPerm" => [], "action" => "add"]);
 	}
@@ -135,7 +135,7 @@ class RoleController extends Controller {
 			$arrPerms[] = $up->permission_id;
 		}
 
-    $permissions = Permission::all();
+    $permissions = Permission::orderBy("name")->get();
 		return view('admin.roles.form', ["data" => $data, "permissions" => $permissions,
 								   "userPerm" => $arrPerms, "action" => "edit"]);
 	}
