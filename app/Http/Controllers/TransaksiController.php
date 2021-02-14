@@ -2307,12 +2307,16 @@ class TransaksiController extends Controller {
 	}
 	public function userquota(Request $request, $id = "")
   {
-		$user = !auth()->user();
-		if($user->can('quota.transaksi')){
-			abort(403, 'User does not have the right roles.');
+		$user = auth()->user();
+		if ($id == ""){
+			if(!$user->can('quota.transaksi')){
+				abort(403, 'User does not have the right roles.');
+			}
 		}
-		if (trim($id) != "" && !$user->can('quota.edit')){
-			abort(403, 'User does not have the right roles.');
+		else {
+			if (!$user->can('quota.edit')){
+				abort(403, 'User does not have the right roles.');
+			}
 		}
 		$breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("link" => "/transaksi/browsesaldoquota", "text" => "Browse Saldo Quota");
