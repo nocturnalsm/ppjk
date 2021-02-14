@@ -252,11 +252,33 @@ class Transaksi extends Model
     }
     public static function getTransaksiSPTNP($id)
     {
-        $data = Transaksi::selectRaw("ID, NOPEN, TGL_NOPEN, BM, PPN, PPH, DENDA,"
-                               ."BMT, TOTAL_SPTNP, JENIS_KESALAHAN")
+        $data = Transaksi::selectRaw("ID, KANTOR_ID, IMPORTIR, NOPEN, TGL_NOPEN, NOAJU,"
+                                      ."NO_SPTNP, TGL_SPTNP, BMKITE, PPNBM,"
+                                      ."BMTB, BMTTB, PPNTB, PPHTB, DENDA_TB,"
+                                      ."IFNULL(BMTB,0) + IFNULL(BMTTB,0) + IFNULL(PPNTB,0) + IFNULL(PPHTB,0) + IFNULL(PPNBM,0) + IFNULL(BMKITE,0) + IFNULL(DENDA_TB,0) AS TOTAL_TB,"
+                                      ."JENIS_SPTNP, TGL_JATUH_TEMPO_SPTNP, TGL_LUNAS,"
+                                      ."TGL_BRT, HSL_BRT, NO_KEPBRT, TGL_KEPBRT, TGL_JTHTEMPO_BDG,"
+                                      ."NO_BDG, TGL_BDG, MAJELIS, SDG01, SDG02, SDG03,"
+                                      ."SDG04, SDG05, SDG06, SDG07, HASIL_BDG, NO_KEP_BDG, TGL_KEP_BDG")
                     ->where("ID", $id)
                     ->first();
         $data->TGL_NOPEN = $data->TGL_NOPEN == "" ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));
+        $data->TGL_LUNAS = $data->TGL_LUNAS == "" ? "" : Date("d-m-Y", strtotime($data->TGL_LUNAS));
+        $data->TGL_SPTNP = $data->TGL_SPTNP == "" ? "" : Date("d-m-Y", strtotime($data->TGL_SPTNP));
+        $data->TGL_JATUH_TEMPO_SPTNP = $data->TGL_JATUH_TEMPO_SPTNP == "" ? "" : Date("d-m-Y", strtotime($data->TGL_JATUH_TEMPO_SPTNP));
+        $data->TGL_BRT = $data->TGL_BRT == "" ? "" : Date("d-m-Y", strtotime($data->TGL_BRT));
+        $data->TGL_KEPBRT = $data->TGL_KEPBRT == "" ? "" : Date("d-m-Y", strtotime($data->TGL_KEPBRT));
+        $data->TGL_JTHTEMPO_BDG = $data->TGL_JTHTEMPO_BDG == "" ? "" : Date("d-m-Y", strtotime($data->TGL_JTHTEMPO_BDG));
+        $data->SDG01 = $data->SDG01 == "" ? "" : Date("d-m-Y", strtotime($data->SDG01));
+        $data->SDG02 = $data->SDG02 == "" ? "" : Date("d-m-Y", strtotime($data->SDG02));
+        $data->SDG03 = $data->SDG03 == "" ? "" : Date("d-m-Y", strtotime($data->SDG03));
+        $data->SDG04 = $data->SDG04 == "" ? "" : Date("d-m-Y", strtotime($data->SDG04));
+        $data->SDG05 = $data->SDG05 == "" ? "" : Date("d-m-Y", strtotime($data->SDG05));
+        $data->SDG06 = $data->SDG06 == "" ? "" : Date("d-m-Y", strtotime($data->SDG06));
+        $data->SDG07 = $data->SDG07 == "" ? "" : Date("d-m-Y", strtotime($data->SDG07));
+        $data->TGL_BDG = $data->TGL_BDG == "" ? "" : Date("d-m-Y", strtotime($data->TGL_BDG));
+        $data->TGL_KEPBDG = $data->TGL_KEPBDG == "" ? "" : Date("d-m-Y", strtotime($data->TGL_KEPBDG));
+
         return $data;
     }
     /*
@@ -818,16 +840,40 @@ class Transaksi extends Model
     }
     public static function saveTransaksiSPTNP($header){
         $arrHeader = Array(
+                "KANTOR_ID" => intval(trim($header["kantor"])), "IMPORTIR" => intval(trim($header["importir"])),
                 "TGL_NOPEN" => trim($header["tglnopen"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglnopen"])),
-                "NOPEN" => $header["nopen"],
-                "JENIS_KESALAHAN" => $header["jeniskesalahan"],
-                "TOTAL_SPTNP" => nullval(str_replace(",","",$header["total"])),
-                "BMT" => nullval(str_replace(",","",$header["bmt"])), "PPN" => nullval(str_replace(",","",$header["ppn"])),
-                "PPH" => nullval(str_replace(",","",$header["pph"])),"DENDA" => nullval(str_replace(",","",$header["denda"])),
-                "BM" => nullval(str_replace(",","",$header["bbm"]))
+                "TGL_LUNAS" => trim($header["tgllunas"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgllunas"])),
+                "TGL_JATUH_TEMPO_SPTNP" => trim($header["tgljthtemposptnp"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgljthtemposptnp"])),
+                "TGL_SPTNP" => trim($header["tglsptnp"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglsptnp"])),
+                "NOPEN" => $header["nopen"], "NO_SPTNP" => $header["nosptnp"],"NOAJU" => $header["noaju"],
+                "NO_SPTNP" => $header["nosptnp"], "HSL_BRT" => nullval($header["hslbrt"]),
+                "JENIS_SPTNP" => nullval($header["jenissptnp"]),
+                "BMTTB" => nullval(str_replace(",","",$header["bmttb"])), "PPNTB" => nullval(str_replace(",","",$header["ppntb"])),
+                "PPHTB" => nullval(str_replace(",","",$header["pphtb"])),"DENDA_TB" => nullval(str_replace(",","",$header["dendatb"])),
+                "BMKITE" => nullval(str_replace(",","",$header["bmkite"])),"PPNBM" => nullval(str_replace(",","",$header["ppnbm"])),
+                "BMTB" => nullval(str_replace(",","",$header["bmtb"])),
+                "NO_BDG" => $header["nobdg"], "MAJELIS" => $header["majelis"],"NO_KEP_BDG" => $header["nokepbdg"],
+                "NO_KEPBRT" => $header["nokepbrt"], "HASIL_BDG" => trim($header["hasilbdg"]),
+                "TGL_BDG" => trim($header["tglbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbdg"])),
+                "TGL_KEP_BDG" => trim($header["tglkepbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglkepbdg"])),
+                "TGL_BRT" => trim($header["tglbrt"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbrt"])),
+                "TGL_KEPBRT" => trim($header["tglkepbrt"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglkepbrt"])),
+                "TGL_JTHTEMPO_BDG" => trim($header["tgljthtmpbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgljthtmpbdg"])),
+                "SDG01" => trim($header["sdg01"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg01"])),
+                "SDG02" => trim($header["sdg02"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg02"])),
+                "SDG03" => trim($header["sdg03"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg03"])),
+                "SDG04" => trim($header["sdg04"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg04"])),
+                "SDG05" => trim($header["sdg05"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg05"])),
+                "SDG06" => trim($header["sdg06"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg06"])),
+                "SDG07" => trim($header["sdg07"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg07"])),
             );
-        $idtransaksi = $header["idtransaksi"];
-        Transaksi::where("ID", $idtransaksi)->update($arrHeader);
+        $idtransaksi = trim($header["idtransaksi"]);
+        if ($idtransaksi != ""){
+          Transaksi::where("ID", $idtransaksi)->update($arrHeader);
+        }
+        else {
+          Transaksi::insert($arrHeader);
+        }
     }
     public static function updateHasilBongkar($header){
 
@@ -2426,13 +2472,13 @@ class Transaksi extends Model
     public static function getRateDPP()
     {
         $rate = Rate::select("RATE")->orderBy("RATE")->get();
-		$datarate = Array();
-		if ($rate->count() > 0){
-		    foreach ($rate as $row){
-    		    $datarate[] = $row->RATE;
-		    }
-		}
-		return $datarate;
+    		$datarate = Array();
+    		if ($rate->count() > 0){
+    		    foreach ($rate as $row){
+        		    $datarate[] = $row->RATE;
+    		    }
+    		}
+    		return $datarate;
     }
     public static function browseSPTNP($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
     {
@@ -2478,7 +2524,7 @@ class Transaksi extends Model
                               ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,"
                               ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN,"
                               ."DATE_FORMAT(TGL_LUNAS, '%d-%m-%Y') AS TGLLUNAS,"
-                              ."BMTB+BMTTB+PPNTB+PPHTB+DENDA_TB AS TOTAL_TB")
+                              ."IFNULL(BMTB,0)+IFNULL(PPNBM,0)+IFNULL(BMKITE,0)+IFNULL(BMTTB,0)+IFNULL(PPNTB,0)+IFNULL(PPHTB,0)+IFNULL(DENDA_TB,0) AS TOTAL_TB")
                     ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "h.CUSTOMER", "=", "c.id_customer")
                     ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
         if (trim($where) != ""){
@@ -2500,5 +2546,140 @@ class Transaksi extends Model
             DB::table("tbl_detail_bayar")->where("ID_HEADER", $id)->delete();
             DB::table("tbl_header_bayar")->where("ID", $id)->delete();
         }
+    }
+    public static function browseKeberatan($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
+    {
+        $array1 =  Array("Nopen" => "NOPEN","No SPTNP" => "NO_SPTNP");
+
+        $array2 = Array("Tanggal Jatuh Tempo" => "TGL_JATUH_TEMPO_SPTNP", "Tanggal Nopen" => "TGL_NOPEN",
+                        "Tanggal SPTNP" => "TGL_SPTNP", "Tanggal BRT" => "TGL_BRT",
+                        "Tanggal Lunas" => "TGL_LUNAS", "Tgl Jatuh Tempo Bdg" => "TGL_JTHTEMPO_BDG");
+
+        $where = "1=1";
+        if ($kategori1 != ""){
+            if (trim($isikategori1) == ""){
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+            }
+            else {
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+            }
+
+        }
+        if ($kategori2 != ""){
+            if (trim($dari2) == "" && trim($sampai2) == ""){
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+            }
+            else {
+                if (trim($dari2) == ""){
+                    $dari2 = "0000-00-00";
+                }
+                if (trim($sampai2) == ""){
+                    $sampai2 = "9999-99-99";
+                }
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+            }
+        }
+        if (trim($importir) != ""){
+            $where .= " AND IMPORTIR = '" .$importir ."'";
+        }
+        if (trim($kantor) != ""){
+            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+        }
+        $data = DB::table(DB::raw("tbl_penarikan_header h"))
+                    ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_SPTNP, HSL_BRT, NOPEN,"
+                              ."i.NAMA AS NAMAIMPORTIR,"
+                              ."DATE_FORMAT(TGL_JATUH_TEMPO_SPTNP, '%d-%m-%Y') AS TGLJTHTEMPOSPTNP,"
+                              ."DATE_FORMAT(TGL_JTHTEMPO_BDG, '%d-%m-%Y') AS TGLJTHTMPBDG,"
+                              ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,NO_KEP_BDG,"
+                              ."DATE_FORMAT(TGL_KEP_BDG, '%d-%m-%Y') AS TGLKEPBDG,"
+                              ."DATE_FORMAT(TGL_LUNAS, '%d-%m-%Y') AS TGLLUNAS,"
+                              ."IFNULL(BMTB,0)+IFNULL(PPNBM,0)+IFNULL(BMKITE,0)+IFNULL(BMTTB,0)+IFNULL(PPNTB,0)+IFNULL(PPHTB,0)+IFNULL(DENDA_TB,0) AS TOTAL_TB")
+                    ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
+                    ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
+        if (trim($where) != ""){
+            $data->whereRaw($where);
+        }
+        return $data->get();
+    }
+    public static function browseBanding($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2, $kategori3, $dari3, $sampai3)
+    {
+        $array1 =  Array("Nopen" => "NOPEN","No Kep Brt" => "NO_KEPBRT","No Bdg" => "NO_BDG","Mjls" => "MAJELIS");
+
+        $array2 = Array("Tanggal Nopen" => "TGL_NOPEN",
+                        "Tgl Bdg" => "TGL_BDG");
+
+        $where = "";
+        if ($kategori1 != ""){
+            if (trim($isikategori1) == ""){
+                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+            }
+            else {
+                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+            }
+
+        }
+        if ($kategori2 != ""){
+            if ($where != ""){
+                $where .= " AND ";
+            }
+            if (trim($dari2) == "" && trim($sampai2) == ""){
+                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+            }
+            else {
+                if (trim($dari2) == ""){
+                    $dari2 = "0000-00-00";
+                }
+                if (trim($sampai2) == ""){
+                    $sampai2 = "9999-99-99";
+                }
+                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+            }
+        }
+        if ($kategori3 != ""){
+            if ($where != ""){
+                $where .= " AND ";
+            }
+            if (trim($dari3) == "" && trim($sampai3) == ""){
+                $where  .=  "(" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+            }
+            else {
+                if (trim($dari3) == ""){
+                    $dari3 = "0000-00-00";
+                }
+                if (trim($sampai3) == ""){
+                    $sampai3 = "9999-99-99";
+                }
+                $where  .=  "(" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
+            }
+        }
+        if (trim($kantor) != ""){
+            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+        }
+        if (trim($importir) != ""){
+            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+        }
+        $data = DB::table(DB::raw("tbl_penarikan_header h"))
+                    ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_KEPBRT, HASIL_BDG, NOPEN,"
+                              ."i.NAMA AS NAMAIMPORTIR, NO_BDG, MAJELIS, "
+                              ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN,"
+                              ."DATE_FORMAT(TGL_KEPBRT, '%d-%m-%Y') AS TGLKEPBRT,"
+                              ."DATE_FORMAT(TGL_BDG, '%d-%m-%Y') AS TGLBDG,"
+                              ."DATE_FORMAT(SDG01, '%d-%m-%Y') AS SDG01,"
+                              ."DATE_FORMAT(SDG02, '%d-%m-%Y') AS SDG02, NO_KEP_BDG,"
+                              ."DATE_FORMAT(TGL_KEP_BDG, '%d-%m-%Y') AS TGLKEPBDG,"
+                              ."DATE_FORMAT(SDG03, '%d-%m-%Y') AS SDG03,"
+                              ."DATE_FORMAT(SDG04, '%d-%m-%Y') AS SDG04,"
+                              ."DATE_FORMAT(SDG05, '%d-%m-%Y') AS SDG05,"
+                              ."DATE_FORMAT(SDG06, '%d-%m-%Y') AS SDG06,"
+                              ."DATE_FORMAT(SDG07, '%d-%m-%Y') AS SDG07")
+                    ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
+                    ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
+        if (trim($where) != ""){
+            $data->whereRaw($where);
+        }
+        return $data->get();
     }
 }

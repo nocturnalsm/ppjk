@@ -233,7 +233,7 @@
                         method: "POST",
                         success: function(response){
                             $("#nopi").val(response.NO_PI);
-                            @can("quota.transaksi")
+                            @can("quota.edit")
                             $("#editpi").html('<a href="/transaksi/userquota/' + response.ID + '"><i class="fa fa-edit"></i></a>');
                             @endcan
                         }

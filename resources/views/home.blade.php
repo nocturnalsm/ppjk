@@ -26,8 +26,17 @@
                     @can('barang.browse')
                     <a class="list-group-item list-group-item-action" href="./transaksi/perekamanbarang">Perekaman Barang</a>
                     @endcan
+                    @can('sptnp.transaksi')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/usersptnp">Perekaman SPTNP</a>
+                    @endcan
                     @can('sptnp.browse')
                     <a class="list-group-item list-group-item-action" href="./transaksi/browsesptnp">Browse SPTNP</a>
+                    @endcan
+                    @can('sptnp.keberatan')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/keberatan">Browse Keberatan</a>
+                    @endcan
+                    @can('sptnp.banding')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/banding">Browse Banding</a>
                     @endcan
                     @can('quota.transaksi')
                     <a class="list-group-item list-group-item-action" href="./transaksi/userquota">Perekaman Quota</a>

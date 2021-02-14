@@ -143,7 +143,7 @@ class TransaksiController extends Controller {
 			];
 		return view("transaksi.transaksivo", $data);
 	}
-	public function usersptnp($id = "")
+	public function usersptnp(Request $request, $id = "")
   {
 		if(!auth()->user()->can('sptnp.transaksi')){
 			abort(403, 'User does not have the right roles.');
@@ -151,13 +151,21 @@ class TransaksiController extends Controller {
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("text" => "Perekaman SPTNP");
 
-		$dtTransaksi = Transaksi::getTransaksiSPTNP($id);
-		$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
+		$kantor = Transaksi::getKantor();
+		$importir = Transaksi::getImportir();
+
+		if ($id != ""){
+			$dtTransaksi = Transaksi::getTransaksiSPTNP($id);
+			$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
+		}
+		else {
+			$dtTransaksi = new Transaksi;
+			$notransaksi = "Baru";
+		}
 
 		$data = [
-				"header" => $dtTransaksi, "breads" => $breadcrumb,
-				"idtransaksi" => $id,
-				"notransaksi" => $notransaksi
+				"header" => $dtTransaksi, "kodekantor" => $kantor, "importir" => $importir, "breads" => $breadcrumb,
+				"idtransaksi" => $id, "notransaksi" => $notransaksi
 			];
 		return view("transaksi.transaksisptnp", $data);
 	}
@@ -2287,10 +2295,13 @@ class TransaksiController extends Controller {
 	}
 	public function userquota(Request $request, $id = "")
   {
-		if(!auth()->user()->can('quota.transaksi')){
+		$user = !auth()->user();
+		if($user->can('quota.transaksi')){
 			abort(403, 'User does not have the right roles.');
 		}
-
+		if (trim($id) != "" && !$user->can('quota.edit')){
+			abort(403, 'User does not have the right roles.');
+		}
 		$breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("link" => "/transaksi/browsesaldoquota", "text" => "Browse Saldo Quota");
 		$breadcrumb[] = Array("text" => "Perekaman Quota");
@@ -2476,6 +2487,242 @@ class TransaksiController extends Controller {
 	        $response["data"] = [];
 	    }
 	    return response()->json($response);
+	}
+	public function banding(Request $request)
+  {
+		if(!auth()->user()->can('sptnp.banding')){
+			abort(403, 'User does not have the right roles.');
+		}
+		$filter = $request->input("filter");
+		if ($filter && $filter == "1"){
+			$postKantor = $request->input("kantor");
+			$postImportir = $request->input("importir");
+			$postKategori1 = $request->input("kategori1");
+			$isikategori1 = $request->input("isikategori1");
+			$postKategori2 = $request->input("kategori2");
+			$dari2 = $request->input("dari2");
+			$sampai2 = $request->input("sampai2");
+			$postKategori3 = $request->input("kategori3");
+			$dari3 = $request->input("dari3");
+			$sampai3 = $request->input("sampai3");
+
+			$data = Transaksi::browseBanding($postKantor, $postImportir, $postKategori1,
+									$isikategori1, $postKategori2, $dari2, $sampai2, $postKategori3, $dari3, $sampai3);
+			if ($data){
+				$export = $request->input("export");
+				if ($export == "1"){
+					$spreadsheet = new Spreadsheet();
+					$sheet = $spreadsheet->getActiveSheet();
+					$sheet->setCellValue('A1', 'KANTOR');
+					if ($postKantor && trim($postKantor) != ""){
+    					$sheet->setCellValue('C1', Transaksi::getKantor($postKantor)->URAIAN);
+					}
+					else {
+					    $sheet->setCellValue('C1', "Semua");
+					}
+					$sheet->setCellValue('A2', 'IMPORTIR');
+					if ($postImportir && trim($postImportir) != ""){
+						$sheet->setCellValue('C2', Transaksi::getImportir($postImportir)->NAMA);
+					}
+					else {
+						$sheet->setCellValue('C2', "Semua");
+					}
+					$lastrow = 2;
+					if ($postKategori1 && trim($postKategori1) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori1);
+						$sheet->setCellValue('C' .$lastrow, $isikategori1);
+					}
+					if ($postKategori2 && trim($postKategori2) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori2);
+						$sheet->setCellValue('C' .$lastrow, $dari2 == "" ? "-" : Date("d M Y", strtotime($dari2)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
+					}
+					if ($postKategori3 && trim($postKategori3) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori3);
+						$sheet->setCellValue('C' .$lastrow, $dari3 == "" ? "-" : Date("d M Y", strtotime($dari3)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai3 == "" ? "-" : Date("d M Y", strtotime($sampai3)));
+					}
+					$lastrow += 2;
+					$sheet->setCellValue('A' .$lastrow, 'Kantor');
+					$sheet->setCellValue('B' .$lastrow, 'Importir');
+					$sheet->setCellValue('C' .$lastrow, 'Nopen');
+					$sheet->setCellValue('C' .($lastrow+1), 'Tgl Nopen');
+				  $sheet->setCellValue('D' .$lastrow, 'No Kep BRT');
+					$sheet->setCellValue('D' .($lastrow+1), 'Tgl Kep BRT');
+					$sheet->setCellValue('E' .$lastrow, 'No Bdg');
+					$sheet->setCellValue('E' .($lastrow+1), 'Tgl Bdg');
+					$sheet->setCellValue('F' .$lastrow, 'Mjls');
+					$sheet->setCellValue('G' .$lastrow, 'SD01');
+					$sheet->setCellValue('H' .$lastrow, 'SD02');
+					$sheet->setCellValue('I' .$lastrow, 'SD03');
+					$sheet->setCellValue('J' .$lastrow, 'SD04');
+					$sheet->setCellValue('K' .$lastrow, 'SD05');
+					$sheet->setCellValue('L' .$lastrow, 'SD06');
+					$sheet->setCellValue('M' .$lastrow, 'SD07');
+					$sheet->setCellValue('N' .$lastrow, 'HASIL_BDG');
+					$sheet->setCellValue('O' .$lastrow, 'NO_KEP_BDG');
+					$sheet->setCellValue('O' .($lastrow+1), 'TGLKEPBDG');
+
+					foreach ($data as $dt){
+						$lastrow += 2;
+						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
+						$sheet->setCellValue('B' .$lastrow, $dt->NAMAIMPORTIR);
+						$sheet->setCellValue('C' .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue('C' .($lastrow+1), $dt->TGLNOPEN);
+						$sheet->setCellValue('D' .$lastrow, $dt->NO_KEPBRT);
+						$sheet->setCellValue('D' .($lastrow+1), $dt->TGLKEPBRT);
+						$sheet->setCellValue('E' .$lastrow, $dt->NO_BDG);
+						$sheet->setCellValue('E' .($lastrow+1), $dt->TGLBDG);
+						$sheet->setCellValue('F' .$lastrow, $dt->MAJELIS);
+						$sheet->setCellValue('G' .$lastrow, $dt->SDG01);
+						$sheet->setCellValue('H' .$lastrow, $dt->SDG02);
+						$sheet->setCellValue('I' .$lastrow, $dt->SDG03);
+						$sheet->setCellValue('J' .$lastrow, $dt->SDG04);
+						$sheet->setCellValue('K' .$lastrow, $dt->SDG05);
+						$sheet->setCellValue('L' .$lastrow, $dt->SDG06);
+						$sheet->setCellValue('M' .$lastrow, $dt->SDG07);
+						$sheet->setCellValue('N' .$lastrow, $dt->HASIL_BDG);
+						$sheet->setCellValue('O' .$lastrow, $dt->NO_KEP_BDG);
+						$sheet->setCellValue('O' .($lastrow+1), $dt->TGLKEPBDG);
+					}
+
+					$writer = new Xlsx($spreadsheet);
+					return response()->streamDownload(function() use ($writer){
+							$writer->save('php://output');
+						}, 'banding_' .Date("YmdHis") .'.xlsx',
+						['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+
+				}
+				else {
+					return response()->json($data);
+				}
+			}
+			else {
+				return response()->json([]);
+			}
+		}
+		else {
+
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Browse Banding");
+			$kantor = Transaksi::getKantor();
+			$importir = Transaksi::getImportir();
+			return view("transaksi.banding",["breads" => $breadcrumb,
+										"datakantor" => $kantor, "dataimportir" => $importir,
+										"datakategori1" => Array("Nopen","No Kep Brt", "No Bdg", "Mjls"),
+										"datakategori2" => Array("Tanggal Nopen","Tanggal Bdg")
+										]);
+		}
+	}
+	public function keberatan(Request $request)
+  {
+		if(!auth()->user()->can('sptnp.keberatan')){
+			abort(403, 'User does not have the right roles.');
+		}
+		$filter = $request->input("filter");
+		if ($filter && $filter == "1"){
+			$postKantor = $request->input("kantor");
+			$postImportir = $request->input("importir");
+			$postKategori1 = $request->input("kategori1");
+			$isikategori1 = $request->input("isikategori1");
+			$postKategori2 = $request->input("kategori2");
+			$dari2 = $request->input("dari2");
+			$sampai2 = $request->input("sampai2");
+
+			$data = Transaksi::browseKeberatan($postKantor, $postImportir, $postKategori1,
+									$isikategori1, $postKategori2, $dari2, $sampai2);
+			if ($data){
+				$export = $request->input("export");
+				if ($export == "1"){
+					$spreadsheet = new Spreadsheet();
+					$sheet = $spreadsheet->getActiveSheet();
+					$sheet->setCellValue('A1', 'KANTOR');
+					if ($postKantor && trim($postKantor) != ""){
+    					$sheet->setCellValue('C1', Transaksi::getKantor($postKantor)->URAIAN);
+					}
+					else {
+					    $sheet->setCellValue('C1', "Semua");
+					}
+					$sheet->setCellValue('A2', 'IMPORTIR');
+					if ($postImportir && trim($postImportir) != ""){
+						$sheet->setCellValue('C2', Transaksi::getImportir($postImportir)->NAMA);
+					}
+					else {
+						$sheet->setCellValue('C2', "Semua");
+					}
+					$lastrow = 2;
+					if ($postKategori1 && trim($postKategori1) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori1);
+						$sheet->setCellValue('C' .$lastrow, $isikategori1);
+					}
+					if ($postKategori2 && trim($postKategori2) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori2);
+						$sheet->setCellValue('C' .$lastrow, $dari2 == "" ? "-" : Date("d M Y", strtotime($dari2)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
+					}
+					$lastrow += 2;
+					$sheet->setCellValue('A' .$lastrow, 'Kantor');
+					$sheet->setCellValue('B' .$lastrow, 'Importir');
+					$sheet->setCellValue('C' .$lastrow, 'No SPTNP');
+				  $sheet->setCellValue('D' .$lastrow, 'Nopen');
+				  $sheet->setCellValue('E' .$lastrow, 'Total');
+					$sheet->setCellValue('F' .$lastrow, 'Tgl Lunas');
+					$sheet->setCellValue('G' .$lastrow, 'Tgl BRT');
+					$sheet->setCellValue('H' .$lastrow, 'Hsl BRT');
+					$sheet->setCellValue('I' .$lastrow, 'No Kep Bdg');
+					$sheet->setCellValue('J' .$lastrow, 'Tgl Kep Bdg');
+					$sheet->setCellValue('K' .$lastrow, 'Tgl Jth Tempo Bdg');
+
+					foreach ($data as $dt){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
+						$sheet->setCellValue('B' .$lastrow, $dt->NAMAIMPORTIR);
+						$sheet->setCellValue('C' .$lastrow, $dt->NO_SPTNP);
+						$sheet->setCellValue('D' .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue('E' .$lastrow, $dt->TOTAL);
+						$sheet->setCellValue('F' .$lastrow, $dt->TGLLUNAS);
+						$sheet->setCellValue('G' .$lastrow, $dt->TGLBRT);
+						$sheet->setCellValue('H' .$lastrow, $dt->HSL_BRT);
+						$sheet->setCellValue('I' .$lastrow, $dt->NO_KEP_BDG);
+						$sheet->setCellValue('J' .$lastrow, $dt->TGLKEPBDG);
+						$sheet->setCellValue('K' .$lastrow, $dt->TGLJTHTMPBDG);
+					}
+
+					$writer = new Xlsx($spreadsheet);
+					return response()->streamDownload(function() use ($writer){
+							$writer->save('php://output');
+						}, 'keberatan_' .Date("YmdHis") .'.xlsx',
+						['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+
+				}
+				else {
+					return response()->json($data);
+				}
+			}
+			else {
+				return response()->json([]);
+			}
+		}
+		else {
+
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Browse Keberatan");
+			$kantor = Transaksi::getKantor();
+			$importir = Transaksi::getImportir();
+			return view("transaksi.keberatan",["breads" => $breadcrumb,
+										"datakantor" => $kantor, "dataimportir" => $importir,
+										"datakategori1" => Array("Nopen","No SPTNP"),
+										"datakategori2" => Array("Tanggal Jatuh Tempo","Tanggal SPTNP", "Tanggal BRT", "Tanggal Nopen","Tanggal Lunas", "Tgl Jatuh Tempo Bdg")
+										]);
+		}
 	}
 
 }

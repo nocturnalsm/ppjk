@@ -2,12 +2,12 @@
 @section('main')
 <div class="card">
     <div class="card-header">
-        Browse SPTNP
+        Browse Keberatan
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-10">
-                <form id="form" method="POST" action="/transaksi/browsesptnp?filter=1&export=1">
+                <form id="form" method="POST" action="/transaksi/keberatan?filter=1&export=1">
                     @csrf
                     <div class="row">
                         <label class="col-md-2">Kantor</label>
@@ -48,13 +48,6 @@
                         <label class="px-sm-3 col-sm-1">Nilai</label>
                         <div class="col-md-5">
                             <input type="text" id="isikategori1_text" name="isikategori1" class="form-control form-control-sm" style="display:inline;width: 120px">
-                            <select disabled id="isikategori1_select" name="isikategori1" class="form-control form-control-sm" style="display:none;width:120px">
-                                <option value=""></option>
-                                <option value="NP">NP</option>
-                                <option value="NP+FORM">NP+FORM Inspect</option>
-                                <option value="FORM">FORM</option>
-                                <option value="BMT">BMT</option>
-                            </select>
                         </div>
                     </div>
                     <div class="row">
@@ -90,20 +83,17 @@
                 <table width="100%" id="grid" class="table">
                     <thead>
                         <th>Opsi</th>
+                        <th>Ktr</th>
                         <th>Importir</th>
-                        <th>Customer</th>
-                        <th>No Aju</th>
-                        <th>Nopen</th>
-                        <th>Tgl Nopen</th>
                         <th>No SPTNP</th>
-                        <th>Tgl SPTNP</th>
-                        <th>Tgl Jth Tempo</th>
+                        <th>Nopen</th>
+                        <th>Total</th>
                         <th>Tgl Lunas</th>
                         <th>Tgl BRT</th>
                         <th>Hasil BRT</th>
-                        <th>Denda TB</th>
-                        <th>Total TB</th>
-                        <th>Jenis SPTNP</th>
+                        <th>No Kep</th>
+                        <th>Tgl Kep</th>
+                        <th>Jth Tmp Bdg</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -116,7 +106,6 @@
     <link href="{{ asset('jquery-ui/jquery-ui.min.css') }}" rel="stylesheet">
 @endpush
 @push('scripts_end')
-<script type="text/javascript" src="{{ asset('js/jquery.inputmask.bundle.js') }}"></script>
 <script type="text/javascript" src="{{ asset('jquery-ui/jquery-ui.min.js') }}"></script>
 <script>
 $(function(){
@@ -133,13 +122,10 @@ $(function(){
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
 
-    var columns = [{target: 0, data: null}, {target: 1, data: "IMPORTIR"}, {target: 2, data: "CUSTOMER"}, {target: 3, data: "NOAJU"},
-    {target: 4, data: "NOPEN"}, {target: 5, data: "TGLNOPEN"}, {target: 6, data: "NO_SPTNP"},
-    {target: 7, data: "TGLSPTNP"}, {target: 8, data: "TGLJTHTEMPOSPTNP"}, {target: 9, data: "TGLLUNAS"}, {target: 10, data: "TGLBRT"},
-    {target: 11, data: "HSL_BRT"},
-    {target: 12, data: "DENDA_TB"},
-    {target: 13, data: "TOTAL_TB"},
-    {target: 14, data: "JENIS_SPTNP"}
+    var columns = [{target: 0, data: null}, {target: 1, data: "KODEKANTOR"}, {target: 2, data: "NAMAIMPORTIR"}, {target: 3, data: "NO_SPTNP"},
+    {target: 4, data: "NOPEN"}, {target: 5, data: "TOTAL_TB"}, {target: 6, data: "TGLLUNAS"},
+    {target: 7, data: "TGLBRT"}, {target: 8, data: "HSL_BRT"}, {target: 9, data: "NO_KEP_BDG"}, {target: 10, data: "TGLKEPBDG"},
+    {target: 11, data: "TGLJTHTMPBDG"}
     ];
 
     var grid = $("#grid").DataTable({responsive: false,
@@ -163,32 +149,16 @@ $(function(){
         {
             $(row).attr("id-transaksi", data[0]);
             $('td:eq(0)', row).html('<a title="Edit" href="/transaksi/usersptnp/' + data.ID + '"><i class="fa fa-edit"></i></a>');
-            $('td:eq(12)', row).html(parseFloat(data.DENDA_TB).formatMoney(2,"",",","."));
-            $('td:eq(13)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
+            $('td:eq(5)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
         },
         columnDefs: [
             { "orderable": false, "targets": 0 }
         ]
     });
-    $("#kategori1").on("change", function(){
-        var value = $(this).val();
-        if (value == "Status VO"){
-            $("#isikategori1_text").css("display","none");
-            $("#isikategori1_text").prop("disabled", true);
-            $("#isikategori1_select").css("display","inline");
-            $("#isikategori1_select").prop("disabled", false);
-        }
-        else {
-            $("#isikategori1_text").css("display","inline");
-            $("#isikategori1_select").css("display","none");
-            $("#isikategori1_select").prop("disabled", true);
-            $("#isikategori1_text").prop("disabled", false);
-        }
-    })
     $("#preview").on("click", function(){
         $.ajax({
         method: "POST",
-        url: "/transaksi/browsesptnp?filter=1",
+        url: "/transaksi/keberatan?filter=1",
         data: $("#form").serialize(),
         success: function(msg){
                 grid.clear().rows.add(msg);

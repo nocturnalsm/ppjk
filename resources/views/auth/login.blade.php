@@ -28,7 +28,7 @@
 					</div>
 				</form>
 			</div>
-			<div class="modal-footer">
+			<div class="modal-footer @if($errors->any()) bg-danger text-white @endif">
         @if($errors->any())
             @foreach($errors->all() as $err)
                 {{ $err }}
