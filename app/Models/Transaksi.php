@@ -2570,7 +2570,7 @@ class Transaksi extends Model
                         "Tanggal SPTNP" => "TGL_SPTNP", "Tanggal BRT" => "TGL_BRT",
                         "Tanggal Lunas" => "TGL_LUNAS", "Tgl Jatuh Tempo Bdg" => "TGL_JTHTEMPO_BDG");
 
-        $where = "";
+        $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
                 $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
@@ -2606,6 +2606,7 @@ class Transaksi extends Model
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_SPTNP, HSL_BRT, NOPEN,"
                               ."i.NAMA AS NAMAIMPORTIR,"
+                              ."DATE_FORMAT(TGL_SPTNP, '%d-%m-%Y') AS TGLSPTNP,"
                               ."DATE_FORMAT(TGL_JATUH_TEMPO_SPTNP, '%d-%m-%Y') AS TGLJTHTEMPOSPTNP,"
                               ."DATE_FORMAT(TGL_JTHTEMPO_BDG, '%d-%m-%Y') AS TGLJTHTMPBDG,"
                               ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,NO_KEP_BDG,"
@@ -2626,7 +2627,7 @@ class Transaksi extends Model
         $array2 = Array("Tanggal Nopen" => "TGL_NOPEN",
                         "Tgl Bdg" => "TGL_BDG");
 
-        $where = "";
+        $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
                 $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";

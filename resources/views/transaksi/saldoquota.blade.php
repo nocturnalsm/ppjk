@@ -225,7 +225,6 @@
         });
         $("#importir").on("change", function(){
                 var id = $(this).find("option:selected").val();
-                console.log(id);
                 if (id != ""){
                     $.ajax({
                         url: "/transaksi/getpi",
@@ -234,7 +233,12 @@
                         success: function(response){
                             $("#nopi").val(response.NO_PI);
                             @can("quota.edit")
-                            $("#editpi").html('<a href="/transaksi/userquota/' + response.ID + '"><i class="fa fa-edit"></i></a>');
+                            if (response.NO_PI.trim() != ""){
+                              $("#editpi").html('<a href="/transaksi/userquota/' + response.ID + '"><i class="fa fa-edit"></i></a>');
+                            }
+                            else {
+                              $("#editpi").html("");
+                            }
                             @endcan
                         }
                     });

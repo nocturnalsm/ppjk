@@ -86,6 +86,7 @@
                         <th>Ktr</th>
                         <th>Importir</th>
                         <th>No SPTNP</th>
+                        <th>Tgl SPTNP</th>
                         <th>Nopen</th>
                         <th>Total</th>
                         <th>Tgl Lunas</th>
@@ -123,9 +124,9 @@ $(function(){
         };
 
     var columns = [{target: 0, data: null}, {target: 1, data: "KODEKANTOR"}, {target: 2, data: "NAMAIMPORTIR"}, {target: 3, data: "NO_SPTNP"},
-    {target: 4, data: "NOPEN"}, {target: 5, data: "TOTAL_TB"}, {target: 6, data: "TGLLUNAS"},
-    {target: 7, data: "TGLBRT"}, {target: 8, data: "HSL_BRT"}, {target: 9, data: "NO_KEP_BDG"}, {target: 10, data: "TGLKEPBDG"},
-    {target: 11, data: "TGLJTHTMPBDG"}
+    {target: 4, data: "TGLSPTNP"},{target: 5, data: "NOPEN"}, {target: 6, data: "TOTAL_TB"}, {target: 7, data: "TGLLUNAS"},
+    {target: 8, data: "TGLBRT"}, {target: 9, data: "HSL_BRT"}, {target: 10, data: "NO_KEP_BDG"}, {target: 11, data: "TGLKEPBDG"},
+    {target: 12, data: "TGLJTHTMPBDG"}
     ];
 
     var grid = $("#grid").DataTable({responsive: false,
@@ -149,7 +150,7 @@ $(function(){
         {
             $(row).attr("id-transaksi", data[0]);
             $('td:eq(0)', row).html('<a title="Edit" href="/transaksi/usersptnp/' + data.ID + '"><i class="fa fa-edit"></i></a>');
-            $('td:eq(5)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
+            $('td:eq(6)', row).html(parseFloat(data.TOTAL_TB).formatMoney(2,"",",","."));
         },
         columnDefs: [
             { "orderable": false, "targets": 0 }
