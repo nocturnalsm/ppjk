@@ -51,6 +51,13 @@ class Sptnp extends Model
         return $data;
     }
     public static function saveTransaksiSPTNP($header){
+        $idtransaksi = trim($header["idtransaksi"]);
+        $check = Sptnp::where("NO_SPTNP", $header["nosptnp"])->value("ID");
+        if ($check){
+          if ($idtransaksi == "" || ($idtransaksi != "" && $idtransaksi != $check)){
+            throw new \Exception('No SPTNP sudah ada');
+          }
+        }
         $arrHeader = Array(
                 "KANTOR_ID" => intval(trim($header["kantor"])), "IMPORTIR" => intval(trim($header["importir"])),
                 "TGL_NOPEN" => trim($header["tglnopen"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglnopen"])),
@@ -79,7 +86,6 @@ class Sptnp extends Model
                 "SDG06" => trim($header["sdg06"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg06"])),
                 "SDG07" => trim($header["sdg07"]) == "" ? NULL : Date("Y-m-d", strtotime($header["sdg07"])),
             );
-        $idtransaksi = trim($header["idtransaksi"]);
         if ($idtransaksi != ""){
           Sptnp::where("ID", $idtransaksi)->update($arrHeader);
         }
