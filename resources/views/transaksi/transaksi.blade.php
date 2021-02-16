@@ -515,90 +515,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="card col-md-12 p-0 mb-2">
-                            <div class="card-body p-3">
-                                <h5 class="card-title">Data SPTNP</h5>
-                                <div class="form-row px-2">
-                                    <label class="col-md-2 col-form-label form-control-sm">No. SPTNP</label>
-                                    <div class="col-md-3">
-                                        <input type="text" maxlength="24" class="form-control form-control-sm" name="nostpnp" id="nostpnp" value="{{ $header->NO_SPTNP }}">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">Tgl SPTNP</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglstpnp" value="{{ $header->TGL_SPTNP }}" id="tglstpnp">
-                                    </div>
-                                </div>
-                                <div class="form-row px-2">
-                                    <label class="col-md-2 col-form-label form-control-sm">Tgl Jth Tempo</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgljthtemposptnp" value="{{ $header->TGL_JATUH_TEMPO_SPTNP }}" id="tgljthtemposptnp">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">Tgl Lunas</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgllunas" value="{{ $header->TGL_LUNAS }}" id="tgllunas">
-                                    </div>
-                                </div>
-                                <div class="form-row px-2 pb-0">
-                                    <label class="col-md-2 col-form-label form-control-sm">Tgl BRT</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglbrt" value="{{ $header->TGL_BRT }}" id="tglbrt">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">Hasil BRT</label>
-                                    <div class="col-md-3">
-                                        <select class="form-control form-control-sm" id="hslbrt" name="hslbrt" value="{{ $header->HSL_BRT }}">
-                                            <option @if($header->HSL_BRT == "")selected @endif value=""></option>
-                                            <option @if($header->HSL_BRT == "TRM")selected @endif value="TRM">TRM</option>
-                                            <option @if($header->HSL_BRT == "TLK")selected @endif value="TLK">TLK</option>
-                                            <option @if($header->HSL_BRT == "SBGN")selected @endif value="SBGN">SBGN</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-row px-2 pb-0">
-                                    <label class="col-md-2 col-form-label form-control-sm">BMTB</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="number form-control form-control-sm" name="bmtb" value="{{ $header->BMTB }}" id="bmtb">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">BMTTB</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="number form-control form-control-sm" name="bmttb" value="{{ $header->BMTTB }}" id="bmttb">
-                                    </div>
-                                </div>
-                                <div class="form-row px-2 pb-0">
-                                    <label class="col-md-2 col-form-label form-control-sm">PPNTB</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="number form-control form-control-sm" name="ppntb" value="{{ $header->PPNTB }}" id="ppntb">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">PPHTB</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="number form-control form-control-sm" name="pphtb" value="{{ $header->PPHTB }}" id="pphtb">
-                                    </div>
-                                </div>
-                                <div class="form-row px-2 pb-0">
-                                    <label class="col-md-2 col-form-label form-control-sm">Denda TB</label>
-                                    <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="number form-control form-control-sm" name="dendatb" value="{{ $header->DENDA_TB }}" id="dendatb">
-                                    </div>
-                                    <label class="col-md-2 col-form-label form-control-sm">Total TB</label>
-                                    <div class="col-md-3">
-                                        <input readonly autocomplete="off" type="text" class="number form-control form-control-sm" name="totaltb" value="{{ $header->TOTAL_TB }}" id="totaltb">
-                                    </div>
-                                </div>
-                                <div class="form-row px-2 pb-0">
-                                    <label class="col-md-2 col-form-label form-control-sm">Jenis SPTNP</label>
-                                    <div class="col-md-3">
-                                        <select class="form-control form-control-sm" id="jenissptnp" name="jenissptnp" value="{{ $header->JENIS_SPTNP }}">
-                                            <option @if($header->JENIS_SPTNP == "")selected @endif value=""></option>
-                                            <option @if($header->JENIS_SPTNP == "NP")selected @endif value="NP">NP</option>
-                                            <option @if($header->JENIS_SPTNP == "NP+FORM")selected @endif value="NP+FORM">NP+FORM</option>
-                                            <option @if($header->JENIS_SPTNP == "FORM")selected @endif value="FORM">FORM</option>
-                                            <option @if($header->JENIS_SPTNP == "BMT")selected @endif value="BMT">BMT</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -946,14 +862,6 @@ $("#consignee").on("change", function(){
         }
     });
 });
-$("#bmtb,#bmttb,#ppntb,#pphtb,#dendatb").on("change", function(){
-    var bmtb = parseFloat($("#bmtb").inputmask("unmaskedvalue")) || 0;
-    var bmttb = parseFloat($("#bmttb").inputmask("unmaskedvalue")) || 0;
-    var ppntb = parseFloat($("#ppntb").inputmask("unmaskedvalue")) || 0;
-    var pphtb = parseFloat($("#pphtb").inputmask("unmaskedvalue")) || 0;
-    var dendatb = parseFloat($("#dendatb").inputmask("unmaskedvalue")) || 0;
-    $("#totaltb").val(bmtb+bmttb+ppntb+pphtb+dendatb);
-})
 
 })
 </script>

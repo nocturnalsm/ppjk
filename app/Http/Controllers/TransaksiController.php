@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use DB;
 use DataTable;
 use App\Models\Transaksi;
+use App\Models\Sptnp;
 use App\Models\Produk;
 use App\Models\Quota;
 use App\Models\DeliveryOrder;
@@ -155,11 +156,11 @@ class TransaksiController extends Controller {
 		$importir = Transaksi::getImportir();
 
 		if ($id != ""){
-			$dtTransaksi = Transaksi::getTransaksiSPTNP($id);
+			$dtTransaksi = Sptnp::getTransaksiSPTNP($id);
 			$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
 		}
 		else {
-			$dtTransaksi = new Transaksi;
+			$dtTransaksi = new Sptnp;
 			$notransaksi = "Baru";
 		}
 
@@ -869,7 +870,7 @@ class TransaksiController extends Controller {
 			$dari3 = $request->input("dari3");
 			$sampai3 = $request->input("sampai3");
 
-			$data = Transaksi::browseSPTNP($postKantor, $postImportir, $postKategori1,
+			$data = Sptnp::browseSPTNP($postKantor, $postImportir, $postKategori1,
 									$isikategori1, $postKategori2, $dari2, $sampai2, $postKategori3, $dari3, $sampai3);
 			if ($data){
 				$export = $request->input("export");
@@ -1148,7 +1149,7 @@ class TransaksiController extends Controller {
 			else if ($type == "usersptnp"){
 				if ($postheader){
 					parse_str($postheader, $header);
-					$id = Transaksi::saveTransaksiSPTNP($header);
+					$id = Sptnp::saveTransaksiSPTNP($header);
 				}
 			}
 			else if ($type == "userbc"){
@@ -2522,7 +2523,7 @@ class TransaksiController extends Controller {
 			$dari3 = $request->input("dari3");
 			$sampai3 = $request->input("sampai3");
 
-			$data = Transaksi::browseBanding($postKantor, $postImportir, $postKategori1,
+			$data = Sptnp::browseBanding($postKantor, $postImportir, $postKategori1,
 									$isikategori1, $postKategori2, $dari2, $sampai2, $postKategori3, $dari3, $sampai3);
 			if ($data){
 				$export = $request->input("export");
@@ -2650,7 +2651,7 @@ class TransaksiController extends Controller {
 			$dari2 = $request->input("dari2");
 			$sampai2 = $request->input("sampai2");
 
-			$data = Transaksi::browseKeberatan($postKantor, $postImportir, $postKategori1,
+			$data = Sptnp::browseKeberatan($postKantor, $postImportir, $postKategori1,
 									$isikategori1, $postKategori2, $dari2, $sampai2);
 			if ($data){
 				$export = $request->input("export");
