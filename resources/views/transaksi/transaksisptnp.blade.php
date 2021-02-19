@@ -124,7 +124,7 @@
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Jth Tempo</label>
                                     <div class="col-md-3">
-                                        <input disabled autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgljthtemposptnp" value="{{ $header->TGL_JATUH_TEMPO_SPTNP }}" id="tgljthtemposptnp">
+                                        <input readonly autocomplete="off" type="text" class="datepicker disabled form-control form-control-sm" name="tgljthtemposptnp" value="{{ $header->TGL_JATUH_TEMPO_SPTNP }}" id="tgljthtemposptnp">
                                     </div>
                                 </div>
                             </div>
@@ -168,7 +168,7 @@
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Jth Tempo Bdg</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" disabled type="text" class="datepicker form-control form-control-sm" name="tgljthtmpbdg" value="{{ $header->TGL_JTHTEMPO_BDG }}" id="tgljthtmpbdg">
+                                        <input autocomplete="off" readonly type="text" class="datepicker disabled form-control form-control-sm" name="tgljthtmpbdg" value="{{ $header->TGL_JTHTEMPO_BDG }}" id="tgljthtmpbdg">
                                     </div>
                                 </div>
                             </div>
@@ -278,7 +278,13 @@ Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
 			j = (j = i.length) > 3 ? j % 3 : 0;
 	return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
 };
-$(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
+$(".datepicker:not(.disabled)").datepicker({dateFormat: "dd-mm-yy"});
+$(".datepicker.disabled").datepicker({
+    dateFormat: "dd-mm-yy",
+    beforeShow: function(i) { if ($(i).attr('readonly')) { return false; } }
+
+});
+
 $(".number").inputmask("numeric", {
     radixPoint: ".",
     groupSeparator: ",",
