@@ -124,7 +124,7 @@
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Jth Tempo</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgljthtemposptnp" value="{{ $header->TGL_JATUH_TEMPO_SPTNP }}" id="tgljthtemposptnp">
+                                        <input disabled autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgljthtemposptnp" value="{{ $header->TGL_JATUH_TEMPO_SPTNP }}" id="tgljthtemposptnp">
                                     </div>
                                 </div>
                             </div>
@@ -168,7 +168,7 @@
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Jth Tempo Bdg</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tgljthtmpbdg" value="{{ $header->TGL_JTHTEMPO_BDG }}" id="tgljthtmpbdg">
+                                        <input autocomplete="off" disabled type="text" class="datepicker form-control form-control-sm" name="tgljthtmpbdg" value="{{ $header->TGL_JTHTEMPO_BDG }}" id="tgljthtmpbdg">
                                     </div>
                                 </div>
                             </div>
