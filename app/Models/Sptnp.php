@@ -175,10 +175,10 @@ class Sptnp extends Model
         $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
         }
         if ($kategori2 != ""){
@@ -207,12 +207,13 @@ class Sptnp extends Model
         }
         $data = DB::table(DB::raw("sptnp h"))
                     ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_SPTNP, HSL_BRT, NOPEN,"
-                              ."i.NAMA AS NAMAIMPORTIR,"
+                              ."i.NAMA AS NAMAIMPORTIR, NO_KEPBRT,"
                               ."DATE_FORMAT(TGL_SPTNP, '%d-%m-%Y') AS TGLSPTNP,"
                               ."DATE_FORMAT(TGL_JATUH_TEMPO_SPTNP, '%d-%m-%Y') AS TGLJTHTEMPOSPTNP,"
                               ."DATE_FORMAT(TGL_JTHTEMPO_BDG, '%d-%m-%Y') AS TGLJTHTMPBDG,"
                               ."DATE_FORMAT(TGL_BRT, '%d-%m-%Y') AS TGLBRT,NO_KEP_BDG,"
                               ."DATE_FORMAT(TGL_KEP_BDG, '%d-%m-%Y') AS TGLKEPBDG,"
+                              ."DATE_FORMAT(TGL_KEPBRT, '%d-%m-%Y') AS TGLKEPBRT,"
                               ."DATE_FORMAT(TGL_LUNAS, '%d-%m-%Y') AS TGLLUNAS,"
                               ."IFNULL(BMTB,0)+IFNULL(PPNBM,0)+IFNULL(BMKITE,0)+IFNULL(BMTTB,0)+IFNULL(PPNTB,0)+IFNULL(PPHTB,0)+IFNULL(DENDA_TB,0) AS TOTAL_TB")
                     ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
@@ -232,10 +233,10 @@ class Sptnp extends Model
         $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }

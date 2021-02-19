@@ -339,6 +339,26 @@ $("#bmtb,#bmttb,#bmkite,#ppnbm,#ppntb,#pphtb,#dendatb").on("change", function(){
     var dendatb = parseFloat($("#dendatb").inputmask("unmaskedvalue")) || 0;
     $("#totaltb").val(bmtb+bmttb+ppntb+pphtb+dendatb+bmkite+ppnbm);
 })
+$("#tglsptnp").on("change", function(){
+    if ($("#tglsptnp").val().trim() == ""){
+        $("#tgljthtemposptnp").val("");
+    }
+    else {
+      var date = $(this).datepicker( "getDate");
+      date.setDate(date.getDate()+60);
+      $("#tgljthtemposptnp").datepicker("setDate", date);
+    }
+})
+$("#tglkepbrt").on("change", function(){
+    if ($("#tglkepbrt").val().trim() == ""){
+        $("#tgljthtmpbdg").val("");
+    }
+    else {
+      var date = $(this).datepicker( "getDate");
+      date.setDate(date.getDate()+60);
+      $("#tgljthtmpbdg").datepicker("setDate", date);
+    }
+})
 
 })
 </script>

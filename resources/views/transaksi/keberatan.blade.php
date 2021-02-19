@@ -125,7 +125,7 @@ $(function(){
 
     var columns = [{target: 0, data: null}, {target: 1, data: "KODEKANTOR"}, {target: 2, data: "NAMAIMPORTIR"}, {target: 3, data: "NO_SPTNP"},
     {target: 4, data: "TGLSPTNP"},{target: 5, data: "NOPEN"}, {target: 6, data: "TOTAL_TB"}, {target: 7, data: "TGLLUNAS"},
-    {target: 8, data: "TGLBRT"}, {target: 9, data: "HSL_BRT"}, {target: 10, data: "NO_KEP_BDG"}, {target: 11, data: "TGLKEPBDG"},
+    {target: 8, data: "TGLBRT"}, {target: 9, data: "HSL_BRT"}, {target: 10, data: "NO_KEPBRT"}, {target: 11, data: "TGLKEPBRT"},
     {target: 12, data: "TGLJTHTMPBDG"}
     ];
 
