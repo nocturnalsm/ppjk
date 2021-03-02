@@ -47,7 +47,7 @@ class Pemasok extends Model
   	}
   	public static function drop($id)
   	{
-  		$checkStat = Transaksi::select("ID")->firstWhere("CONSIGNEE", $id);
+  		$checkStat = Transaksi::select("ID")->firstWhere("SHIPPER", $id);
   		if ($checkStat){
   			throw new \Exception("Pemasok tidak dapat dihapus karena sudah dipakai di transaksi");
   		}
