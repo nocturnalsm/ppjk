@@ -98,6 +98,9 @@
                     @can('master.importir.browse')
                     <a class="list-group-item list-group-item-action" href="./master/importir">Importir</a>
                     @endcan
+                    @can('master.pemasok.browse')
+                    <a class="list-group-item list-group-item-action" href="./master/pemasok">Pemasok</a>
+                    @endcan
                     @can('master.jenisbarang.browse')
                     <a class="list-group-item list-group-item-action" href="./master/jenisbarang">Referensi Jenis Barang</a>
                     @endcan

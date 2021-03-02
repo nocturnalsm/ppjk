@@ -18,6 +18,7 @@ use App\Models\Rate;
 use App\Models\Bank;
 use App\Models\Rekening;
 use App\Models\Pembeli;
+use App\Models\Pemasok;
 
 
 class MasterController extends Controller
@@ -241,6 +242,23 @@ class MasterController extends Controller
 		$dataTable = datatables()->of($dataSource);
 		return $dataTable->toJson();
 	}
+	public function pemasok()
+	{
+		$breadcrumb[] = Array("link" => "../", "text" => "Home");
+		$breadcrumb[] = Array("text" => "Pemasok");
+		$negara = DB::table("plbbandu_app15.tb_country")->select("id_country","country_name")->get();
+		return view("master.pemasok",
+									 ["breads" => $breadcrumb, "negara" => $negara,
+									 "columns" => Array("Nama","Alamat","Telepon","Negara","Fax","Website")]);
+	}
+	public function getdata_pemasok()
+	{
+		$dataSource = Pemasok::select("*", DB::raw("negara.country_name as negara"))
+												  ->leftJoin("plbbandu_app15.tb_country as negara", "negara_pemasok","=","negara.id_country")
+													->get();
+		$dataTable = datatables()->of($dataSource);
+		return $dataTable->toJson();
+	}
 	public function crud(Request $request)
 	{
 		$action = $request->input("action");
@@ -316,6 +334,17 @@ class MasterController extends Controller
 							$result = Importir::drop($input["id"]);
 						}
 						break;
+				  case "pemasok":
+						if ($input["input-action"] == "add"){
+							$result = Pemasok::add($input);
+						}
+						else if ($input["input-action"] == "edit"){
+							$result = Pemasok::edit($input);
+						}
+						else if ($input["input-action"] == "delete"){
+							$result = Pemasok::drop($input["id"]);
+						}
+					break;
 					case "jenisdokumen":
 						if ($input["input-action"] == "add"){
 							$result = JenisDokumen::add($input);
