@@ -2743,5 +2743,108 @@ class TransaksiController extends Controller {
 										]);
 		}
 	}
+	public function profilharga(Request $request)
+  {
+		if(!auth()->user()->can('profil_harga')){
+			abort(403, 'User does not have the right roles.');
+		}
+		$filter = $request->input("filter");
+		if ($filter && $filter == "1"){
+			$postSupplier = $request->input("supplier");
+			$postImportir = $request->input("importir");
+			$postUraian = $request->input("uraian");
+			$postKodeBarang = $request->input("kodebarang");
+			$postKategori1 = $request->input("kategori1");
+			$dari1 = $request->input("dari1");
+			$sampai1 = $request->input("sampai1");
 
+			$data = Transaksi::profilHarga($postSupplier, $postImportir, $postKodeBarang, $postUraian,
+									$postKategori1, $dari1, $sampai1);
+			if ($data){
+				$export = $request->input("export");
+				if ($export == "1"){
+					$spreadsheet = new Spreadsheet();
+					$sheet = $spreadsheet->getActiveSheet();
+					$lastrow = 0;
+					if ($postSupplier && trim($postSupplier) != ""){
+							$lastrow += 1;
+							$sheet->setCellValue('A' .$lastrow, 'SUPPLIER');
+    					$sheet->setCellValue('C' .$lastrow, $postSupplier);
+					}
+					if ($postImportir && trim($postImportir) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, 'IMPORTIR');
+						$sheet->setCellValue('C' .$lastrow, Transaksi::getImportir($postImportir)->NAMA);
+					}
+					if ($postKodeBarang && trim($postKodeBarang) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, 'KODE BARANG');
+						$sheet->setCellValue('C' .$lastrow, $postKodeBarang);
+					}
+					if ($postUraian && trim($postUraian) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, 'URAIAN');
+						$sheet->setCellValue('C' .$lastrow, $postUraian);
+					}
+					if ($postKategori1 && trim($postKategori1) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori1);
+						$sheet->setCellValue('C' .$lastrow, $dari1 == "" ? "-" : Date("d M Y", strtotime($dari1)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai1 == "" ? "-" : Date("d M Y", strtotime($sampai1)));
+					}
+					$lastrow += 1;
+					$sheet->setCellValue('A' .$lastrow, 'Kantor');
+					$sheet->setCellValue('B' .$lastrow, 'Supplier');
+					$sheet->setCellValue('C' .$lastrow, 'Importir');
+					$sheet->setCellValue('D' .$lastrow, 'Customer');
+				  $sheet->setCellValue('E' .$lastrow, 'Tgl BL');
+				  $sheet->setCellValue('F' .$lastrow, 'Nopen');
+					$sheet->setCellValue('F' .strval($lastrow+1), 'Tgl Nopen');
+					$sheet->setCellValue('G' .$lastrow, 'Kode Brg');
+					$sheet->setCellValue('G' .strval($lastrow+1), 'Uraian');
+					$sheet->setCellValue('H' .$lastrow, 'Harga');
+					$sheet->setCellValue('I' .$lastrow, 'No SPTNP');
+
+					foreach ($data as $dt){
+						$lastrow += 2;
+						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
+						$sheet->setCellValue('B' .$lastrow, $dt->NAMASUPPLIER);
+						$sheet->setCellValue('C' .$lastrow, $dt->NAMAIMPORTIR);
+						$sheet->setCellValue('D' .$lastrow, $dt->NAMACUSTOMER);
+						$sheet->setCellValue('E' .$lastrow, $dt->TGLBL);
+						$sheet->setCellValue('F' .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue('F' .strval($lastrow+1), $dt->TGLNOPEN);
+						$sheet->setCellValue('G' .$lastrow, $dt->KODEBARANG);
+						$sheet->setCellValue('G' .strval($lastrow+1), $dt->URAIAN);
+						$sheet->setCellValue('H' .$lastrow, $dt->HARGA);
+						$sheet->setCellValue('I' .$lastrow, $dt->NOSPTNP);
+					}
+
+					$writer = new Xlsx($spreadsheet);
+					return response()->streamDownload(function() use ($writer){
+							$writer->save('php://output');
+						}, 'profilharga_' .Date("YmdHis") .'.xlsx',
+						['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+
+				}
+				else {
+					return response()->json($data);
+				}
+			}
+			else {
+				return response()->json([]);
+			}
+		}
+		else {
+
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Browse Profil Harga");
+			$importir = Transaksi::getImportir();
+			return view("transaksi.profilharga",["breads" => $breadcrumb,
+										"dataimportir" => $importir,
+										"datakategori1" => Array("Tanggal Nopen","Tanggal BL")
+										]);
+		}
+	}
 }

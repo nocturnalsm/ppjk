@@ -2494,4 +2494,53 @@ class Transaksi extends Model
             DB::table("tbl_header_bayar")->where("ID", $id)->delete();
         }
     }
+    public static function profilHarga($supplier, $importir, $kodebarang, $uraian, $kategori1, $dari1, $sampai1)
+    {
+        $array1 = Array("Tanggal Nopen" => "TGL_NOPEN",
+                        "Tanggal BL" => "TGL_BL");
+        $where = Array();
+        if ($kategori1 != ""){
+            if (trim($dari1) == "" && trim($sampai1) == ""){
+                $where[]=  "(" .$array2[$kategori1] ." IS NULL OR " .$array2[$kategori1] ." = '')";
+            }
+            else {
+                if (trim($dari1) == ""){
+                    $dari1 = "0000-00-00";
+                }
+                if (trim($sampai1) == ""){
+                    $sampai1 = "9999-99-99";
+                }
+                $where[]=  "(" .$array1[$kategori1] ." BETWEEN '" .Date("Y-m-d", strtotime($dari1)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai1)) ."')";
+            }
+        }
+        if (trim($importir) != ""){
+            $where[] = " IMPORTIR = '" .$importir ."' ";
+        }
+        if (trim($supplier) != ""){
+            $where[] = " s.nama_pemasok LIKE '%" .$supplier ."%' ";
+        }
+        if (trim($kodebarang) != ""){
+            $where[] = " KODEBARANG LIKE '%" .$kodebarang ."%' ";
+        }
+        if (trim($uraian) != ""){
+            $where[] = " d.URAIAN LIKE '%" .$uraian ."%' ";
+        }
+        $strWhere = trim(implode(" AND ", $where));
+        $data = DB::table(DB::raw("tbl_detail_barang d"))
+                    ->selectRaw("k.KODE AS KODEKANTOR, s.nama_pemasok AS NAMASUPPLIER,"
+                              ."c.nama_customer AS NAMACUSTOMER, h.NOPEN, d.KODEBARANG, d.URAIAN, d.HARGA, d.NOSPTNP, "
+                              ."i.NAMA AS NAMAIMPORTIR,"
+                              ."DATE_FORMAT(h.TGL_BL, '%d-%m-%Y') AS TGLBL,"
+                              ."DATE_FORMAT(h.TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
+                    ->join(DB::raw("tbl_penarikan_header h"), "h.ID", "=", "d.ID_HEADER")
+                    ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
+                    ->leftJoin(DB::raw("plbbandu_app15.tb_pemasok s"), "s.id_pemasok", "=", "h.SHIPPER")
+                    ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.CUSTOMER")
+                    ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
+        if (trim($strWhere) != ""){
+            $data->whereRaw($strWhere);
+        }
+        return $data->get();
+    }
 }

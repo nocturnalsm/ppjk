@@ -56,6 +56,9 @@
                     @can('cari_produk')
                     <a class="list-group-item list-group-item-action" href="./transaksi/searchproduk">Cari Produk</a>
                     @endcan
+                    @can('profil_harga')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/profilharga">Profil Harga</a>
+                    @endcan
                     @can('konversi.browse')
                     <a class="list-group-item list-group-item-action" href="./transaksi/konversibarang">Konversi Barang</a>
                     @endcan
