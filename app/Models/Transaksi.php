@@ -2529,12 +2529,13 @@ class Transaksi extends Model
         $strWhere = trim(implode(" AND ", $where));
         $data = DB::table(DB::raw("tbl_detail_barang d"))
                     ->selectRaw("k.KODE AS KODEKANTOR, s.nama_pemasok AS NAMASUPPLIER,"
-                              ."c.nama_customer AS NAMACUSTOMER, h.NOPEN, d.KODEBARANG, d.URAIAN, d.HARGA, d.NOSPTNP, "
+                              ."c.nama_customer AS NAMACUSTOMER, h.NOPEN, d.KODEBARANG, d.URAIAN, d.HARGA, st.NO_SPTNP AS NOSPTNP, "
                               ."i.NAMA AS NAMAIMPORTIR,"
                               ."DATE_FORMAT(h.TGL_BL, '%d-%m-%Y') AS TGLBL,"
                               ."DATE_FORMAT(h.TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
                     ->join(DB::raw("tbl_penarikan_header h"), "h.ID", "=", "d.ID_HEADER")
                     ->join(DB::raw("ref_kantor k"), "h.KANTOR_ID", "=", "k.KANTOR_ID")
+                    ->leftJoin(DB::raw("sptnp st"), DB::raw("UPPER(TRIM(h.NOPEN))"), "=", DB::raw("UPPER(TRIM(st.NOPEN))"))
                     ->leftJoin(DB::raw("plbbandu_app15.tb_pemasok s"), "s.id_pemasok", "=", "h.SHIPPER")
                     ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.CUSTOMER")
                     ->leftJoin(DB::raw("importir i"), "i.IMPORTIR_ID" ,'=' ,'h.IMPORTIR');
