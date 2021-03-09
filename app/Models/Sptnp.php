@@ -71,7 +71,7 @@ class Sptnp extends Model
                 "PPHTB" => floatval(str_replace(",","",$header["pphtb"])),"DENDA_TB" => floatval(str_replace(",","",$header["dendatb"])),
                 "BMKITE" => floatval(str_replace(",","",$header["bmkite"])),"PPNBM" => floatval(str_replace(",","",$header["ppnbm"])),
                 "BMTB" => floatval(str_replace(",","",$header["bmtb"])),
-                "NO_BDG" => $header["nobdg"], "MAJELIS" => $header["majelis"],"NO_KEP_BDG" => $header["nokepbdg"],
+                "NO_BDG" => trim(str_replace("_","",$header["nobdg"]),"."), "MAJELIS" => $header["majelis"],"NO_KEP_BDG" => $header["nokepbdg"],
                 "NO_KEPBRT" => $header["nokepbrt"], "HASIL_BDG" => trim($header["hasilbdg"]),
                 "TGL_BDG" => trim($header["tglbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbdg"])),
                 "TGL_KEP_BDG" => trim($header["tglkepbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglkepbdg"])),
@@ -225,10 +225,10 @@ class Sptnp extends Model
     }
     public static function browseBanding($kantor, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2, $kategori3, $dari3, $sampai3)
     {
-        $array1 =  Array("Nopen" => "NOPEN","No Kep Brt" => "NO_KEPBRT","No Bdg" => "NO_BDG","Mjls" => "MAJELIS");
+        $array1 =  Array("Nopen" => "NOPEN","No Kep Brt" => "NO_KEPBRT","No Sengk" => "NO_BDG","Mjls" => "MAJELIS");
 
         $array2 = Array("Tanggal Nopen" => "TGL_NOPEN",
-                        "Tgl Bdg" => "TGL_BDG");
+                        "Tgl Sengk" => "TGL_BDG");
 
         $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
         if ($kategori1 != ""){

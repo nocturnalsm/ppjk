@@ -2571,8 +2571,8 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('D' .$lastrow, 'Tgl Nopen');
 				  $sheet->setCellValue('E' .$lastrow, 'No Kep BRT');
 					$sheet->setCellValue('F' .$lastrow, 'Tgl Kep BRT');
-					$sheet->setCellValue('G' .$lastrow, 'No Bdg');
-					$sheet->setCellValue('H' .$lastrow, 'Tgl Bdg');
+					$sheet->setCellValue('G' .$lastrow, 'No Sengk');
+					$sheet->setCellValue('H' .$lastrow, 'Tgl Sengk');
 					$sheet->setCellValue('I' .$lastrow, 'Mjls');
 					$sheet->setCellValue('J' .$lastrow, 'SD01');
 					$sheet->setCellValue('K' .$lastrow, 'SD02');
@@ -2631,8 +2631,8 @@ class TransaksiController extends Controller {
 			$importir = Transaksi::getImportir();
 			return view("transaksi.banding",["breads" => $breadcrumb,
 										"datakantor" => $kantor, "dataimportir" => $importir,
-										"datakategori1" => Array("Nopen","No Kep Brt", "No Bdg", "Mjls"),
-										"datakategori2" => Array("Tanggal Nopen","Tanggal Bdg")
+										"datakategori1" => Array("Nopen","No Kep Brt", "No Sengk", "Mjls"),
+										"datakategori2" => Array("Tanggal Nopen","Tanggal Sengk")
 										]);
 		}
 	}

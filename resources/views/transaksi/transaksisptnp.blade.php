@@ -183,11 +183,11 @@
                             <div class="card-body p-3">
                                 <h5 class="card-title">Data Banding</h5>
                                 <div class="form-row px-2">
-                                    <label class="col-md-2 col-form-label form-control-sm">No Bdg</label>
+                                    <label class="col-md-2 col-form-label form-control-sm">No Sengk</label>
                                     <div class="col-md-2">
-                                        <input type="text" maxlength="4" class="form-control form-control-sm" name="nobdg" value="{{ $header->NO_BDG }}" id="nobdg">
+                                        <input type="text" maxlength="10" class="form-control form-control-sm" name="nobdg" value="{{ $header->NO_BDG }}" id="nobdg">
                                     </div>
-                                    <label class="col-md-1 col-form-label form-control-sm">Tgl Bdg</label>
+                                    <label class="col-md-1 col-form-label form-control-sm">Tgl Sengk</label>
                                     <div class="col-md-2">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglbdg" value="{{ $header->TGL_BDG }}" id="tglbdg">
                                     </div>
@@ -365,6 +365,7 @@ $("#tglkepbrt").on("change", function(){
       $("#tgljthtmpbdg").datepicker("setDate", date);
     }
 })
+$("#nobdg").inputmask("999999.99");
 
 })
 </script>

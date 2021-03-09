@@ -851,7 +851,7 @@ class Transaksi extends Model
                 "PPHTB" => floatval(str_replace(",","",$header["pphtb"])),"DENDA_TB" => floatval(str_replace(",","",$header["dendatb"])),
                 "BMKITE" => floatval(str_replace(",","",$header["bmkite"])),"PPNBM" => floatval(str_replace(",","",$header["ppnbm"])),
                 "BMTB" => floatval(str_replace(",","",$header["bmtb"])),
-                "NO_BDG" => $header["nobdg"], "MAJELIS" => $header["majelis"],"NO_KEP_BDG" => $header["nokepbdg"],
+                "NO_BDG" => trim(str_replace("_","",$header["nobdg"]),"."), "MAJELIS" => $header["majelis"],"NO_KEP_BDG" => $header["nokepbdg"],
                 "NO_KEPBRT" => $header["nokepbrt"], "HASIL_BDG" => trim($header["hasilbdg"]),
                 "TGL_BDG" => trim($header["tglbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbdg"])),
                 "TGL_KEP_BDG" => trim($header["tglkepbdg"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglkepbdg"])),

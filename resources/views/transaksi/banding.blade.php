@@ -106,7 +106,7 @@
                         <th>Importir</th>
                         <th>Nopen<br>Tgl Nopen</th>
                         <th>No Kep Brt<br>Tgl Kep Brt</th>
-                        <th>No Bdg<br>Tgl Bdg</th>
+                        <th>No Sengk<br>Tgl Sengk</th>
                         <th>Mjls</th>
                         <th>SD01</th>
                         <th>SD02</th>
