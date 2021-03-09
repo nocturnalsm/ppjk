@@ -193,7 +193,7 @@
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Majelis</label>
                                     <div class="col-md-2">
-                                        <input type="text" maxlength="2" class="form-control form-control-sm" name="majelis" value="{{ $header->MAJELIS }}" id="majelis">
+                                        <input type="text" maxlength="3" class="form-control form-control-sm" name="majelis" value="{{ $header->MAJELIS }}" id="majelis">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
