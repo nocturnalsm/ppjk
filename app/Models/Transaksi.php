@@ -2496,7 +2496,7 @@ class Transaksi extends Model
     }
     public static function profilHarga($supplier, $importir, $kodebarang, $uraian, $kategori1, $dari1, $sampai1)
     {
-        $array1 = Array("Tanggal Nopen" => "TGL_NOPEN",
+        $array1 = Array("Tanggal Nopen" => "h.TGL_NOPEN",
                         "Tanggal BL" => "TGL_BL");
         $where = Array();
         if ($kategori1 != ""){
@@ -2515,7 +2515,7 @@ class Transaksi extends Model
             }
         }
         if (trim($importir) != ""){
-            $where[] = " IMPORTIR = '" .$importir ."' ";
+            $where[] = " h.IMPORTIR = '" .$importir ."' ";
         }
         if (trim($supplier) != ""){
             $where[] = " s.nama_pemasok LIKE '%" .$supplier ."%' ";
