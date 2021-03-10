@@ -2800,25 +2800,25 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('D' .$lastrow, 'Customer');
 				  $sheet->setCellValue('E' .$lastrow, 'Tgl BL');
 				  $sheet->setCellValue('F' .$lastrow, 'Nopen');
-					$sheet->setCellValue('F' .strval($lastrow+1), 'Tgl Nopen');
-					$sheet->setCellValue('G' .$lastrow, 'Kode Brg');
-					$sheet->setCellValue('G' .strval($lastrow+1), 'Uraian');
-					$sheet->setCellValue('H' .$lastrow, 'Harga');
-					$sheet->setCellValue('I' .$lastrow, 'No SPTNP');
+					$sheet->setCellValue('G' .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue('H' .$lastrow, 'Kode Brg');
+					$sheet->setCellValue('I' .$lastrow, 'Uraian');
+					$sheet->setCellValue('J' .$lastrow, 'Harga');
+					$sheet->setCellValue('K' .$lastrow, 'No SPTNP');
 
 					foreach ($data as $dt){
-						$lastrow += 2;
+						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
 						$sheet->setCellValue('B' .$lastrow, $dt->NAMASUPPLIER);
 						$sheet->setCellValue('C' .$lastrow, $dt->NAMAIMPORTIR);
 						$sheet->setCellValue('D' .$lastrow, $dt->NAMACUSTOMER);
 						$sheet->setCellValue('E' .$lastrow, $dt->TGLBL);
 						$sheet->setCellValue('F' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('F' .strval($lastrow+1), $dt->TGLNOPEN);
-						$sheet->setCellValue('G' .$lastrow, $dt->KODEBARANG);
-						$sheet->setCellValue('G' .strval($lastrow+1), $dt->URAIAN);
-						$sheet->setCellValue('H' .$lastrow, $dt->HARGA);
-						$sheet->setCellValue('I' .$lastrow, $dt->NOSPTNP);
+						$sheet->setCellValue('G' .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue('H' .$lastrow, $dt->KODEBARANG);
+						$sheet->setCellValue('I' .$lastrow, $dt->URAIAN);
+						$sheet->setCellValue('J' .$lastrow, $dt->HARGA);
+						$sheet->setCellValue('K' .$lastrow, $dt->NOSPTNP);
 					}
 
 					$writer = new Xlsx($spreadsheet);

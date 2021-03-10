@@ -146,7 +146,7 @@ $(function(){
         };
 
     var columns = [{target: 0, data: null}, {target: 1, data: "KODEKANTOR"}, {target: 2, data: "NAMAIMPORTIR"}, {target: 3, data: "NOPEN"},
-    {target: 4, data: "NO_KEPBRT"}, {target: 5, data: "MAJELIS"},{target: 6, data: "NO_BDG"}, {target: 7, data: "SDG01"},
+    {target: 4, data: "NO_KEPBRT"}, {target: 5, data: "NO_BDG"},{target: 6, data: "MAJELIS"}, {target: 7, data: "SDG01"},
     {target: 8, data: "SDG02"}, {target: 9, data: "SDG03"}, {target: 10, data: "SDG04"}, {target: 11, data: "SDG05"},
     {target: 12, data: "SDG06"},{target: 13, data: "SDG07"},{target: 14, data: "HASIL_BDG"},{target: 15, data: "NO_KEP_BDG"}
     ];
