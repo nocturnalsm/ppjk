@@ -228,9 +228,10 @@ class Sptnp extends Model
         $array1 =  Array("Nopen" => "NOPEN","No Kep Brt" => "NO_KEPBRT","No Sengk" => "NO_BDG","Mjls" => "MAJELIS");
 
         $array2 = Array("Tanggal Nopen" => "TGL_NOPEN",
-                        "Tgl Sengk" => "TGL_BDG");
+                        "Tanggal Sengk" => "TGL_BDG",
+                        "Tanggal Kep Brt" => "TGL_KEPBRT");
 
-        $where = "(NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '') ";
+        $where = "NO_SPTNP IS NOT NULL AND TRIM(NO_SPTNP) <> '' AND NO_KEPBRT IS NOT NULL AND TRIM(NO_KEPBRT) <> ''";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
                 $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
@@ -241,46 +242,64 @@ class Sptnp extends Model
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
-            if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+            if ($kategori2 == "Tanggal Sidang"){
+                if ($dari2 != "" && $sampai2 != ""){
+                  $filterSdg1 = Array();
+                  for ($tgl=0;$tgl<7;$tgl++){
+                    $filterSdg1[] = "(SDG0" .strval($tgl+1) ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                                AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+                  }
+                  $where .= " AND (" .implode(" OR ", $filterSdg1) .")";
+                }
             }
             else {
-                if (trim($dari2) == ""){
-                    $dari2 = "0000-00-00";
-                }
-                if (trim($sampai2) == ""){
-                    $sampai2 = "9999-99-99";
-                }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+              if (trim($dari2) == "" && trim($sampai2) == ""){
+                  $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+              }
+              else {
+                  if (trim($dari2) == ""){
+                      $dari2 = "0000-00-00";
+                  }
+                  if (trim($sampai2) == ""){
+                      $sampai2 = "9999-99-99";
+                  }
+                  $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                              AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+              }
             }
         }
         if ($kategori3 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
-            if (trim($dari3) == "" && trim($sampai3) == ""){
-                $where  .=  "(" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+            if ($kategori3 == "Tanggal Sidang"){
+                if (trim($dari3) != "" && trim($sampai3) != ""){
+                  $filterSdg2 = Array();
+                  for ($tgl=0;$tgl<7;$tgl++){
+                    $filterSdg2[] = "(SDG0" .strval($tgl+1) ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                                                AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
+                  }
+                  $where .= " AND (" .implode(" OR ", $filterSdg2) .")";
+                }
             }
             else {
-                if (trim($dari3) == ""){
-                    $dari3 = "0000-00-00";
+                if (trim($dari3) == "" && trim($sampai3) == ""){
+                    $where  .=  " AND (" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
                 }
-                if (trim($sampai3) == ""){
-                    $sampai3 = "9999-99-99";
+                else {
+                    if (trim($dari3) == ""){
+                        $dari3 = "0000-00-00";
+                    }
+                    if (trim($sampai3) == ""){
+                        $sampai3 = "9999-99-99";
+                    }
+                    $where  .=  " AND (" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                                                AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
                 }
-                $where  .=  "(" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
             }
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND KANTOR_ID = '" .$kantor ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         $data = DB::table(DB::raw("sptnp h"))
                     ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_KEPBRT, HASIL_BDG, NOPEN,"

@@ -2632,7 +2632,7 @@ class TransaksiController extends Controller {
 			return view("transaksi.banding",["breads" => $breadcrumb,
 										"datakantor" => $kantor, "dataimportir" => $importir,
 										"datakategori1" => Array("Nopen","No Kep Brt", "No Sengk", "Mjls"),
-										"datakategori2" => Array("Tanggal Nopen","Tanggal Sengk")
+										"datakategori2" => Array("Tanggal Nopen","Tanggal Sengk", "Tanggal Kep Brt", "Tanggal Sidang")
 										]);
 		}
 	}
