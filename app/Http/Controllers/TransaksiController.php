@@ -2695,8 +2695,8 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('G' .$lastrow, 'Tgl Lunas');
 					$sheet->setCellValue('H' .$lastrow, 'Tgl BRT');
 					$sheet->setCellValue('I' .$lastrow, 'Hsl BRT');
-					$sheet->setCellValue('J' .$lastrow, 'No Kep Bdg');
-					$sheet->setCellValue('K' .$lastrow, 'Tgl Kep Bdg');
+					$sheet->setCellValue('J' .$lastrow, 'No Kep BRT');
+					$sheet->setCellValue('K' .$lastrow, 'Tgl Kep BRT');
 					$sheet->setCellValue('L' .$lastrow, 'Tgl Jth Tempo Bdg');
 
 					foreach ($data as $dt){
@@ -2710,8 +2710,8 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('G' .$lastrow, $dt->TGLLUNAS);
 						$sheet->setCellValue('H' .$lastrow, $dt->TGLBRT);
 						$sheet->setCellValue('I' .$lastrow, $dt->HSL_BRT);
-						$sheet->setCellValue('J' .$lastrow, $dt->NO_KEP_BDG);
-						$sheet->setCellValue('K' .$lastrow, $dt->TGLKEPBDG);
+						$sheet->setCellValue('J' .$lastrow, $dt->NO_KEPBRT);
+						$sheet->setCellValue('K' .$lastrow, $dt->TGLKEPBRT);
 						$sheet->setCellValue('L' .$lastrow, $dt->TGLJTHTMPBDG);
 					}
 
