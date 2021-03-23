@@ -1279,7 +1279,7 @@ class Transaksi extends Model
             $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= (trim($where) != "" ? " AND " : "") ."k.KANTOR_ID = '" .$kantor ."'";
         }
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
