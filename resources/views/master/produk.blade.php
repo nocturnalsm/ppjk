@@ -3,53 +3,53 @@
     $modalsize = 'modal-lg';
 @endphp
 @push('formbody')
-<form id="form">                    
+<form id="form">
     <input type="hidden" id="input-id" name="input-id">
     <input type="hidden" id="input-action" name="input-action">
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-kode">Kode</label>
-        <div class="col-md-9 mb-1">                                    
-            <input type="text" id="input-kode" name="input-kode" class="form-control">                        
+        <div class="col-md-9 mb-1">
+            <input type="text" id="input-kode" name="input-kode" class="form-control">
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-nama">Nama Produk</label>
-        <div class="col-md-9 mb-1">                                    
-            <input type="text" id="input-nama" name="input-nama" class="form-control">                        
+        <div class="col-md-9 mb-1">
+            <input type="text" id="input-nama" name="input-nama" class="form-control">
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-hscode">Spesifikasi</label>
-        <div class="col-md-9 mb-1">                                    
-            <textarea id="input-spesifikasi" name="input-spesifikasi" class="form-control"></textarea>                        
+        <div class="col-md-9 mb-1">
+            <textarea id="input-spesifikasi" name="input-spesifikasi" class="form-control"></textarea>
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-hscode">Kode HS</label>
-        <div class="col-md-9 mb-1">                                
-            <input type="text" id="input-hscode" name="input-hscode" class="form-control">                        
+        <div class="col-md-9 mb-1">
+            <input type="text" id="input-hscode" name="input-hscode" class="form-control">
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-satuan">Satuan</label>
-        <div class="col-md-9 mb-1">                                
+        <div class="col-md-9 mb-1">
             <select id="input-satuan" name="input-satuan" class="form-control">
                 @foreach($satuan as $sat)
                 <option value="{{ $sat->id }}">{{ $sat->satuan }}</option>
                 @endforeach
-            </select>                        
+            </select>
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-hscode">Harga</label>
-        <div class="col-md-9 mb-1">                                
-            <input type="text" id="input-harga" name="input-harga" class="form-control number text-right">                        
+        <div class="col-md-9 mb-1">
+            <input type="text" id="input-harga" name="input-harga" class="form-control number text-right">
         </div>
     </div>
     <div class="form-row mb-1">
         <label class="col-form-label col-md-3" for="input-tglrekam">Tgl Rekam</label>
-        <div class="col-md-9 mb-1">                                
-            <input type="text" id="input-tglrekam" name="input-tglrekam" class="form-control datepicker">                        
+        <div class="col-md-9 mb-1">
+            <input type="text" id="input-tglrekam" name="input-tglrekam" class="form-control datepicker">
         </div>
     </div>
 </form>
@@ -71,7 +71,7 @@
             select: 'single',     // enable single row selection
             responsive: true,     // enable responsiveness,
             rowId: 0,
-            "language": 
+            "language":
                 {
                     "lengthMenu": "Menampilkan _MENU_ record per halaman",
                     "info": "",
@@ -96,10 +96,12 @@
                     "data": "hscode"
                 },{
                     "target": 3,
-                    "data": "satuan"
+                    "data": "satuan",
+                    "searchable": false
                 },{
                     "target": 4,
-                    "data": "harga"
+                    "data": "harga",
+                    "searchable": false
                 }],
             rowCallback: function(row, data)
             {
@@ -127,7 +129,7 @@
             text: 'Edit',
             name: 'edit',        // DO NOT change name
             action: function (e, dt) {
-                var row = dt.rows( { selected: true } ).data();           
+                var row = dt.rows( { selected: true } ).data();
                 $("#modalform .modal-title").html("Edit Data");
                 $("#input-kode").val(row[0].kode);
                 $("#input-nama").val(row[0].nama);
@@ -148,7 +150,7 @@
             action: function (e, dt){
                 $("#modal .btn-ok").removeClass("d-none");
                 $("#modal .btn-close").html("Batal");
-                $("#modal .modal-body").html("Apakah Anda ingin menghapus data ini?");        
+                $("#modal .modal-body").html("Apakah Anda ingin menghapus data ini?");
                 $("#modal .btn-ok").html("Ya").on("click", function(){
                     var row = dt.rows( { selected: true } ).data();
                     $.ajax({
@@ -169,9 +171,9 @@
                             }, 5000);
                         }
                     })
-                });                        
+                });
                 $("#modal").modal("show").on("hidden.bs.modal", function(){
-                    $("#modal .btn-ok").off("click");            
+                    $("#modal .btn-ok").off("click");
                     $("#modal .btn-close").html("Tutup");
                 })
             }
@@ -199,7 +201,7 @@
                     else {
                         if ($("#input-action").val() != "add"){
                             $("#modalform").modal("hide");
-                        }            
+                        }
                         else {
                             $("#input-kode").val("");
                             $("#input-nama").val("");
@@ -215,7 +217,7 @@
                         $("#modal").modal("show");
                         setTimeout(function(){
                             $("#modal").modal("hide");
-                        }, 1000);  
+                        }, 1000);
                     }
                 },
                 complete: function(){
@@ -235,7 +237,7 @@
         });
         $("#input-hscode").inputmask("9999.99.99");
         $("#input-kode").inputmask("999-99-****");
-        
+
     })
     </script>
 @endpush
