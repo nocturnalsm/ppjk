@@ -2498,7 +2498,7 @@ class Transaksi extends Model
     {
         $array1 = Array("Tanggal Nopen" => "h.TGL_NOPEN",
                         "Tanggal BL" => "TGL_BL");
-        $where = Array();
+        $where = Array(" (TRIM(h.NOPEN) <> '' AND h.NOPEN IS NOT NULL) ");
         if ($kategori1 != ""){
             if (trim($dari1) == "" && trim($sampai1) == ""){
                 $where[]=  "(" .$array2[$kategori1] ." IS NULL OR " .$array2[$kategori1] ." = '')";
