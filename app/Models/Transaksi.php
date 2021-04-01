@@ -601,7 +601,7 @@ class Transaksi extends Model
                            "TGL_SC" => trim($header["tglsc"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglsc"])),
                            "TGL_BL" => trim($header["tglbl"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbl"])),
                            "TGL_FORM" => trim($header["tglform"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglform"])),
-                           "PEL_MUAT" => $header["pelmuat"],"TGL_JATUH_TEMPO" => trim($header["tgljatuhtempo"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgljatuhtempo"])),
+                           "PEL_MUAT" => nullval($header["pelmuat"]),"TGL_JATUH_TEMPO" => trim($header["tgljatuhtempo"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgljatuhtempo"])),
                            "TGL_TIBA" => trim($header["tgltiba"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgltiba"])),
                            "TGL_DOK_TRM" => trim($header["tgldoktrm"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tgldoktrm"])),
                            "TGL_BERANGKAT" => trim($header["tglberangkat"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglberangkat"])),
