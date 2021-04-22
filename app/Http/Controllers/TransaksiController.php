@@ -484,28 +484,32 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('A' .$lastrow, 'Importir');
 					$sheet->setCellValue('B' .$lastrow, 'Customer');
 					$sheet->setCellValue('C' .$lastrow, 'No Inv');
-					$sheet->setCellValue('D' .$lastrow, 'TT/Non TT');
-					$sheet->setCellValue('E' .$lastrow, 'TOP');
-					$sheet->setCellValue('F' .$lastrow, 'Jth Tempo');
-					$sheet->setCellValue('G' .$lastrow, 'Curr');
-					$sheet->setCellValue('H' .$lastrow, 'CIF');
-					$sheet->setCellValue('I' .$lastrow, 'Nominal');
-					$sheet->setCellValue('J' .$lastrow, 'Saldo');
-					$sheet->setCellValue('K' .$lastrow, 'Faktur');
+					$sheet->setCellValue('D' .$lastrow, 'No Aju');
+					$sheet->setCellValue('E' .$lastrow, 'Jml Kmsn');
+					$sheet->setCellValue('F' .$lastrow, 'TT/Non TT');
+					$sheet->setCellValue('G' .$lastrow, 'TOP');
+					$sheet->setCellValue('H' .$lastrow, 'Jth Tempo');
+					$sheet->setCellValue('I' .$lastrow, 'Curr');
+					$sheet->setCellValue('J' .$lastrow, 'CIF');
+					$sheet->setCellValue('K' .$lastrow, 'Nominal');
+					$sheet->setCellValue('L' .$lastrow, 'Saldo');
+					$sheet->setCellValue('M' .$lastrow, 'Faktur');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
 						$sheet->setCellValue('B' .$lastrow, $dt->CUSTOMER);
 						$sheet->setCellValue('C' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('D' .$lastrow, $dt->PEMBAYARAN != '' ? ($dt->PEMBAYARAN == 'Y' ? 'TT' : 'Non TT') : '');
-						$sheet->setCellValue('E' .$lastrow, $dt->TERM);
-						$sheet->setCellValue('F' .$lastrow, $dt->TGLJTHTEMPO);
-						$sheet->setCellValue('G' .$lastrow, $dt->MATAUANG);
-						$sheet->setCellValue('H' .$lastrow, $dt->CIF);
-						$sheet->setCellValue('I' .$lastrow, $dt->BAYAR);
-						$sheet->setCellValue('J' .$lastrow, $dt->CIF - $dt->BAYAR);
-						$sheet->setCellValue('K' .$lastrow, $dt->FAKTUR);
+						$sheet->setCellValue('D' .$lastrow, $dt->NOAJU);
+						$sheet->setCellValue('E' .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue('F' .$lastrow, $dt->PEMBAYARAN);
+						$sheet->setCellValue('G' .$lastrow, $dt->TERM);
+						$sheet->setCellValue('H' .$lastrow, $dt->TGLJTHTEMPO);
+						$sheet->setCellValue('I' .$lastrow, $dt->MATAUANG);
+						$sheet->setCellValue('J' .$lastrow, $dt->CIF);
+						$sheet->setCellValue('K' .$lastrow, $dt->BAYAR);
+						$sheet->setCellValue('L' .$lastrow, $dt->CIF - $dt->BAYAR);
+						$sheet->setCellValue('M' .$lastrow, $dt->FAKTUR);
 						$detail = Transaksi::getDetailBayar($dt->ID);
 						if (count($detail) > 0){
 							$lastrow += 2;

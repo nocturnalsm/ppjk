@@ -110,6 +110,8 @@
                         <th>Importir</th>
                         <th>Customer</th>
                         <th>No Inv</th>
+                        <th>No Aju</th>
+                        <th>Jml Kmsn</th>
                         <th>TT/Non TT</th>
                         <th>TOP</th>
                         <th>Jth Tempo</th>
@@ -148,13 +150,14 @@
         };
         var columns = [{target: 0, data: null, orderable : false, "classname" : "show-control"},
         {target: 1, data: "IMPORTIR"}, {target: 2, data: "CUSTOMER" @cannot('customer.view') , visible:  false @endcannot},
-        {target: 3, data: "NO_INV"}, {target: 4, data: "PEMBAYARAN"}, {target: 5, data: "TERM"},
-        {target: 6, data: "TGLJTHTEMPO"},
-        {target: 7, data: "MATAUANG"},
-        {target: 8, data: "CIF", className: "_cif"},
-        {target: 9, data: "BAYAR", className: "_bayar"},
-        {target: 10, data: null, className: "_saldo"},
-        {target: 11, data: "FAKTUR"}
+        {target: 3, data: "NO_INV"}, {target: 4, data: "NOAJU"}, {target: 5, data: "JUMLAH_KEMASAN", className: "_kemasan"},
+        {target: 6, data: "PEMBAYARAN"}, {target: 7, data: "TERM"},
+        {target: 8, data: "TGLJTHTEMPO"},
+        {target: 9, data: "MATAUANG"},
+        {target: 10, data: "CIF", className: "_cif"},
+        {target: 11, data: "BAYAR", className: "_bayar"},
+        {target: 12, data: null, className: "_saldo"},
+        {target: 13, data: "FAKTUR"}
         ];
 
         var grid = $("#grid").DataTable({responsive: false,
@@ -178,6 +181,7 @@
             {
                 $(row).attr("id-transaksi", data[0]);
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                $('td._kemasan', row).html(parseFloat(data.JUMLAH_KEMASAN).formatMoney(0,"",",","."));
                 $('td._cif', row).html(parseFloat(data.CIF).formatMoney(2,"",",","."));
                 $('td._bayar', row).html(parseFloat(data.BAYAR).formatMoney(2,"",",","."));
                 $('td._saldo', row).html((parseFloat(data.CIF) - parseFloat(data.BAYAR)).formatMoney(2,"",",","."));

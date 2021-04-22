@@ -1426,6 +1426,7 @@ class Transaksi extends Model
                               ."WHEN PEMBAYARAN = 'T' THEN 'Non TT'"
                               ."END) AS PEMBAYARAN, u.MATAUANG,"
                               ."t.TOP AS TERM,"
+                              ."JUMLAH_KEMASAN, NOAJU,"
                               ."DATE_FORMAT(TGL_JATUH_TEMPO, '%d-%m-%Y') AS TGLJTHTEMPO,"
                               ."IF(FAKTUR = '' OR FAKTUR IS NULL, '',"
                               ."CASE  WHEN FAKTUR = 'Y' THEN 'Ya'"
