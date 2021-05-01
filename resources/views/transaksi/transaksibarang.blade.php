@@ -11,7 +11,7 @@
         background: #333;
         background: linear-gradient(to bottom, #666, #444);
         position: absolute;
-        top: 25%;        
+        top: 25%;
         right: 10%;
         height: 12px;
         width: 0;
@@ -19,7 +19,7 @@
         -moz-transition: width 300ms ease-in-out;
         -ms-transition: width 300ms ease-in-out;
         -o-transition: width 300ms ease-in-out;
-        transition: width 300ms ease-in-out; 
+        transition: width 300ms ease-in-out;
     }
     #preview-container .dz-remove {
         margin-left: 10px;
@@ -34,35 +34,35 @@
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body mx-3">                    
-                <form id="form" act="">            
+            <div class="modal-body mx-3">
+                <form id="form" act="">
                     <input type="hidden" name="idxdetail" id="idxdetail">
                     <input type="hidden" name="iddetail" id="iddetail">
-                    <div class="form-row mb-1">               
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3">Seri Barang</label>
                         <div class="col-md-9 pt-2">
                             <span id="formseri"></span>
                         </div>
-                    </div>                    
-                    <div class="form-row mb-1">                        
+                    </div>
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodebarang">Kode Barang</label>
                         <div class="col-md-9">
-                            <input type="text" id="kodebarang" name="kodebarang" class="form-control form-control-sm validate">                        
+                            <input type="text" id="kodebarang" name="kodebarang" class="form-control form-control-sm validate">
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="uraian">Uraian Barang</label>
                         <div class="col-md-9">
-                            <textarea rows="4" id="uraian" name="uraian" class="form-control form-control-sm validate"></textarea>                        
-                        </div>
-                    </div>                                    
-                    <div class="form-row mb-1">                        
-                        <label class="col-form-label col-md-3" for="nominal">Jumlah Kemasan</label>
-                        <div class="col-md-9">
-                            <input type="text" id="jmlkemasan" name="jmlkemasan" class="text-right number form-control form-control-sm validate">                        
+                            <textarea rows="4" id="uraian" name="uraian" class="form-control form-control-sm validate"></textarea>
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
+                        <label class="col-form-label col-md-3" for="nominal">Jumlah Kemasan</label>
+                        <div class="col-md-9">
+                            <input type="text" id="jmlkemasan" name="jmlkemasan" class="text-right number form-control form-control-sm validate">
+                        </div>
+                    </div>
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="satuan">Jenis Kemasan</label>
                         <div class="col-md-9 pt-2">
                             <select class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan">
@@ -73,13 +73,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="nominal">Jumlah Satuan Harga</label>
                         <div class="col-md-9">
-                            <input type="text" id="jmlsatharga" name="jmlsatharga" class="text-right cifnumber form-control form-control-sm validate">                        
+                            <input type="text" id="jmlsatharga" name="jmlsatharga" class="text-right cifnumber form-control form-control-sm validate">
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="satuan">Satuan</label>
                         <div class="col-md-9 pt-2">
                         <select id="satuan" name="satuan" class="form-control">
@@ -89,31 +89,31 @@
                         </select>
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="nominal">CIF</label>
                         <div class="col-md-9">
-                            <input type="text" value="" id="cif" name="cif" class="text-right cifnumber form-control form-control-sm validate">                        
+                            <input type="text" value="" id="cif" name="cif" class="text-right cifnumber form-control form-control-sm validate">
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="rupiah">Harga Satuan</label>
                         <div class="col-md-9">
                             <input type="text" readonly id="hargasatuan" name="hargasatuan" class="text-right cifnumber form-control form-control-sm validate">
-                        </div>                        
+                        </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="nosptnp">No. SPTNP</label>
                         <div class="col-md-9">
-                            <input type="text" id="nosptnp" name="nosptnp" class="form-control form-control-sm validate">                        
+                            <input type="text" id="nosptnp" name="nosptnp" class="form-control form-control-sm validate">
                         </div>
                     </div>
-                    <div class="form-row mb-1">                        
+                    <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="tglsptnp">Tgl. SPTNP</label>
                         <div class="col-md-9">
-                            <input type="text" id="tglsptnp" name="tglsptnp" class="datepicker form-control form-control-sm validate">                        
+                            <input type="text" id="tglsptnp" name="tglsptnp" class="datepicker form-control form-control-sm validate">
                         </div>
                     </div>
-                </form>               
+                </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
                 <a id="savedetail" class="btn btn-primary">Simpan</a>
@@ -131,9 +131,9 @@
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body mx-3">                    
+            <div class="modal-body mx-3">
                 <div class="row">
-                    <div id="dropzone" class="p-4 border">              
+                    <div id="dropzone" class="p-4 border">
                         <div class="dz-message needsclick">
                             Drag file ke kotak di bawah ini untuk meng-upload atau klik untuk memilih file Excel (.xls | .xlsx | .pdf).<br>
                             <span class="note needsclick"></span>
@@ -144,10 +144,10 @@
                 </div>
                 <div class="row px-1 mt-2">
                     <div class="col-md-12 col-sm-12">
-                        <table class="table table-bordered" data-id="" id="listfiles">                                
+                        <table class="table table-bordered" data-id="" id="listfiles">
                         </table>
                     </div>
-                </div>             
+                </div>
             </div>
             <div class="modal-footer d-flex justify-content-center">
                 <a data-detail="" id="saveupload" class="btn btn-primary">Simpan</a>
@@ -171,16 +171,16 @@
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
-            <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">                
+            <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
             <input type="hidden" name="deletedetail" value="">
             <div class="row px-2">
-                <div class="col-md-12 pt-0 col-sm-12">                    
+                <div class="col-md-12 pt-0 col-sm-12">
                     <div class="row">
                         <div class="card col-md-12 p-0 mb-2">
                             <div class="card-body p-3">
-                                <div class="form-row px-2 pb-0">                                     
-                                    <label class="col-md-1 col-form-label form-control-sm">Customer</label>                   
-                                    <div class="col-md-4">                                                            
+                                <div class="form-row px-2 pb-0">
+                                    <label class="col-md-1 col-form-label form-control-sm">Customer</label>
+                                    <div class="col-md-4">
                                         <select class="form-control form-control-sm" id="customer" name="customer" value="{{ $header->CUSTOMER }}">
                                             <option value=""></option>
                                             @foreach($customer as $cust)
@@ -195,7 +195,7 @@
                                             @foreach($importir as $imp)
                                             <option @if($header->CONSIGNEE == $imp->IMPORTIR_ID)selected @endif value="{{ $imp->IMPORTIR_ID }}">{{ $imp->NAMA }}</option>
                                             @endforeach
-                                        </select>              
+                                        </select>
                                         <p class="error importir">Importir harus dipilih</p>
                                     </div>
                                 </div>
@@ -206,11 +206,11 @@
                                         <p class="error noinv">Nomor Inv harus diisi</p>
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Tgl Inv</label>
-                                    <div class="col-md-1">                                       
+                                    <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglinv" value="{{ $header->TGL_INV }}" id="tglinv">
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm text-right">Faktur</label>
-                                    <div class="col-md-4">                                       
+                                    <div class="col-md-4">
                                         <input autocomplete="off" type="text" class="form-control form-control-sm" name="pengirim" value="{{ $header->PENGIRIM }}" id="pengirim">
                                     </div>
                                 </div>
@@ -220,7 +220,7 @@
                                         <input type="text" maxlength="24" class="form-control form-control-sm" name="nobl" id="nobl" value="{{ $header->NO_BL }}">
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Tgl BL</label>
-                                    <div class="col-md-1">                                       
+                                    <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglbl" value="{{ $header->TGL_BL }}" id="tglbl">
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm text-right">Jalur</label>
@@ -272,7 +272,7 @@
                                     <label class="col-md-1 col-form-label form-control-sm">Tgl Terima</label>
                                     <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglterimabrg" id="tglterimabrg" value="{{ $header->TGL_TERIMA }}">
-                                    </div>           
+                                    </div>
                                 </div>
                                 <div class="form-row px-2 pb-0">
                                     <label class="col-md-1 col-form-label form-control-sm">Jns Dokumen</label>
@@ -282,13 +282,13 @@
                                             @foreach($jenisdokumen as $jenis)
                                             <option @if($header->JENIS_DOKUMEN == $jenis->JENISDOKUMEN_ID) selected @endif value="{{ $jenis->JENISDOKUMEN_ID }}">{{ $jenis->URAIAN }}</option>
                                             @endforeach
-                                        </select>            
+                                        </select>
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Nopen</label>
                                     <div class="col-md-2">
                                         <input maxlength="6" type="text" class="form-control form-control-sm" name="nopen" value="{{ $header->NOPEN }}" id="nopen">
                                         <p class="error nopen">Nopen 6 digit</p>
-                                    </div>   
+                                    </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Tgl Nopen</label>
                                     <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglnopen" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
@@ -300,31 +300,31 @@
                                         <input type="text" class="form-control form-control-sm" name="noaju" value="{{ $header->NOAJU }}" id="noaju">
                                     </div>
                                     <label class="col-md-1 col-form-label form-control-sm">Tgl Aju</label>
-                                    <div class="col-md-1">                                       
+                                    <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglaju" value="{{ $header->TGL_AJU }}" id="tglaju">
                                     </div>
                                     <div class="col-md-1"></div>
                                     <label class="col-md-1 col-form-label form-control-sm">Jml Kemasan</label>
-                                    <div class="col-md-1">                                       
+                                    <div class="col-md-1">
                                         <input autocomplete="off" type="text" class="number form-control form-control-sm" name="jumlahkemasan" value="{{ $header->JUMLAH_KEMASAN }}" id="jumlahkemasan">
                                     </div>
                                 </div>
-                                <div class="form-row px-2">                        
+                                <div class="form-row px-2">
                                     <label class="col-form-label col-md-1 form-control-sm" for="ukuran">Valuta</label>
                                     <div class="col-md-2">
                                     <select class="form-control form-control-sm" id="curr" name="curr">
                                         @foreach($matauang as $curr)
                                         <option @if($curr->MATAUANG_ID == $header->CURR) selected @endif value="{{ $curr->MATAUANG_ID }}">{{ $curr->MATAUANG }}</option>
                                         @endforeach
-                                    </select>                           
-                                    </div>         
+                                    </select>
+                                    </div>
                                     <label class="col-form-label col-md-1 form-control-sm" for="ndpbm">NDPBM</label>
                                     <div class="col-md-2">
-                                        <input type="text" class=" number form-control form-control-sm" name="ndpbm" value="{{ $header->NDPBM }}" id="ndpbm">                           
-                                    </div>                          
+                                        <input type="text" class=" number form-control form-control-sm" name="ndpbm" value="{{ $header->NDPBM }}" id="ndpbm">
+                                    </div>
                                     <label class="col-form-label col-md-1 form-control-sm" for="nilai">Nilai</label>
                                     <div class="col-md-2">
-                                        <input type="text" class="cifnumber form-control form-control-sm" name="nilai" value="{{ $header->CIF }}" id="nilai">                           
+                                        <input type="text" class="cifnumber form-control form-control-sm" name="nilai" value="{{ $header->CIF }}" id="nilai">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
@@ -355,7 +355,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>                     
+                    </div>
                 </div>
             </div>
             <div class="row px-2">
@@ -370,8 +370,8 @@
                                     </div>
                                     <div class="col primary-color text-white text-right p-2" style="text-decoration:underline">
                                         <a href="#modaldetail" data-toggle="modal" class="text-white" id="adddetail">Tambah Detail</a>
-                                    </div>                            
-                                </div>                    
+                                    </div>
+                                </div>
                                 <div class="form-row">
                                     <div class="col mt-2">
                                         <table width="100%" id="griddetail" class="table">
@@ -387,11 +387,11 @@
                                                 </tr>
                                             </thead>
                                         </table>
-                                    </div>     
-                                </div>                        
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>                                                        
+                    </div>
                 </div>
             </div>
         </div>
@@ -401,8 +401,8 @@
 <script type="text/template" id="template">
     <div class="file-row row border">
         <div class="col-md-9">
-            <span class="name d-block" data-dz-name></span>   
-        </div>    
+            <span class="name d-block" data-dz-name></span>
+        </div>
         <div class="col-md-3 p-2">
             <div class="dz-progress mt-4">
                 <span class="dz-upload" data-dz-uploadprogress></span>
@@ -423,10 +423,10 @@
 <script type="text/javascript" src="{{ asset('jquery-ui/jquery-ui.min.js') }}"></script>
 <script>
     var detail = @json($detail);
-    datadetail = JSON.parse(detail); 
-    
+    datadetail = JSON.parse(detail);
+
     $(function(){
-           
+
         Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
             places = !isNaN(places = Math.abs(places)) ? places : 2;
             symbol = symbol !== undefined ? symbol : "";
@@ -437,7 +437,7 @@
                     i = parseInt(number = Math.abs(+number || 0).toFixed(places), 10) + "",
                     j = (j = i.length) > 3 ? j % 3 : 0;
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
-        };    
+        };
         $('#modaldetail').on('shown.bs.modal', function () {
             $("#savedetail").removeClass("disabled");
             $('#kodebarang').focus();
@@ -456,7 +456,7 @@
                 return false;
             }
             $(this).addClass("disabled");
-            var seri = $("#formseri").html(); 
+            var seri = $("#formseri").html();
             var satuan = $("#satuan option:selected").val();
             if (!satuan){
                 satuan = "";
@@ -480,7 +480,7 @@
             var act = $("#form").attr("act");
             if (act == "add"){
                 var data_id = generate_uid();
-                tabel.row.add({ID: data_id, SERIBARANG: seri, KODEBARANG: kodebarang, URAIAN: uraian, SATUAN_ID: satuan, NAMASATUAN: namasatuan, JENISKEMASAN: jeniskemasan, NAMAJENISKEMASAN: namajenis, JMLKEMASAN: jmlkemasan, JMLSATHARGA: jmlsatharga, CIF: cif, HARGA: hargasatuan, NOSPTNP: nosptnp, TGLSPTNP: tglsptnp, files: []}).draw();            
+                tabel.row.add({ID: data_id, SERIBARANG: seri, KODEBARANG: kodebarang, URAIAN: uraian, SATUAN_ID: satuan, NAMASATUAN: namasatuan, JENISKEMASAN: jeniskemasan, NAMAJENISKEMASAN: namajenis, JMLKEMASAN: jmlkemasan, JMLSATHARGA: jmlsatharga, CIF: cif, HARGA: hargasatuan, NOSPTNP: nosptnp, TGLSPTNP: tglsptnp, files: []}).draw();
                 $("#satuan").val("");
                 $("#uraian").val("");
                 $("#jeniskemasan").val("");
@@ -502,13 +502,13 @@
 
                 $("#kodebarang").focus();
             }
-            else if (act == "edit"){        
+            else if (act == "edit"){
                 var id = $("#iddetail").val();
                 var idx = $("#idxdetail").val();
                 var files = tabel.row(idx).data().files;
-                tabel.row(idx).data({ID: id, KODEBARANG: kodebarang, SERIBARANG: seri, URAIAN: uraian, SATUAN_ID: satuan, NAMASATUAN: namasatuan, JENISKEMASAN: jeniskemasan, NAMAJENISKEMASAN: namajenis,JMLKEMASAN: jmlkemasan, JMLSATHARGA: jmlsatharga, CIF: cif, HARGA: hargasatuan,NOSPTNP: nosptnp, TGLSPTNP: tglsptnp, files: files}).draw();   
+                tabel.row(idx).data({ID: id, KODEBARANG: kodebarang, SERIBARANG: seri, URAIAN: uraian, SATUAN_ID: satuan, NAMASATUAN: namasatuan, JENISKEMASAN: jeniskemasan, NAMAJENISKEMASAN: namajenis,JMLKEMASAN: jmlkemasan, JMLSATHARGA: jmlsatharga, CIF: cif, HARGA: hargasatuan,NOSPTNP: nosptnp, TGLSPTNP: tglsptnp, files: files}).draw();
                 $("#modaldetail").modal("hide");
-            }    
+            }
             $(this).removeClass("disabled");
         });
         $(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
@@ -543,7 +543,6 @@
             dom: "t",
             rowCallback: function(row, data)
             {        
-                console.log(data);
                 $('td:eq(0)', row).html('<div>' +data.KODEBARANG + "</div><div>" + (data.URAIAN || '&nbsp;') + "</div>");
                 $('td:eq(1)', row).html(parseFloat(data.JMLKEMASAN).formatMoney(0,"",",",".") + " " +(data.NAMAJENISKEMASAN || ""));
                 $('td:eq(2)', row).html('<div>' +parseFloat(data.JMLSATHARGA).formatMoney(2,"",",",".") + "</div><div>" + (data.NAMASATUAN || "&nbsp;") + "</div>");
@@ -551,15 +550,15 @@
                 $('td:eq(5)', row).html('<div>' +(data.NOSPTNP || '&nbsp;')+ "</div><div>" + (data.TGLSPTNP || "&nbsp;") + "</div>");
                 var opsi = "";
                 if (data.ID.toString().indexOf("dt-") == -1){
-                    opsi += '<a title="Konversi" class="showkonversi" href="/transaksi/userkonversi/' + data.ID +'" data-id="' + data.ID + 
-                            '"><i class="fa fa-cog"></i></a>&nbsp;&nbsp;'; 
+                    opsi += '<a title="Konversi" class="showkonversi" href="/transaksi/userkonversi/' + data.ID +'" data-id="' + data.ID +
+                            '"><i class="fa fa-cog"></i></a>&nbsp;&nbsp;';
                 }
-                opsi +=  '<a title="Upload" class="uploadfile" href="#modalupload" data-toggle="modal" data-id="' + data.ID + 
+                opsi +=  '<a title="Upload" class="uploadfile" href="#modalupload" data-toggle="modal" data-id="' + data.ID +
                         '"><i class="fa fa-upload"></i></a>&nbsp;&nbsp;' +
-                        '<a title="Edit" href="#modaldetail" class="editdetail" data-toggle="modal" id="' + data.ID + 
+                        '<a title="Edit" href="#modaldetail" class="editdetail" data-toggle="modal" id="' + data.ID +
                         '"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;' +
                         '<a title="Hapus" class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>';
-                
+
                 $('td:eq(6)', row).html(opsi);
             },
             select: 'single',     // enable single row selection
@@ -568,7 +567,7 @@
             columns: [
             { target: 0,
                 data: "KODEBARANG"
-            },              
+            },
             { target: 1,
                 data: "JMLKEMASAN"
             },
@@ -617,7 +616,7 @@
                                 '</tr>');
                     });
                 }
-                var numFiles = $("#listfiles tr").length;    
+                var numFiles = $("#listfiles tr").length;
                 if (numFiles == maxFiles){
                     $("div#dropzone").hide();
                 }
@@ -631,7 +630,7 @@
             var pph = parseInt($("#pph").val() != "" ? $("#pph").inputmask("unmaskedvalue") : 0);
             $("#total").val(bm+bmt+ppn+pph);
         })
-        $("#adddetail").on("click", function(){        
+        $("#adddetail").on("click", function(){
             $("#satuan").val("");
             $("#kodebarang").val("");
             $("#jmlkemasan").val("");
@@ -698,7 +697,7 @@
             $(this).prop("disabled", true);
             var detail = Array();
             var rows = tabel.rows().data();
-            $(rows).each(function(index,elem){                
+            $(rows).each(function(index,elem){
                 detail.push(elem);
             })
             $.ajax({
@@ -706,7 +705,7 @@
                 data: {_token: "{{ csrf_token() }}", type: "barang", header: $("#transaksi").serialize(), detail: detail, /*files: files*/},
                 type: "POST",
                 cache: false,
-                success: function(msg) { 
+                success: function(msg) {
                     if (typeof msg.error != 'undefined'){
                         $("#modal .modal-body").html(msg.error);
                         $("#modal").modal("show");
@@ -721,15 +720,15 @@
                         });
                         $("#modal").modal("show");
                         setTimeout(function(){
-                            $("#modal").modal("hide");                    
-                        }, 5000);                                         
-                    }      
+                            $("#modal").modal("hide");
+                        }, 5000);
+                    }
                 },
                 complete: function(){
                     $("#btnsimpan").prop("disabled", false);
                     $(".loader").hide();
                 }
-            }) 
+            })
         })
         function nopenChange(){
             tabel.rows().every(function(index, tabLoop, rowLoop){
@@ -759,34 +758,34 @@
                 $("#formnamaproduk").html("");
                 $("#kodebarang").val("");
             }
-        })        
+        })
         $("#cif,#jmlsatharga").on("change", function(){
-            var jmlsatharga = $("#jmlsatharga").val().replace(/,/g,"");         
-            var cif = $("#cif").val().replace(/,/g,""); 
+            var jmlsatharga = $("#jmlsatharga").val().replace(/,/g,"");
+            var cif = $("#cif").val().replace(/,/g,"");
             var hargasatuan = parseFloat(cif)/parseFloat(jmlsatharga);
-            hargasatuan = hargasatuan.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, "$&,");   
+            hargasatuan = hargasatuan.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, "$&,");
             $("#hargasatuan").val(hargasatuan);
         })
         var maxFiles = 2;
-        var numFiles = $("#listfiles tr").length;    
+        var numFiles = $("#listfiles tr").length;
         if (numFiles == maxFiles){
             $("div#dropzone").hide();
         }
-        var myDropzone = new Dropzone("#dropzone", { 
+        var myDropzone = new Dropzone("#dropzone", {
             url: "/transaksi/upload",
             uploadMultiple: false,
-            maxFilesize: 2,     
+            maxFilesize: 2,
             previewsContainer: "#preview-container",
             previewTemplate: $("#template").html(),
-            acceptedFiles: ".xls, .xlsx",        
+            acceptedFiles: ".xls, .xlsx",
             init:function(){
                 var self = this;
                 // config
                 self.options.addRemoveLinks = true;
-                self.options.dictRemoveFile = "Hapus";            
-                self.on("success", function(file, response) {                            
+                self.options.dictRemoveFile = "Hapus";
+                self.on("success", function(file, response) {
                     var value = JSON.parse(response);
-                    $(file.previewElement).append('<input type="hidden" name="fileid" value="' + value.id + '">');                                
+                    $(file.previewElement).append('<input type="hidden" name="fileid" value="' + value.id + '">');
                 })
                 // On removing file
                 self.on("removedfile", function (file) {
@@ -798,12 +797,12 @@
                             method: "POST"
                         });
                     }
-                });    
+                });
                 self.on("addedfile", function(file) {
                     if (this.files.length > self.options.maxFiles){
                         this.removeFile(file);
                     }
-                });  
+                });
                 self.on("complete", function (file) {
                     if(file.status == Dropzone.SUCCESS){
                         success = true;
@@ -812,14 +811,14 @@
                         $(file.previewElement).find(".dz-progress").hide();
                     }
                     else if (file.status == Dropzone.ERROR){
-                        $(file.previewElement).find('.dz-error-mark').html('<i class="fa fa-times-circle text-danger"></i>');                          
+                        $(file.previewElement).find('.dz-error-mark').html('<i class="fa fa-times-circle text-danger"></i>');
                         $(file.previewElement).find(".dz-success-mark").hide();
                         $(file.previewElement).find(".dz-progress").hide();
                     }
-                });     
+                });
             }
         });
-        $("#listfiles a.delete").on("click",function(){        
+        $("#listfiles a.delete").on("click",function(){
             $(this).closest("tr").remove();
             myDropzone.options.maxFiles = maxFiles - $("#listfiles tr").length;
             $("div#dropzone").show();
@@ -832,7 +831,7 @@
             var files = [];
             $("#listfiles tr").each(function(index,elem){
                 files.push({id: $(elem).find(".fileid"), filename: $(elem).find(".filename")});
-            }); 
+            });
             var newfiles = myDropzone.files;
             $(newfiles).each(function(index,elem){
                 var file_id = $(elem.previewElement).find("input[name=fileid]").val();

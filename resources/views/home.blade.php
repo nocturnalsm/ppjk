@@ -80,6 +80,15 @@
                     @can('stokperbarang')
                     <a class="list-group-item list-group-item-action" href="./transaksi/browsestokbarang">Browse Stok per Barang</a>
                     @endcan
+                    @can('gudang.transaksi')
+                    <a class="list-group-item list-group-item-action" href="./gudang">Perekaman Data Gudang</a>
+                    @endcan
+                    @can('gudang.kontainermasuk')
+                    <a class="list-group-item list-group-item-action" href="./gudang/kontainermasuk">Kontainer Masuk</a>
+                    @endcan
+                    @can('gudang.bongkar')
+                    <a class="list-group-item list-group-item-action" href="./gudang/perekamanbongkar">Perekaman Bongkar</a>
+                    @endcan
                 </ul>
             </div>
         </div>

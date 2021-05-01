@@ -19,7 +19,7 @@ use App\Models\Bank;
 use App\Models\Rekening;
 use App\Models\Pembeli;
 use App\Models\Pemasok;
-
+use App\Models\Gudang;
 
 class MasterController extends Controller
 {
@@ -95,41 +95,27 @@ class MasterController extends Controller
 	}
 	public function getdata_jeniskemasan()
 	{
-		$dataSource = JenisKemasan::select('jeniskemasan_id','kode','uraian');
-		$dataTable = datatables()->of($dataSource);
-		return $dataTable->toJson();
+			$dataSource = JenisKemasan::select('jeniskemasan_id','kode','uraian');
+			$dataTable = datatables()->of($dataSource);
+			return $dataTable->toJson();
 	}
 	public function getdata_gudang()
 	{
-		$search = $request->input("search");
-		$draw = $this->post("draw");
-		$start = $request->input("start");
-		$length = $request->input("length");
-		$order = $request->input("order");
-		$this->loadModel('Gudang');
-		$fetch = $this->gudang->getData($search, $start, $length, $order);
-		$num_rows = $this->gudang->getData($search)->num_rows();
-		$num_filtered = $fetch->num_rows();
-		$data = Array("draw" => $draw,
-					  "recordsTotal" => $num_filtered,
-					  "recordsFiltered" => $num_rows,
-					  "data" => $fetch->get());
-		header('Content-Type: application/json');
-        print json_encode($data);
+			$dataSource = Gudang::select("GUDANG_ID","KODE","URAIAN");
+			$dataTable = datatables()->of($dataSource);
+			return $dataTable->toJson();
 	}
 	public function gudang()
 	{
-		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Gudang");
-		$assets["scripts"][] = "../web/assets/app/gudang.js";
-		return view("master.gudang",   ["breads" => $breadcrumb,
-									 "columns" => Array("Kode","Uraian")]);
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Gudang");
+			return view("master.gudang",   ["breads" => $breadcrumb, "columns" => Array("Kode","Nama Gudang")]);
 	}
 	public function getdata_bank()
 	{
-		$dataSource = Bank::select('bank_id','bank');
-		$dataTable = datatables()->of($dataSource);
-		return $dataTable->toJson();
+			$dataSource = Bank::select('bank_id','bank');
+			$dataTable = datatables()->of($dataSource);
+			return $dataTable->toJson();
 	}
 	public function bank()
 	{
@@ -314,13 +300,13 @@ class MasterController extends Controller
 						break;
 					case "gudang":
 						if ($input["input-action"] == "add"){
-							$result = $this->gudang->add($input);
+							$result = Gudang::add($input);
 						}
 						else if ($input["input-action"] == "edit"){
-							$result = $this->gudang->edit($input);
+							$result = Gudang::edit($input);
 						}
 						else if ($input["input-action"] == "delete"){
-							$result = $this->gudang->drop($input["id"]);
+							$result = Gudang::drop($input["id"]);
 						}
 						break;
 					case "importir":
