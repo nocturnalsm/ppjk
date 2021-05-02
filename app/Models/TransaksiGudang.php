@@ -247,10 +247,11 @@ class TransaksiGudang extends Model
         $arrHeader = Array("CUSTOMER" => isset($header["customer"]) && trim($header["customer"]) != "" ? $header["customer"] : NULL,
                            "IMPORTIR" => trim($header["importir"]) == "" ? NULL : $header["importir"],
                            "NO_INV" => $header["noinv"], "NOAJU" => $header["noaju"],
-						               "TGL_FORM" => trim($header["tglentri"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglentri"])),
+						               "TGL_NOPEN" => trim($header["tglentri"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglentri"])),
                            "NOPEN" => $header["nopen"],"NOAJU" => $header["noaju"],
                            "TGL_SPPB" => trim($header["tglsppb"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglsppb"])),
-                           "NDPBM" => str_replace(",","",$header["kurs"])
+                           "NDPBM" => str_replace(",","",$header["kurs"]),
+                           "KANTOR_ID" => $header["kantor"]
                           );
 
         if ($action == "insert"){
@@ -2333,7 +2334,7 @@ class TransaksiGudang extends Model
                     ->join(DB::raw("importir i"), "i.IMPORTIR_ID","=","h.IMPORTIR")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "b.ID_HEADER","=","h.ID")
                     ->where("h.ID", $id);
-          
+
           if ($data->exists()){
               $data = $data->first();
               $data->TGLNOPEN = $data->TGL_NOPEN && $data->TGL_NOPEN != "" ? Date("d-m-Y", strtotime($data->TGL_NOPEN)) : "";

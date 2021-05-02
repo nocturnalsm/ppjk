@@ -16,6 +16,7 @@
                 <form id="form" act="">
                     <input type="hidden" name="idxdetail" id="idxdetail">
                     <input type="hidden" name="iddetail" id="iddetail">
+                    <input type="hidden" name="formseri" id="formseri" value="">
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodebarang">Kode Barang</label>
                         <div class="col-md-9">
@@ -133,19 +134,30 @@
                 <div class="col-md-8 py-0 pr-4 text-right">
                     <button type="button" id="btnsimpan" class="btn btn-primary btn-sm m-0">Simpan</button>&nbsp;
                     <a href="/" class="btn btn-default btn-sm m-0">Batal</a>&nbsp;
-                    @if($canDelete)
-                    <button type="button" id="deletetrans" class="btn btn-danger btn-sm m-0">Hapus</button>
+                    @can('gudang.transaksi.delete')
+                    <button type="button" id="deletetrans" @if($header->id == '') disabled @endif class="btn btn-danger btn-sm m-0">Hapus</button>
                     <form id="formdelete">
                     @csrf
                     <input type="hidden" name="iddelete" value="{{ $header->ID }}">
                     </form>
-                    @endif
+                    @endcan
                 </div>
             </div>
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
             <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
+            <div class="form-row px-2">
+                <label class="col-md-1 col-form-label form-control-sm">Kantor</label>
+                <div class="col-md-2">
+                    <select class="form-control form-control-sm" id="kantor" name="kantor" value="{{ $header->KANTOR_ID }}">
+                        <option value=""></option>
+                        @foreach($kodekantor as $kantor)
+                        <option @if($header->KANTOR_ID == $kantor->KANTOR_ID)selected @endif value="{{ $kantor->KANTOR_ID }}">{{ $kantor->URAIAN }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Importir</label>
                 <div class="col-md-4">
@@ -181,9 +193,9 @@
                     <p class="error nopen">Nopen 6 digit</p>
                 </div>
                 <div class="col-md-2"></div>
-                <label class="col-md-1 col-form-label form-control-sm text-right">Tgl Entri</label>
+                <label class="col-md-1 col-form-label form-control-sm text-right">Tgl Nopen</label>
                 <div class="col-md-2">
-                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglentri" value="{{ $header->TGL_FORM }}" id="tanggal">
+                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglentri" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
                 </div>
             </div>
             <div class="form-row px-2">
@@ -440,7 +452,7 @@ $("#deletetrans").on("click", function(){
     $("#modal .modal-body").html("Apakah Anda ingin menghapus data ini?");
     $("#modal .btn-ok").html("Ya").on("click", function(){
         $.ajax({
-            url: "/transaksi/delete",
+            url: "/gudang/delete",
             data: $("#formdelete").serialize(),
             type: "POST",
             success: function(msg) {
@@ -477,6 +489,7 @@ $("#savedetail").on("click", function(){
         $("#kodebarang").focus();
         return false;
     }
+    var seri = $("#formseri").val();
     var satuan = $("#satuan option:selected").val();
     if (!satuan){
         satuan = "";
@@ -507,6 +520,16 @@ $("#savedetail").on("click", function(){
         $("#harga").val("");
         $("#cif").val("");
         $("#rupiah").val("");
+        var rowcount = ("00" + (tabel.rows().count() + 1)).substr(-2,2);
+        $("#formseri").val(rowcount);
+
+        var tglnopen = $("#tglnopen").val().replace(/9/g,'\\9').replace(/-/g,"");
+        if (tglnopen == ""){
+            tglnopen = "\\9\\9\\9\\9\\9\\9\\9\\9";
+        }
+        var nopen = $("#nopen").val().trim() != "" ? $("#nopen").val().replace(/9/g,'\\9') : "\\9\\9\\9\\9\\9\\9";
+        $("#kodebarang").inputmask("999999" + "-" + nopen + "-" + tglnopen + "-" + rowcount.replace(/9/g,'\\9'));
+
         $("#kodebarang").focus();
     }
     else if (act == "edit"){
@@ -573,9 +596,37 @@ $("#adddetail").on("click", function(){
     $("#rupiah").val("");
     $("#uraian").val();
     $("#cif").val();
+    var rowcount = ("00" + (tabel.rows().count() + 1)).substr(-2,2);
+    $("#formseri").val(rowcount);
+    var tglnopen = $("#tglnopen").val().replace(/9/g,'\\9').replace(/-/g,"");
+    if (tglnopen == ""){
+        tglnopen = "\\9\\9\\9\\9\\9\\9\\9\\9";
+    }
+    var nopen = $("#nopen").val().trim() != "" ? $("#nopen").val().replace(/9/g,'\\9') : "\\9\\9\\9\\9\\9\\9";
+    $("#kodebarang").inputmask("999999" + "-" + nopen + "-" + tglnopen + "-" + rowcount.replace(/9/g,'\\9'));
     $("#modaldetail .modal-title").html("Tambah ");
+
     $("#form").attr("act","add");
 })
+$("#nopen").inputmask({"mask": "999999","removeMaskOnSubmit": true});
+function nopenChange(){
+    tabel.rows().every(function(index, tabLoop, rowLoop){
+        var data = this.data();
+        var kode = data.KODEBARANG.substr(0,6);
+        var tglnopen = $("#tglnopen").val().trim().replace(/-/g,"");
+        if (tglnopen == ""){
+            tglnopen = "99999999";
+        }
+        var nopen = $("#nopen").val().trim();
+        if (nopen == ""){
+            nopen = "999999";
+        }
+        data.KODEBARANG = kode + "-" + nopen + "-" + tglnopen + "-" + data.SERIBARANG;
+        this.data(data);
+    }).draw();
+}
+$("#nopen").on("change", nopenChange);
+$("#tglnopen").on("change", nopenChange);
 $("body").on("click", ".edit", function(){
     var row = $(this).closest("tr");
     var index = tabel.row(row).index();
@@ -583,7 +634,19 @@ $("body").on("click", ".edit", function(){
     $("#satuan").val(row[0].SATUAN_ID);
     $("#jeniskemasan").val(row[0].JENISKEMASAN);
     $("#uraian").val(row[0].URAIAN);
-    $("#kodebarang").val(row[0].KODEBARANG);
+    var kodebarang = row[0].KODEBARANG;
+    var elemkodebarang = row[0].KODEBARANG.split("-");
+    $("#formseri").val(elemkodebarang[3]);
+    kodebarang = kodebarang.substr(0,6);
+    var tglnopen = $("#tglnopen").val().replace(/-/g,"").replace(/9/g,'\\9');
+    if (tglnopen == ""){
+        tglnopen = "\\9\\9\\9\\9\\9\\9\\9\\9";
+    }
+    var mask = kodebarang.substr(7);
+    mask = mask.replace(/9/g,'\\9');
+    var nopen = $("#nopen").val().trim() != "" ? $("#nopen").val().replace(/9/g,'\\9') : "\\9\\9\\9\\9\\9\\9";
+    $("#kodebarang").inputmask("999999" + "-" + nopen + "-" + tglnopen + "-" + $("#formseri").val().replace(/9/g,'\\9'));
+    $("#kodebarang").val(kodebarang);
     $("#jmlkemasan").val(row[0].JMLKEMASAN);
     $("#jmlsatharga").val(row[0].JMLSATHARGA);
     $("#cif").val(row[0].CIF);
@@ -610,6 +673,10 @@ $("#cif,#jmlsatharga").on("change", function(){
     var rupiah = hargasatuan*parseFloat($("#kurs").val().replace(/,/g,""));
     $("#harga").val(hargasatuan);
     $("#rupiah").val(rupiah.toFixed(2));
+})
+$('#modaldetail').on('shown.bs.modal', function (e) {
+    $("#savedetail").removeClass("disabled");
+    $('#kodebarang').focus();
 })
 })
 </script>

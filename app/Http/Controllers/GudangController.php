@@ -30,6 +30,7 @@ class GudangController extends Controller {
 		$dtJenisKemasan = Transaksi::getJenisKemasan();
 		$dtUkuranKontainer = Transaksi::getUkuranKontainer();
 		$dtSatuan = Transaksi::getSatuan();
+		$dtKantor = Transaksi::getKantor();
 
 		$dtTransaksi = Array();
 		$dtTransaksi = TransaksiGudang::getTransaksi($id);
@@ -45,7 +46,7 @@ class GudangController extends Controller {
 				"kontainer" => isset($dtTransaksi["kontainer"]) ? json_encode($dtTransaksi["kontainer"]) : "{}",
 				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
 				"jeniskemasan" => $dtJenisKemasan, "customer" => $dtCustomer,
-				"datasatuan" => $dtSatuan, "idtransaksi" => $id,
+				"datasatuan" => $dtSatuan, "idtransaksi" => $id, "kodekantor" => $dtKantor,
 				"ukurankontainer" => $dtUkuranKontainer, "notransaksi" => $notransaksi,
 				"canDelete" => $id != ""
 			];
