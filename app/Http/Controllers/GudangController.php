@@ -779,11 +779,17 @@ class GudangController extends Controller {
 	}
 	public function find(Request $request)
 	{
+		if(!auth()->user()->can('gudang.search')){
+			abort(403, 'User does not have the right roles.');
+		}
 		$term = $request->input("term");
-		$searchtype = $request->input("searchtype");
-
-		$data = Transaksi::search($term,$searchtype);
-        return response()->json($data);
+		$data = TransaksiGudang::searchNopen($term);
+		if ($data){
+    		return response()->json($data);
+		}
+		else {
+				return response()->json(["error" => "Nopen tidak ditemukan"]);
+		}
 	}
 	public function findproduk(Request $request)
 	{
@@ -812,15 +818,15 @@ class GudangController extends Controller {
 
         return response()->json($data);
 	}
-	public function searchkontainer()
+	public function searchnopen()
 	{
-		if(!auth()->user()->can('schedule.carikontainer')){
+		if(!auth()->user()->can('gudang.search')){
 			abort(403, 'User does not have the right roles.');
 		}
     $breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Cari Transaksi Berdasarkan Nomor Kontainer");
+		$breadcrumb[] = Array("text" => "Cari Transaksi Berdasarkan Nopen");
 
-		return view("transaksi.searchkontainer",["breads" => $breadcrumb]);
+		return view("gudang.searchnopen",["breads" => $breadcrumb]);
 	}
 	/*
 	public function perekamansptnp()
@@ -2693,7 +2699,8 @@ class GudangController extends Controller {
 												->select(DB::raw("k.ID"),"NOAJU","NOPEN","TGL_NOPEN", DB::raw("i.NAMA AS NAMAIMPORTIR"))
 												->join(DB::raw("tbl_penarikan_kontainer k"), "h.ID","=","k.ID_HEADER")
 												->join(DB::raw("importir i"), "h.IMPORTIR","=","i.IMPORTIR_ID")
-												->where("NOMOR_KONTAINER", $request->nokontainer);
+												->where("NOMOR_KONTAINER", $request->nokontainer)
+												->where("USERGUDANG", "Y");
 							if ($data->exists()){
 									$data = $data->first();
 									$data->TGL_NOPEN = $data->TGL_NOPEN == '' ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));

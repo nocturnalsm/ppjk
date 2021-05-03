@@ -158,7 +158,7 @@ class TransaksiGudang extends Model
                             ->leftJoin("satuan", "satuan.id","=","tbl_detail_barang.SATUAN_ID")
                             ->where("ID_HEADER", $id)->get();
         }
-        $header->TGL_FORM = $header->TGL_FORM == "" ? "" : Date("d-m-Y", strtotime($header->TGL_FORM));
+        $header->TGL_NOPEN = $header->TGL_NOPEN == "" ? "" : Date("d-m-Y", strtotime($header->TGL_NOPEN));
         $header->TGL_SPPB = $header->TGL_SPPB == "" ? "" : Date("d-m-Y", strtotime($header->TGL_SPPB));
 
         return Array("header" => $header, "kontainer" => isset($kontainer) ? $kontainer : [],
@@ -251,7 +251,7 @@ class TransaksiGudang extends Model
                            "NOPEN" => $header["nopen"],"NOAJU" => $header["noaju"],
                            "TGL_SPPB" => trim($header["tglsppb"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglsppb"])),
                            "NDPBM" => str_replace(",","",$header["kurs"]),
-                           "KANTOR_ID" => $header["kantor"]
+                           "KANTOR_ID" => $header["kantor"], "USERGUDANG" => "Y"
                           );
 
         if ($action == "insert"){
@@ -287,7 +287,7 @@ class TransaksiGudang extends Model
                 DB::table("tbl_detail_barang")
                     ->insert($arrDetail);
             }
-
+            return response()->json(["id" => $idtransaksi]);
         }
         else if ($action == "update"){
             $idtransaksi = $header["idtransaksi"];
@@ -364,7 +364,7 @@ class TransaksiGudang extends Model
                     }
                 }
             }
-
+            return response()->json(["id" => $idtransaksi]);
         }
     }
     public static function saveTransaksiDo($header, $files){
@@ -926,7 +926,8 @@ class TransaksiGudang extends Model
                             ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
                     ->join(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "h.ID", "=", "b.ID_HEADER")
-                    ->leftJoin(DB::raw("ref_gudang g"), "b.GUDANG_ID", "=", "g.GUDANG_ID");
+                    ->leftJoin(DB::raw("ref_gudang g"), "b.GUDANG_ID", "=", "g.GUDANG_ID")
+                    ->where("USERGUDANG", "Y");
         if (trim($where) != ""){
             $data = $data->whereRaw($where);
         }
@@ -2382,5 +2383,17 @@ class TransaksiGudang extends Model
                   $item++;
               }
           }
+    }
+    public static function searchNopen($nopen)
+    {
+        $data = TransaksiGudang::where("NOPEN", trim($nopen))
+                               ->where("USERGUDANG", "Y")
+                               ->select("ID");
+        if ($data->exists()){
+            return $data->first();
+        }
+        else {
+            return false;
+        }
     }
 }

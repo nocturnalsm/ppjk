@@ -424,7 +424,11 @@ $("#btnsimpan").on("click", function(){
                     $("#modal .modal-body").html("Penyimpanan berhasil");
                     $('#modal').on('hidden.bs.modal', function (e) {
                         if ($("#idtransaksi").val().trim() == ""){
-                            document.location.href = "/transaksi";
+                            var redirect = "/gudang";
+                            if (typeof msg.id != 'undefined'){
+                                redirect = redirect + "/" +msg.id;
+                            }
+                            document.location.href = redirect;
                         }
                         else {
                             document.location.reload();
@@ -471,7 +475,7 @@ $("#deletetrans").on("click", function(){
                     setTimeout(function(){
                         $("#modal").modal("hide");
                     }, 10000);
-                    window.location.href = "/transaksi/search";
+                    window.location.href = "/gudang";
                 }
             }
         })
