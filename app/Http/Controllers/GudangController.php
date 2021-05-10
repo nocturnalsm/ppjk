@@ -2699,8 +2699,7 @@ class GudangController extends Controller {
 												->select(DB::raw("k.ID"),"NOAJU","NOPEN","TGL_NOPEN", DB::raw("i.NAMA AS NAMAIMPORTIR"))
 												->join(DB::raw("tbl_penarikan_kontainer k"), "h.ID","=","k.ID_HEADER")
 												->join(DB::raw("importir i"), "h.IMPORTIR","=","i.IMPORTIR_ID")
-												->where("NOMOR_KONTAINER", $request->nokontainer)
-												->where("USERGUDANG", "Y");
+												->where("NOMOR_KONTAINER", $request->nokontainer);
 							if ($data->exists()){
 									$data = $data->first();
 									$data->TGL_NOPEN = $data->TGL_NOPEN == '' ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));

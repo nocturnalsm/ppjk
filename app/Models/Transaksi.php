@@ -65,7 +65,7 @@ class Transaksi extends Model
         $data = Importir::select("*")->orderBy("nama");
         $user = auth()->user();
         if ($id == ""){
-            if ($user->hasRole('company')){
+            if ($user->hasRole('company') || $user->hasRole('impor_company')){
                 $company = $user->hasCompany();
                 if ($company){
                   $data->where("IMPORTIR_ID", $company->id);
@@ -183,7 +183,8 @@ class Transaksi extends Model
                     ->join(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.CUSTOMER")
                     ->join(DB::raw("importir imp"), "imp.IMPORTIR_ID", "=", "h.IMPORTIR")
                     ->join(DB::raw("plbbandu_app15.tb_pemasok shipper"), "shipper.id_pemasok", "=", "h.SHIPPER")
-                    ->where("NO_INV", $value);
+                    ->where("NO_INV", $value)
+                    ->whereRaw("USERGUDANG IS NULL");
         if ($data->count() > 0){
             return $data->first();
         }
@@ -220,16 +221,17 @@ class Transaksi extends Model
                         ->selectRaw("h.id as id")
                         ->leftJoin(DB::raw("ref_kantor k"), "h.kantor_id","=", "k.kantor_id")
                         ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.customer")
-                        ->where("NO_BL","LIKE", "%" .$term ."%")
-                        ->orWhere("NOAJU", "LIKE", "%" .$term ."%")
-                        ->orWhere("NOPEN","LIKE", "%" .$term ."%")
-                        ->orWhere("NO_INV", "LIKE", "%" .$term ."%")
-                        ->orWhere("c.nama_customer", "LIKE", "%" .$term ."%");
-
-            if (ctype_digit($term)){
-                $data = $data->orWhere("h.JUMLAH_KEMASAN", $term);
-            }
-
+                        ->whereRaw("USERGUDANG IS NULL")
+                        ->where(function($query) use ($term){
+                            $query->where("NO_BL","LIKE", "%" .$term ."%")
+                                  ->orWhere("NOAJU", "LIKE", "%" .$term ."%")
+                                  ->orWhere("NOPEN","LIKE", "%" .$term ."%")
+                                  ->orWhere("NO_INV", "LIKE", "%" .$term ."%")
+                                  ->orWhere("c.nama_customer", "LIKE", "%" .$term ."%");
+                            if (ctype_digit($term)){
+                                $query->orWhere("h.JUMLAH_KEMASAN", $term);
+                            }
+                        });
         }
         if ($data->count() > 0){
             return $data->get();
@@ -242,6 +244,7 @@ class Transaksi extends Model
     {
         $data = Transaksi::select("ID")
                         ->where("NOPEN", $nopen)
+                        ->whereRaw("USERGUDANG IS NULL")
                         ->where("TGL_NOPEN", Date("Y-m-d", strtotime($tglnopen)));
         if ($data->count() > 0){
             return $data->get();
@@ -261,6 +264,7 @@ class Transaksi extends Model
                                       ."NO_BDG, TGL_BDG, MAJELIS, SDG01, SDG02, SDG03,"
                                       ."SDG04, SDG05, SDG06, SDG07, HASIL_BDG, NO_KEP_BDG, TGL_KEP_BDG")
                     ->where("ID", $id)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->first();
         $data->TGL_NOPEN = $data->TGL_NOPEN == "" ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));
         $data->TGL_LUNAS = $data->TGL_LUNAS == "" ? "" : Date("d-m-Y", strtotime($data->TGL_LUNAS));
@@ -304,7 +308,8 @@ class Transaksi extends Model
         else {
             $header = Transaksi::select("tbl_penarikan_header.*",
                                     DB::raw("BMTB+BMTTB+PPNTB+PPHTB+DENDA_TB AS TOTAL_TB"))
-                            ->where("ID", $id)->first();
+                            ->where("ID", $id)
+                            ->whereRaw("USERGUDANG IS NULL")->first();
         }
         if ($includeKontainer){
             $kontainer = DB::table("tbl_penarikan_kontainer")
@@ -354,7 +359,8 @@ class Transaksi extends Model
                         ->leftJoin(DB::raw("importir imp"), "imp.IMPORTIR_ID", "=", "h.IMPORTIR")
                         ->leftJoin(DB::raw("plbbandu_app15.tb_pemasok shipper"), "shipper.id_pemasok", "=", "h.SHIPPER")
                         ->leftJoin(DB::raw("ref_matauang r"), "db.CURR", "=", "r.MATAUANG_ID")
-                        ->where("db.ID_HEADER", $id)->get();
+                        ->where("db.ID_HEADER", $id)
+                        ->whereRaw("USERGUDANG IS NULL")->get();
         }
         if ($header){
             $header->TGL_PENARIKAN = $header->TGL_PENARIKAN == "" ? "" : Date("d-m-Y", strtotime($header->TGL_PENARIKAN));
@@ -368,7 +374,9 @@ class Transaksi extends Model
                                 ."TGL_INV, TGL_PO, TGL_SC, TGL_BL, TGL_FORM,TGL_JATUH_TEMPO,"
                                 ."KAPAL, PEL_MUAT, TGL_BERANGKAT, TGL_TIBA, TGL_DOK_TRM,"
                                 ."PEMBAYARAN, TOP, CURR, CIF, FAKTUR")
-                    ->where("h.ID", $id)->first();
+                    ->where("h.ID", $id)
+                    ->whereRaw("USERGUDANG IS NULL")
+                    ->first();
         if ($header){
             $header->TGL_INV = $header->TGL_INV == "" ? "" : Date("d-m-Y", strtotime($header->TGL_INV));
             $header->TGL_DOK_TRM = $header->TGL_DOK_TRM == "" ? "" : Date("d-m-Y", strtotime($header->TGL_DOK_TRM));
@@ -389,14 +397,15 @@ class Transaksi extends Model
                     ->selectRaw("h.ID, KODE_HS_VO, h.CONSIGNEE, h.NO_PI AS ID_PI, q.NO_PI,"
                                 ."TGL_LS, NO_VO, TGL_VO, TGL_PERIKSA_VO,"
                                 ."h.STATUS, CATATAN")
-                    ->where("h.ID", $id)->first();
+                    ->where("h.ID", $id)
+                    ->where("USERGUDANG IS NULL")->first();
         $header->TGL_LS = $header->TGL_LS == "" ? "" : Date("d-m-Y", strtotime($header->TGL_LS));
         $header->TGL_VO = $header->TGL_VO == "" ? "" : Date("d-m-Y", strtotime($header->TGL_VO));
         $header->TGL_PERIKSA_VO = $header->TGL_PERIKSA_VO == "" ? "" : Date("d-m-Y", strtotime($header->TGL_PERIKSA_VO));
         return $header;
     }
     public static function saveTransaksi($action, $header, $kontainer, $detail){
-        $check = Transaksi::select("NO_INV");
+        $check = Transaksi::select("NO_INV")->whereRaw("USERGUDANG IS NULL");
 
         $check = $check->where(function($q) use ($header){
             if (trim($header["noinv"]) != ""){
@@ -578,7 +587,7 @@ class Transaksi extends Model
     }
     public static function saveTransaksiDo($header, $files){
 
-        $check = Transaksi::select("NO_INV");
+        $check = Transaksi::select("NO_INV")->whereRaw("USERGUDANG IS NULL");
 
         $check = $check->where(function($q) use ($header){
             if (trim($header["noinv"]) != ""){
@@ -874,148 +883,6 @@ class Transaksi extends Model
           Transaksi::insert($arrHeader);
         }
     }
-    public static function updateHasilBongkar($header){
-
-        $check = $this->query("SELECT NO_BL FROM tbl_penarikan_header WHERE NO_BL = '" .$header["nobl"] ."' AND ID <> '" .$header["idtransaksi"] ."'");
-        if ($check->count() > 0){
-            throw new \Exception("Nomer BL sudah ada");
-        }
-        $arrHeader = Array("NO_BL" => $header["nobl"],
-                           "JUMLAH_KEMASAN" => str_replace(",","",$header["jmlkemasan"]),
-                           "JENIS_KEMASAN" => $header["jeniskemasan"],
-                           "HASIL_BONGKAR" => $header["hasilbongkar"],
-                           "CATATAN" => $header["catatan"],
-                           "JENIS_DOKUMEN1" => $header["jenisdokumen1"],
-                           "NOPEN1" => $header["nopen1"],
-                           "TGL_BONGKAR" => trim($header["tglbongkar"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglbongkar"])),
-                           "TGL_NOPEN1" => trim($header["tglnopen1"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglnopen1"])),
-                           "TGL_KELUAR" => trim($header["tglkeluar"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglkeluar"])),
-                           "AJU1" => $header["aju1"],
-                           "STATUS_REVISI" => $header["statusrevisi"]
-                          );
-        if (isset($header["customer"])){
-            $arrHeader["CUSTOMER"] = $header["customer"];
-        }
-        $this->setTableName("tbl_penarikan_header");
-        $idtransaksi = $header["idtransaksi"];
-        $this->updateBy("ID", $idtransaksi, $arrHeader);
-    }
-    public static function getMonitoring($kantor, $gudang, $customer, $importir, $kategori, $dari, $sampai )
-    {
-        $dari = Date("Y-m-d", strtotime($dari));
-        $sampai = Date("Y-m-d", strtotime($sampai));
-        $data = Array();
-        $whereCustomer = $customer != "" ? " AND h.CUSTOMER = '" .$customer ."'" : "";
-        $whereImportir = $importir != "" ? " AND h.IMPORTIR = '" .$importir ."'" : "";
-        $field = Array("Tanggal Tiba" => "TGL_TIBA",
-                       "Tanggal Keluar" => "TGL_KELUAR",
-                       "Tanggal Nopen Dok In" => "TGL_NOPEN1",
-                       "Tanggal Bongkar" => "TGL_BONGKAR",
-                       "Tanggal Rekam" => "TGL_REKAM");
-        $header = $this->query("SELECT h.ID, h.NO_BL, h.JUMLAH_KEMASAN, h.JUMLAH_KONTAINER,
-                                AJU1, NOPEN1, DATE_FORMAT(TGL_NOPEN1, '%d-%m-%Y') AS TGLNOPEN1,
-                                c.nama_customer AS NAMACUSTOMER,
-                                DATE_FORMAT(TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,
-                                IF(DOK_LAIN = '', '', IF (DOK_LAIN = 'Y', 'Pakai Form', 'Tanpa Form')) AS FORM,
-                                i.NAMA AS NAMACONSIGNEE, i2.NAMA AS NAMAIMPORTIR,
-                                jb.URAIAN AS NAMAJENISBARANG FROM tbl_penarikan_header h
-                                LEFT JOIN ref_jenis_barang jb ON h.jenis_barang = jb.JENISBARANG_ID
-                                LEFT JOIN importir i ON h.CONSIGNEE = i.importir_id
-                                LEFT JOIN importir i2 ON h.IMPORTIR = i2.importir_id
-                                LEFT JOIN plbbandu_app15.tb_customer c ON h.CUSTOMER = c.id_customer
-                                WHERE KANTOR_ID = '" .$kantor ."' "
-                                .(trim($gudang) != "" ? " AND GUDANG_ID = '" .$gudang ."' " : "")
-                                ." AND (" .$field[$kategori] ." BETWEEN '" .$dari ."' AND '" .$sampai
-                                ."') " .$whereCustomer .$whereImportir ." ORDER BY " .$field[$kategori]);
-        foreach ($header as $head){
-            $current["header"] = $head;
-            $kontainer = $this->query("SELECT * FROM tbl_penarikan_kontainer dk
-                    INNER JOIN ref_ukuran_kontainer uk ON dk.UKURAN_KONTAINER = uk.KODE
-                    WHERE id_header = '" .$head->ID ."'")->get();
-            $current["kontainer"] = $kontainer;
-            if (count($current) > 0){
-                $data[] = $current;
-            }
-        }
-        return $data;
-    }
-    public static function getHarian($kantor, $gudang, $customer, $kategori1, $dari1,
-                              $sampai1, $kategori2, $dari2, $sampai2 )
-    {
-        $data = Array();
-
-        $array = Array("Tanggal Perekaman" => "TGL_REKAM", "Tanggal Bongkar" => "TGL_BONGKAR", "Tanggal Tiba" => "TGL_TIBA",
-                       "Tanggal Keluar" => "TGL_KELUAR", "Tanggal Nopen Dok In" => "TGL_NOPEN1",
-                       "Tanggal Nopen Dok Out" => "TGL_NOPEN2");
-        $where = "";
-        $whereCustomer = $customer != "" ? " AND customer = '" .$customer ."'" : "";
-        if ($kategori1 != ""){
-            if (trim($dari1) == "" && trim($sampai1) == ""){
-                $where  .=  "(" .$array[$kategori1] ." IS NULL OR " .$array[$kategori1] ." = '')";
-            }
-            else {
-                if (trim($dari1) == ""){
-                    $dari1 = "0000-00-00";
-                }
-                if (trim($sampai1) == ""){
-                    $sampai1 = "9999-99-99";
-                }
-                $where  .=  "(" .$array[$kategori1] ." BETWEEN '" .Date("Y-m-d", strtotime($dari1)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai1)) ."')";
-            }
-
-        }
-        if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
-            if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array[$kategori2] ." IS NULL OR " .$array[$kategori2] ." = '')";
-            }
-            else {
-                if (trim($dari2) == ""){
-                    $dari2 = "0000-00-00";
-                }
-                if (trim($sampai2) == ""){
-                    $sampai2 = "9999-99-99";
-                }
-                $where  .=  "(" .$array[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
-            }
-        }
-
-        $header = $this->query("SELECT h.ID, h.NO_BL, i.NAMA AS NAMACONSIGNEE,
-                                c.nama_customer AS NAMACUSTOMER,
-                                DATE_FORMAT(TGL_REKAM, '%d-%m-%Y') AS TGLREKAM,
-                                DATE_FORMAT(TGL_BERANGKAT, '%d-%m-%Y') AS TGLBERANGKAT,
-                                DATE_FORMAT(TGL_TIBA, '%d-%m-%Y') AS TGLTIBA, h.JUMLAH_KONTAINER,
-                                h.KAPAL, h.JUMLAH_KEMASAN, h.NO_PO, h.NO_FORM, h.GW, h.CBM, h.NO_INPL,
-                                jk.URAIAN AS JENISKEMASAN,
-                                pl.URAIAN AS NAMAPELMUAT, p.nama_pemasok AS NAMASHIPPER,
-                                jb.URAIAN AS NAMAJENISBARANG FROM tbl_penarikan_header h
-                                LEFT JOIN ref_jenis_barang jb ON h.jenis_barang = jb.JENISBARANG_ID
-                                LEFT JOIN ref_jenis_kemasan jk ON h.jenis_kemasan = jk.JENISKEMASAN_ID
-                                LEFT JOIN plbbandu_app15.tb_pemasok p ON h.SHIPPER = p.id_pemasok
-                                LEFT JOIN importir i ON h.CONSIGNEE = i.importir_id
-                                LEFT JOIN plbbandu_app15.tb_customer c ON h.CUSTOMER = c.id_customer
-                                LEFT JOIN ref_pelmuat pl ON h.PEL_MUAT = pl.PELMUAT_ID
-                                WHERE KANTOR_ID = '" .$kantor ."' "
-                                .(trim($gudang) != "" ? " AND GUDANG_ID = '" .$gudang ."' " : "")
-                                .(trim($where) != "" ? " AND " .$where : "") .$whereCustomer
-                                ."  ORDER BY TGL_REKAM");
-        foreach ($header as $head){
-            $current["header"] = $head;
-            $kontainer = $this->query("SELECT * FROM tbl_penarikan_kontainer dk
-                    INNER JOIN ref_ukuran_kontainer uk ON dk.UKURAN_KONTAINER = uk.KODE
-                    WHERE id_header = '" .$head->ID ."'")->get();
-            $current["kontainer"] = $kontainer;
-            if (count($current) > 0){
-                $data[] = $current;
-            }
-        }
-
-        return $data;
-    }
     public static function deleteTransaksi($id)
     {
         Transaksi::where("ID", $id)->delete();
@@ -1028,10 +895,10 @@ class Transaksi extends Model
     {
         $array = Array("Tanggal Tiba" => "TGL_TIBA",
                        "Tanggal Keluar" => "TGL_KELUAR", "Tanggal Nopen" => "TGL_NOPEN");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($dari1) == "" && trim($sampai1) == ""){
-                $where  .=  "(" .$array[$kategori1] ." IS NULL OR " .$array[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array[$kategori1] ." IS NULL OR " .$array[$kategori1] ." = '')";
             }
             else {
                 if (trim($dari1) == ""){
@@ -1040,17 +907,14 @@ class Transaksi extends Model
                 if (trim($sampai1) == ""){
                     $sampai1 = "9999-99-99";
                 }
-                $where  .=  "(" .$array[$kategori1] ." BETWEEN '" .Date("Y-m-d", strtotime($dari1)) ."'
+                $where  .=  " AND (" .$array[$kategori1] ." BETWEEN '" .Date("Y-m-d", strtotime($dari1)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai1)) ."')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array[$kategori2] ." IS NULL OR " .$array[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array[$kategori2] ." IS NULL OR " .$array[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1059,18 +923,18 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
+            $where .= " AND CUSTOMER = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."k.KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND k.KANTOR_ID = '" .$kantor ."'";
         }
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("k.KODE AS KODEKANTOR, NO_INV, NO_BL, JUMLAH_KEMASAN, nama_customer AS NAMA,"
@@ -1093,22 +957,19 @@ class Transaksi extends Model
         $array1 =  Array("No Inv" => "NO_INV","No BL" => "NO_BL","No Vo" => "NO_VO", "Nopen" => "NOPEN","No Aju" => "NOAJU");
 
         $array2 = Array("Tanggal BL" => "TGL_BL", "Tanggal Tiba" => "TGL_TIBA", "Tanggal Nopen" => "TGL_NOPEN", "Tgl Dok Terima" => "TGL_DOK_TRM");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1117,16 +978,13 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if ($kategori3 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari3) == "" && trim($sampai3) == ""){
-                $where  .=  "(" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
             }
             else {
                 if (trim($dari3) == ""){
@@ -1135,18 +993,18 @@ class Transaksi extends Model
                 if (trim($sampai3) == ""){
                     $sampai3 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                $where  .=  " AND (" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
+            $where .= " AND CUSTOMER = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND KANTOR_ID = '" .$kantor ."'";
         }
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
@@ -1164,84 +1022,25 @@ class Transaksi extends Model
         }
         return $data->get();
     }
-    public static function hasilbongkar($kantor, $gudang, $customer, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
-    {
-        $array1 =  Array("Aju Dok In" => "AJU1","Nopen Dok In" => "NOPEN1", "Hasil Bongkar" => "HASIL_BONGKAR");
-
-        $array2 = Array("Tanggal Bongkar" => "TGL_BONGKAR", "Tanggal Tiba" => "TGL_TIBA",
-                       "Tanggal Keluar" => "TGL_KELUAR", "Tanggal Nopen Dok In" => "TGL_NOPEN1",
-                       "Tanggal Nopen Dok Out" => "TGL_NOPEN2");
-        $where = "";
-        if ($kategori1 != ""){
-            if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
-            }
-            else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
-            }
-
-        }
-        if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
-            if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
-            }
-            else {
-                if (trim($dari2) == ""){
-                    $dari2 = "0000-00-00";
-                }
-                if (trim($sampai2) == ""){
-                    $sampai2 = "9999-99-99";
-                }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
-            }
-        }
-        if (trim($gudang) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."GUDANG_ID = '" .$gudang ."'";
-        }
-        if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
-        }
-        $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
-        $data = $this->query("SELECT id, NO_BL, JUMLAH_KEMASAN, nama_customer AS NAMA,
-                              i.nama AS IMPORTIR, IF(HASIL_BONGKAR = '' OR HASIL_BONGKAR IS NULL, '',
-                              IF(HASIL_BONGKAR = 'Y', 'Sesuai','Tidak Sesuai')) AS HASILBONGKAR,
-                              DATE_FORMAT(TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,
-                              DATE_FORMAT(TGL_KELUAR, '%d-%m-%Y') AS TGLKELUAR,
-                              AJU1, NOPEN1,  DATE_FORMAT(TGL_NOPEN1, '%d-%m-%Y') AS TGLNOPEN1, r.STATUS_REVISI
-                              FROM tbl_penarikan_header h
-                              LEFT JOIN plbbandu_app15.tb_customer c ON h.CUSTOMER = c.id_customer
-                              LEFT JOIN importir i ON h.IMPORTIR = i.importir_id
-                              LEFT JOIN ref_status_revisi r ON h.STATUS_REVISI = r.STATUSREVISI_ID
-                              WHERE " .$where);
-        //echo $data->printquery()
-        return $data->get();
-    }
     public static function browsevo($kantor, $customer, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2, $kategori3, $dari3, $sampai3)
     {
         $array1 =  Array("No Inv" => "NO_INV","No VO" => "NO_VO", "Status VO" => "STATUS");
 
         $array2 = Array("Tanggal Periksa" => "TGL_PERIKSA_VO", "Tanggal Tiba" => "TGL_TIBA",
                        "Tanggal LS" => "TGL_LS","Tanggal VO" => "TGL_VO","Tanggal Nopen" => "TGL_NOPEN");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1250,16 +1049,13 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if ($kategori3 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari3) == "" && trim($sampai3) == ""){
-                $where  .=  "(" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
             }
             else {
                 if (trim($dari3) == ""){
@@ -1268,18 +1064,18 @@ class Transaksi extends Model
                 if (trim($sampai3) == ""){
                     $sampai3 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                $where  .=  " AND (" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
+            $where .= " AND CUSTOMER = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."k.KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND k.KANTOR_ID = '" .$kantor ."'";
         }
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
@@ -1305,98 +1101,23 @@ class Transaksi extends Model
         }
         return $data->get();
     }
-    public static function browsebc($kantor, $customer, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
-    {
-        $array1 =  Array("Nopen" => "NOPEN","No BL" => "NO_BL", "No Kontainer" => "NOMOR_KONTAINER","Hasil Periksa" => "HASIL_PERIKSA");
-
-        $array2 = Array("Tanggal Periksa" => "TGL_PERIKSA","Tanggal Keluar" => "TGL_KELUAR",
-                       "Tanggal Nopen" => "TGL_NOPEN","Tanggal SPPB" => "TGL_SPPB", "Tanggal Tiba" => "TGL_TIBA");
-        $where = "";
-        if ($kategori1 != ""){
-            if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
-            }
-            else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
-            }
-
-        }
-        if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
-            if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
-            }
-            else {
-                if (trim($dari2) == ""){
-                    $dari2 = "0000-00-00";
-                }
-                if (trim($sampai2) == ""){
-                    $sampai2 = "9999-99-99";
-                }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
-                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
-            }
-        }
-        if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."id_customer = '" .$customer ."'";
-        }
-        if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."importir_id = '" .$importir ."'";
-        }
-
-        $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
-        $data = DB::table(DB::raw("tbl_penarikan_header h"))
-                    ->selectRaw("ID, KANTOR_ID, i.importir_id, c.id_customer,"
-                              ."NOPEN, i.nama AS IMPORTIR, c.nama_customer AS CUSTOMER,"
-                              ."DATE_FORMAT(TGL_PERIKSA, '%d-%m-%Y') AS TGLPERIKSA,"
-                              ."DATE_FORMAT(TGL_TIBA, '%d-%m-%Y') AS TGLTIBA,"
-                              ."DATE_FORMAT(TGL_DOK_TRM, '%d-%m-%Y') AS TGLDOKTRM,"
-                              ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN,"
-                              ."DATE_FORMAT(TGL_SPPB, '%d-%m-%Y') AS TGLSPPB,"
-                              ."DATE_FORMAT(TGL_KELUAR, '%d-%m-%Y') AS TGLKELUAR,"
-                              ."NO_BL, NO_INV, JUMLAH_KEMASAN,"
-                              ."IF(JALUR = '' OR JALUR IS NULL, '',"
-                              ."CASE  WHEN JALUR = 'K' THEN 'Kuning' "
-                              ."WHEN JALUR = 'M' THEN 'Merah' "
-                              ."WHEN JALUR = 'H' THEN 'Hijau' "
-                              ."END) AS JALURDOK,"
-                              ."IF(LEVEL_DOK = '' OR LEVEL_DOK IS NULL, '',"
-                              ."CASE  WHEN LEVEL_DOK = 'K' THEN 'Kuning' "
-                              ."WHEN LEVEL_DOK = 'M' THEN 'Merah' "
-                              ."WHEN LEVEL_DOK = 'H' THEN 'Hijau' "
-                              ."END) AS LEVEL_DOK,"
-                              ."HASIL_PERIKSA,  (SELECT GROUP_CONCAT(NOMOR_KONTAINER) "
-                              ."FROM tbl_penarikan_kontainer d where d.ID_HEADER = h.ID) "
-                              ."AS NOMOR_KONTAINER ")
-                    ->leftJoin(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
-                    ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "h.CUSTOMER", "=", "c.id_customer");
-        if (trim($where) != ""){
-            $data = $data->whereRaw($where);
-        }
-        return $data->get();
-    }
     public static function browsebayar($kantor, $customer, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
     {
         $array1 =  Array("No Inv" => "h.NO_INV","TOP" => "TOP_ID", "TT/Non TT" => "PEMBAYARAN");
         $array2 = Array("Tanggal Jatuh Tempo" => "TGL_JATUH_TEMPO");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1405,18 +1126,18 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
+            $where .= " AND CUSTOMER = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND KANTOR_ID = '" .$kantor ."'";
         }
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
@@ -1539,24 +1260,10 @@ class Transaksi extends Model
     {
         //$array1 =  Array("No Inv" => "h.NO_INV","TOP" => "TOP_ID", "TT/Non TT" => "PEMBAYARAN");
         $array2 = Array("Tgl Jatuh Tempo" => "TGL_JATUH_TEMPO","Tgl Inv" => "TGL_INV", "Tgl Nopen" => "TGL_NOPEN");
-        $where = "";
-        /*
-        if ($kategori1 != ""){
-            if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
-            }
-            else {
-                $where  .=  "(" .$array1[$kategori1] ." = '" .$isikategori1 ."')";
-            }
-
-        }
-        */
+        $where = "USERGUDANG IS NULL";
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1565,21 +1272,21 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."CUSTOMER = '" .$customer ."'";
+            $where .= " AND CUSTOMER = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
+            $where .= " AND IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."k.KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND k.KANTOR_ID = '" .$kantor ."'";
         }
         if (trim($shipper) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."SHIPPER = '" .$shipper ."'";
+            $where .= " AND SHIPPER = '" .$shipper ."'";
         }
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, h.NO_INV, h.NOPEN, h.CIF, jd.KODE as JENISDOKUMEN, i.nama AS IMPORTIR,"
@@ -1625,22 +1332,19 @@ class Transaksi extends Model
 
         $array2 = Array("Tanggal Keluar" => "TGL_KELUAR",
                        "Tanggal Nopen" => "TGL_NOPEN","Tanggal SPPB" => "TGL_SPPB", "Tanggal Tiba" => "TGL_TIBA");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1649,18 +1353,18 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."id_customer = '" .$customer ."'";
+            $where .= " AND id_customer = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."importir_id = '" .$importir ."'";
+            $where .= " AND importir_id = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND KANTOR_ID = '" .$kantor ."'";
         }
         $headerFields = ",  DATE_FORMAT(h.TGL_INV, '%d-%m-%Y') AS TGLINV, PENGIRIM, NO_LS, DATE_FORMAT(TGL_LS, '%d-%m-%Y') AS TGLLS,
                             BM, BMT, PPN, PPH, TOTAL, PPH_BEBAS, r.MATAUANG, jd.kode AS JENISDOKUMEN, h.CIF AS NILAI,
@@ -1753,22 +1457,19 @@ class Transaksi extends Model
 
         $array2 = Array("Tanggal Keluar" => "TGL_KELUAR", "Tanggal Konversi" => "TGL_KONVERSI",
                        "Tanggal Nopen" => "TGL_NOPEN","Tanggal SPPB" => "TGL_SPPB", "Tanggal Tiba" => "TGL_TIBA");
-        $where = "";
+        $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
             if (trim($isikategori1) == ""){
-                $where  .=  "(" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
             }
             else {
-                $where  .=  "(" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
             }
 
         }
         if ($kategori2 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari2) == "" && trim($sampai2) == ""){
-                $where  .=  "(" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
             }
             else {
                 if (trim($dari2) == ""){
@@ -1777,16 +1478,13 @@ class Transaksi extends Model
                 if (trim($sampai2) == ""){
                     $sampai2 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
             }
         }
         if ($kategori3 != ""){
-            if ($where != ""){
-                $where .= " AND ";
-            }
             if (trim($dari3) == "" && trim($sampai3) == ""){
-                $where  .=  "(" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
+                $where  .=  " AND (" .$array2[$kategori3] ." IS NULL OR " .$array2[$kategori3] ." = '')";
             }
             else {
                 if (trim($dari3) == ""){
@@ -1795,18 +1493,18 @@ class Transaksi extends Model
                 if (trim($sampai3) == ""){
                     $sampai3 = "9999-99-99";
                 }
-                $where  .=  "(" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                $where  .=  " AND (" .$array2[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
                                             AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
             }
         }
         if (trim($customer) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."id_customer = '" .$customer ."'";
+            $where .= " AND id_customer = '" .$customer ."'";
         }
         if (trim($importir) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."importir_id = '" .$importir ."'";
+            $where .= " AND importir_id = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= " AND KANTOR_ID = '" .$kantor ."'";
         }
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
@@ -1937,7 +1635,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw("tk.TGL_TERIMA < '" .Date("Y-m-d", strtotime($dari)) ."'");
+                    ->whereRaw("USERGUDANG IS NULL AND tk.TGL_TERIMA < '" .Date("Y-m-d", strtotime($dari)) ."'");
         $awal2 = DB::table(DB::raw("tbl_konversi tk"))
                     ->selectRaw("p.id, -JMLKMSKELUAR AS kemasansawal, 0 as kemasanmasuk, 0 as kemasankeluar,"
                                 ."-JMLSATHARGAKELUAR satuansawal, 0 as satuanmasuk, 0 as satuankeluar,"
@@ -1947,7 +1645,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw("do.TGL_KELUAR < '" .Date("Y-m-d", strtotime($dari)) ."'");
+                    ->whereRaw("USERGUDANG IS NULL AND do.TGL_KELUAR < '" .Date("Y-m-d", strtotime($dari)) ."'");
 
         $masuk1 = DB::table(DB::raw("tbl_konversi tk"))
                     ->selectRaw("p.id, 0 AS kemasansawal, JMLKEMASAN as kemasanmasuk, 0 as kemasankeluar,"
@@ -1957,7 +1655,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw("tk.TGL_TERIMA BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."'");
+                    ->whereRaw("USERGUDANG IS NULL AND (tk.TGL_TERIMA BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."')");
 
         $masuk2 = DB::table(DB::raw("tbl_konversi tk"))
                     ->selectRaw("p.id, 0 AS kemasansawal, 0 as kemasanmasuk, JMLKMSKELUAR as kemasankeluar,"
@@ -1968,7 +1666,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw("do.TGL_KELUAR BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."'");
+                    ->whereRaw("USERGUDANG IS NULL AND (do.TGL_KELUAR BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."')");
         if (trim($where) != ""){
             $awal1 = $awal1->whereRaw($where);
             $awal2 = $awal2->whereRaw($where);
@@ -2015,6 +1713,7 @@ class Transaksi extends Model
                     ->join(DB::raw("importir i"), "th.IMPORTIR", "=", "i.IMPORTIR_ID")
                     ->whereRaw("tk.TGL_TERIMA BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."'")
                     ->whereRaw($where)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->union(
                         DB::table(DB::raw("tbl_konversi tk"))
                             ->selectRaw("p.id, tb.KODEBARANG, i.NAMA, do.TGL_KELUAR AS TANGGAL,"
@@ -2029,6 +1728,7 @@ class Transaksi extends Model
                             ->join(DB::raw("importir i"), "th.IMPORTIR", "=", "i.IMPORTIR_ID")
                             ->whereRaw("do.TGL_KELUAR BETWEEN '" .Date("Y-m-d", strtotime($dari)) ."' AND '" .Date("Y-m-d", strtotime($sampai)) ."'")
                             ->whereRaw($where)
+                            ->whereRaw("USERGUDANG IS NULL")
                     )
                     ->orderBy("TANGGAL");
         //echo $data->printquery();die();
@@ -2064,6 +1764,7 @@ class Transaksi extends Model
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
                     ->whereRaw($where)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->where("tk.TGL_TERIMA", "<", $dari2);
 
         $awal2 = DB::table(DB::raw("detail_do do"))
@@ -2079,6 +1780,7 @@ class Transaksi extends Model
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
                     ->whereRaw($where)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->where("do.TGL_KELUAR", "<", $dari2);
 
         $saldo1 = DB::table(DB::raw("tbl_konversi tk"))
@@ -2094,6 +1796,7 @@ class Transaksi extends Model
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
                     ->whereRaw($where)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->whereBetween("tk.TGL_TERIMA", [$dari2, $sampai2]);
 
         $saldo2 = DB::table(DB::raw("detail_do do"))
@@ -2110,6 +1813,7 @@ class Transaksi extends Model
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
                     ->whereRaw($where)
+                    ->whereRaw("USERGUDANG IS NULL")
                     ->whereBetween("do.TGL_KELUAR", [$dari2, $sampai2]);
 
         $sub = $awal1->unionAll($awal2)->unionAll($saldo1)->unionAll($saldo2);
@@ -2384,7 +2088,8 @@ class Transaksi extends Model
                                ."REALISASI) AS TERPAKAI, d.SATUAN_ID")
                     ->join(DB::raw("tbl_penarikan_header h"), "d.ID_HEADER", "=", "h.ID")
                     ->join(DB::raw("tbl_header_quota hq"),"h.NO_PI", "=", "hq.ID")
-                    ->where("hq.STATUS", 'Y');
+                    ->where("hq.STATUS", 'Y')
+                    ->whereRaw("USERGUDANG IS NULL");
         if ($importir != ""){
             $union = $union->where("IMPORTIR", $importir);
         }
@@ -2398,7 +2103,8 @@ class Transaksi extends Model
                                 ."d.SATUAN_ID")
                     ->join(DB::raw("tbl_header_quota hq"), "d.ID_HEADER", "=", "hq.ID")
                     ->join(DB::raw("tbl_penarikan_header h"),  "hq.CONSIGNEE", "=", "h.CONSIGNEE")
-                    ->where("hq.STATUS", 'Y');
+                    ->where("hq.STATUS", 'Y')
+                    ->whereRaw("USERGUDANG IS NULL");
 
         if ($importir != ""){
             $sub = $sub->where("IMPORTIR", $importir);
@@ -2432,6 +2138,7 @@ class Transaksi extends Model
                   ->join(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.CUSTOMER")
                   ->join(DB::raw("satuan s"), "s.id", "=", "d.SATUAN_ID")
                   ->where("hq.ID", $id)
+                  ->whereRaw("USERGUDANG IS NULL")
                   ->where("d.KODE_HS", $kodehs);
         return $data->get();
     }
@@ -2461,7 +2168,8 @@ class Transaksi extends Model
                                ."(SELECT GROUP_CONCAT(k.NOMOR_KONTAINER) AS NO_KONTAINER FROM tbl_penarikan_kontainer k WHERE k.ID_HEADER = p.ID) AS NO_KONTAINER")
                     ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "p.CUSTOMER","=","c.id_customer")
                     ->leftJoin(DB::raw("importir imp"), "p.IMPORTIR", "=", "imp.IMPORTIR_ID")
-                    ->where("NO_BL", $no_bl);
+                    ->where("NO_BL", $no_bl)
+                    ->whereRaw("USERGUDANG IS NULL");
         if ($header->count() > 0){
             return $header->first();
         }
@@ -2499,7 +2207,7 @@ class Transaksi extends Model
     {
         $array1 = Array("Tanggal Nopen" => "h.TGL_NOPEN",
                         "Tanggal BL" => "TGL_BL");
-        $where = Array(" (TRIM(h.NOPEN) <> '' AND h.NOPEN IS NOT NULL) ");
+        $where = Array(" USERGUDANG IS NULL AND (TRIM(h.NOPEN) <> '' AND h.NOPEN IS NOT NULL) ");
         if ($kategori1 != ""){
             if (trim($dari1) == "" && trim($sampai1) == ""){
                 $where[]=  "(" .$array2[$kategori1] ." IS NULL OR " .$array2[$kategori1] ." = '')";

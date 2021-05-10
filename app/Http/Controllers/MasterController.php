@@ -20,6 +20,7 @@ use App\Models\Rekening;
 use App\Models\Pembeli;
 use App\Models\Pemasok;
 use App\Models\Gudang;
+use App\Models\Customer;
 
 class MasterController extends Controller
 {
@@ -245,6 +246,23 @@ class MasterController extends Controller
 		$dataTable = datatables()->of($dataSource);
 		return $dataTable->toJson();
 	}
+	public function customer()
+	{
+		$breadcrumb[] = Array("link" => "../", "text" => "Home");
+		$breadcrumb[] = Array("text" => "Customer");
+		$negara = DB::table("plbbandu_app15.tb_country")->select("id_country","country_name")->get();
+		return view("master.customer",
+									 ["breads" => $breadcrumb, "negara" => $negara,
+									 "columns" => Array("Nama","Alamat","Telepon","Negara","Fax","Website","Kode")]);
+	}
+	public function getdata_customer()
+	{
+		$dataSource = Customer::select("*", DB::raw("negara.country_name as negara"))
+												  ->leftJoin("plbbandu_app15.tb_country as negara", "negara_customer","=","negara.id_country")
+													->get();
+		$dataTable = datatables()->of($dataSource);
+		return $dataTable->toJson();
+	}
 	public function crud(Request $request)
 	{
 		$action = $request->input("action");
@@ -329,6 +347,17 @@ class MasterController extends Controller
 						}
 						else if ($input["input-action"] == "delete"){
 							$result = Pemasok::drop($input["id"]);
+						}
+					break;
+					case "customer":
+						if ($input["input-action"] == "add"){
+							$result = Customer::add($input);
+						}
+						else if ($input["input-action"] == "edit"){
+							$result = Customer::edit($input);
+						}
+						else if ($input["input-action"] == "delete"){
+							$result = Customer::drop($input["id"]);
 						}
 					break;
 					case "jenisdokumen":

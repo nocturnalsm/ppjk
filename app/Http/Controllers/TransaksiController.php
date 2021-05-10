@@ -224,6 +224,7 @@ class TransaksiController extends Controller {
 		return view("transaksi.search",["breads" => $breadcrumb,
 									"kodekantor" => $kantor, "customer" => $customer]);
 	}
+	/*
 	public function searchproduk()
   {
 		if(!auth()->user()->can('cari_produk')){
@@ -233,6 +234,7 @@ class TransaksiController extends Controller {
 		$breadcrumb[] = Array("text" => "Cari Produk");
 		return view("transaksi.searchbarang",["breads" => $breadcrumb]);
 	}
+	*/
 	public function browse()
   {
 		if(!auth()->user()->can('schedule.browse')){
@@ -983,13 +985,13 @@ class TransaksiController extends Controller {
 	public function get_daftar(Request $request)
 	{
 		$dataSource = DB::table(DB::raw("tbl_penarikan_header h"))
-						->selectRaw("h.id, no_bl,"
-						."DATE_FORMAT(tgl_tiba,'%d-%m-%Y') AS tgl_tiba,"
-						."FORMAT(jumlah_kemasan, '###,###,###') AS jumlah_kemasan,"
-						."noaju, nopen, DATE_FORMAT(tgl_nopen,'%d-%m-%Y') AS tgl_nopen,"
-						."nama_customer, DATE_FORMAT(tgl_keluar,'%d-%m-%Y') AS tgl_keluar, no_inv,"
-						."no_form, no_po")
-						->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer","=", "h.customer");
+										->selectRaw("h.id, no_bl, DATE_FORMAT(tgl_tiba,'%d-%m-%Y') AS tgl_tiba,"
+																."FORMAT(jumlah_kemasan, '###,###,###') AS jumlah_kemasan,"
+																."noaju, nopen, DATE_FORMAT(tgl_nopen,'%d-%m-%Y') AS tgl_nopen,"
+																."nama_customer, DATE_FORMAT(tgl_keluar,'%d-%m-%Y') AS tgl_keluar, no_inv,"
+																."no_form, no_po")
+										->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer","=", "h.customer")
+										->whereRaw("USERGUDANG IS NULL");
 
 		$dataTable = datatables()->of($dataSource);
 		if (isset($request->input('columns')[0]['search']['value'])){
@@ -1907,6 +1909,7 @@ class TransaksiController extends Controller {
 		}
 		return $importir;
 	}
+	/*
 	public function browseStokProduk(Request $request)
   {
 		if(!auth()->user()->can('stokperproduk')){
@@ -2242,6 +2245,7 @@ class TransaksiController extends Controller {
 		$data = Transaksi::getDetailStokBarang($id, $form["kategori2"], $form["dari2"], $form["sampai2"]);
 		return response()->json(["data" => $data]);
 	}
+	*/
 	public function perekamanpengeluaran($id = "")
 	{
 		if(!auth()->user()->can('master.produk.browse')){
@@ -2260,6 +2264,7 @@ class TransaksiController extends Controller {
 		return view("transaksi.pengeluaran",["breads" => $breadcrumb,
 									"no_do" => $no_do]);
 	}
+	/*
 	public function deliveryorder(Request $request, $id = "")
   {
 		if(!auth()->user()->can('deliveryorder')){
@@ -2284,6 +2289,7 @@ class TransaksiController extends Controller {
 
 		return view("transaksi.transaksidorder", $data);
 	}
+	*/
 	public function searchkodebarang(Request $request)
 	{
 		$kode = $request->input("kode");

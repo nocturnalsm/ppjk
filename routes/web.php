@@ -24,8 +24,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['role:Super Admin']], functi
 
 Route::group(['middleware' => ['auth']], function () {
 
-  Route::post("settings/resetpassword", 'SettingController@resetPassword')->name("settings.resetpassword");
-	Route::resource('/settings', 'SettingController');
+  Route::post("profile/resetpassword", 'ProfileController@resetPassword')->name("profile.resetpassword");
+	Route::resource('/profile', 'ProfileController');
 
   Route::any('master/{action?}', function ($action = 'index'){
       $controller = app()->make('App\Http\Controllers\MasterController');

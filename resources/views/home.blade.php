@@ -53,17 +53,11 @@
                     @can('schedule.carikontainer')
                     <a class="list-group-item list-group-item-action" href="./transaksi/searchkontainer">Cari Berdasarkan No Kontainer</a>
                     @endcan
-                    @can('cari_produk')
-                    <a class="list-group-item list-group-item-action" href="./transaksi/searchproduk">Cari Produk</a>
-                    @endcan
                     @can('profil_harga')
                     <a class="list-group-item list-group-item-action" href="./transaksi/profilharga">Profil Harga</a>
                     @endcan
                     @can('konversi.browse')
                     <a class="list-group-item list-group-item-action" href="./transaksi/konversibarang">Konversi Barang</a>
-                    @endcan
-                    @can('deliveryorder')
-                    <a class="list-group-item list-group-item-action" href="./transaksi/deliveryorder">Perekaman Delivery Order</a>
                     @endcan
                     @can('pembayaran.transaksi')
                     <a class="list-group-item list-group-item-action" href="./transaksi/transaksibayar">Transaksi Pembayaran</a>
@@ -73,12 +67,6 @@
                     @endcan
                     @can('kartu_hutang')
                     <a class="list-group-item list-group-item-action" href="./transaksi/kartuhutang">Kartu Hutang</a>
-                    @endcan
-                    @can('stokperproduk')
-                    <a class="list-group-item list-group-item-action" href="./transaksi/browsestokproduk">Browse Stok per Produk</a>
-                    @endcan
-                    @can('stokperbarang')
-                    <a class="list-group-item list-group-item-action" href="./transaksi/browsestokbarang">Browse Stok per Barang</a>
                     @endcan
                     @can('gudang.transaksi')
                     <a class="list-group-item list-group-item-action" href="./gudang">Perekaman Data Gudang</a>
@@ -115,6 +103,9 @@
                     @endcan
                     @can('master.pemasok.browse')
                     <a class="list-group-item list-group-item-action" href="./master/pemasok">Pemasok</a>
+                    @endcan
+                    @can('master.customer.browse')
+                    <a class="list-group-item list-group-item-action" href="./master/customer">Customer</a>
                     @endcan
                     @can('master.jenisbarang.browse')
                     <a class="list-group-item list-group-item-action" href="./master/jenisbarang">Referensi Jenis Barang</a>
