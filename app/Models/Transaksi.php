@@ -126,7 +126,7 @@ class Transaksi extends Model
         $data = JenisDokumen::select("*")->orderBy("uraian");
         return $data->get();
     }
-    public static function getJenisFile()
+    public static function getJenisFile($tipe = false)
     {
         $data = DB::table("jenisfile")->select("*")->orderBy("JENIS");
         return $data->get();
@@ -182,9 +182,14 @@ class Transaksi extends Model
                               ."shipper.nama_pemasok AS NAMASHIPPER")
                     ->join(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "h.CUSTOMER")
                     ->join(DB::raw("importir imp"), "imp.IMPORTIR_ID", "=", "h.IMPORTIR")
-                    ->join(DB::raw("plbbandu_app15.tb_pemasok shipper"), "shipper.id_pemasok", "=", "h.SHIPPER")
+                    ->leftJoin(DB::raw("plbbandu_app15.tb_pemasok shipper"), "shipper.id_pemasok", "=", "h.SHIPPER")
                     ->where("NO_INV", $value)
                     ->whereRaw("USERGUDANG IS NULL");
+        $user = auth()->user();
+        if ($user->hasRole('impor_company') || $user->hasRole('company')){
+              $company = $user->hasCompany();
+              $data = $data->where("IMPORTIR", $company->id);
+        }
         if ($data->count() > 0){
             return $data->first();
         }
@@ -214,6 +219,7 @@ class Transaksi extends Model
         if ($searchtype == "kontainer"){
             $data = DB::table("tbl_penarikan_kontainer")
                         ->selectRaw("id_header AS id")
+                        ->join("tbl_penarikan_header", "tbl_penarikan_kontainer.ID_HEADER", "=", "tbl_penarikan_header.ID")
                         ->where("NOMOR_KONTAINER", $term);
         }
         else {
@@ -232,6 +238,12 @@ class Transaksi extends Model
                                 $query->orWhere("h.JUMLAH_KEMASAN", $term);
                             }
                         });
+
+        }
+        $user = auth()->user();
+        if ($user->hasRole('impor_company') || $user->hasRole('company')){
+              $company = $user->hasCompany();
+              $data = $data->where("IMPORTIR", $company->id);
         }
         if ($data->count() > 0){
             return $data->get();
@@ -308,8 +320,17 @@ class Transaksi extends Model
         else {
             $header = Transaksi::select("tbl_penarikan_header.*",
                                     DB::raw("BMTB+BMTTB+PPNTB+PPHTB+DENDA_TB AS TOTAL_TB"))
-                            ->where("ID", $id)
-                            ->whereRaw("USERGUDANG IS NULL")->first();
+                            ->where("ID", $id);
+            $user = auth()->user();
+            if ($user->hasRole('impor_company') || $user->hasRole('company')){
+                  $company = $user->hasCompany();
+                  $header = $header->where("IMPORTIR", $company->id);
+            }
+            $header = $header->whereRaw("USERGUDANG IS NULL");
+            if (!$header->exists()){
+                return false;
+            }
+            $header = $header->first();
         }
         if ($includeKontainer){
             $kontainer = DB::table("tbl_penarikan_kontainer")
@@ -348,7 +369,13 @@ class Transaksi extends Model
             $header = DB::table(DB::raw("tbl_header_bayar h"))
                         ->selectRaw("h.*")
                         ->join(DB::raw("rekening rek"), "h.REKENING_Id","=", "rek.REKENING_ID")
-                        ->where("id", $id)->first();
+                        ->where("id", $id);
+            if ($header->exists()){
+                $header = $header->first();
+            }
+            else {
+                return false;
+            }
             $detail = DB::table(DB::raw("tbl_detail_bayar db"))
                         ->selectRaw("db.*, r.MATAUANG, KURS, ROUND(KURS*db.NOMINAL) AS RUPIAH,"
                                     ."c.nama_customer AS CUSTOMER, h.NO_INV AS NOINV,"
@@ -360,7 +387,19 @@ class Transaksi extends Model
                         ->leftJoin(DB::raw("plbbandu_app15.tb_pemasok shipper"), "shipper.id_pemasok", "=", "h.SHIPPER")
                         ->leftJoin(DB::raw("ref_matauang r"), "db.CURR", "=", "r.MATAUANG_ID")
                         ->where("db.ID_HEADER", $id)
-                        ->whereRaw("USERGUDANG IS NULL")->get();
+                        ->whereRaw("USERGUDANG IS NULL");
+            $user = auth()->user();
+            if ($user->hasRole('impor_company') || $user->hasRole('company')){
+                  $company = $user->hasCompany();
+                  $detail = $detail->where(function($query) use ($company){
+                      $query->whereRaw("IMPORTIR IS NULL")
+                            ->orWhere("IMPORTIR", $company->id);
+                  });
+                  if (!$detail->exists()){
+                      return false;
+                  }
+            }
+            $detail = $detail->get();
         }
         if ($header){
             $header->TGL_PENARIKAN = $header->TGL_PENARIKAN == "" ? "" : Date("d-m-Y", strtotime($header->TGL_PENARIKAN));
@@ -375,8 +414,18 @@ class Transaksi extends Model
                                 ."KAPAL, PEL_MUAT, TGL_BERANGKAT, TGL_TIBA, TGL_DOK_TRM,"
                                 ."PEMBAYARAN, TOP, CURR, CIF, FAKTUR")
                     ->where("h.ID", $id)
-                    ->whereRaw("USERGUDANG IS NULL")
-                    ->first();
+                    ->whereRaw("USERGUDANG IS NULL");
+        $user = auth()->user();
+    		if ($user->hasRole('impor_company') || $user->hasRole('company')){
+    				$company = $user->hasCompany();
+    				$header = $header->where("IMPORTIR", $company->id);
+    		}
+        if ($header->exists()){
+            $header = $header->first();
+        }
+        else {
+            return false;
+        }
         if ($header){
             $header->TGL_INV = $header->TGL_INV == "" ? "" : Date("d-m-Y", strtotime($header->TGL_INV));
             $header->TGL_DOK_TRM = $header->TGL_DOK_TRM == "" ? "" : Date("d-m-Y", strtotime($header->TGL_DOK_TRM));
@@ -398,7 +447,18 @@ class Transaksi extends Model
                                 ."TGL_LS, NO_VO, TGL_VO, TGL_PERIKSA_VO,"
                                 ."h.STATUS, CATATAN")
                     ->where("h.ID", $id)
-                    ->where("USERGUDANG IS NULL")->first();
+                    ->whereRaw("USERGUDANG IS NULL");
+        $user = auth()->user();
+    		if ($user->hasRole('impor_company') || $user->hasRole('company')){
+    				$company = $user->hasCompany();
+    				$header = $header->where("IMPORTIR", $company->id);
+    		}
+        if ($header->exists()){
+            $header = $header->first();
+        }
+        else {
+            return false;
+        }
         $header->TGL_LS = $header->TGL_LS == "" ? "" : Date("d-m-Y", strtotime($header->TGL_LS));
         $header->TGL_VO = $header->TGL_VO == "" ? "" : Date("d-m-Y", strtotime($header->TGL_VO));
         $header->TGL_PERIKSA_VO = $header->TGL_PERIKSA_VO == "" ? "" : Date("d-m-Y", strtotime($header->TGL_PERIKSA_VO));
@@ -893,7 +953,7 @@ class Transaksi extends Model
     public static function browse($kantor, $customer, $importir, $kategori1, $dari1,
                            $sampai1, $kategori2, $dari2, $sampai2)
     {
-        $array = Array("Tanggal Tiba" => "TGL_TIBA",
+        $array = Array("Tanggal Tiba" => "TGL_TIBA", "Tanggal SPPB" => "TGL_SPPB",
                        "Tanggal Keluar" => "TGL_KELUAR", "Tanggal Nopen" => "TGL_NOPEN");
         $where = "USERGUDANG IS NULL";
         if ($kategori1 != ""){
@@ -1211,6 +1271,10 @@ class Transaksi extends Model
     }
     public static function getFiles($id, $type = 0)
     {
+
+        if ($id == NULL || $id == ""){
+            return [];
+        }
         $dtFiles = DB::table("tbl_files")
                      ->selectRaw("tbl_files.*, jenisfile.JENIS")
                      ->leftJoin("jenisfile", "tbl_files.JENISFILE_ID", "=", "jenisfile.ID")
@@ -1421,7 +1485,18 @@ class Transaksi extends Model
                                 ."NDPBM, h.CURR, JALUR")
                     ->leftJoin(DB::raw("importir i"), "h.IMPORTIR", "=", "i.IMPORTIR_ID")
                     ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "h.CUSTOMER", "=", "c.id_customer")
-                    ->where("h.ID", $id)->first();
+                    ->where("h.ID", $id);
+        $user = auth()->user();
+    		if ($user->hasRole('impor_company') || $user->hasRole('company')){
+    				$company = $user->hasCompany();
+    				$header = $header->where("IMPORTIR", $company->id);
+    		}
+        if ($header->exists()){
+            $header = $header->first();
+        }
+        else {
+            return false;
+        }
         $cif = $header->CIF;
         $detail = DB::table(DB::raw("tbl_detail_barang db"))
                     ->selectRaw("db.*, s.satuan AS NAMASATUAN, db.CIF,"

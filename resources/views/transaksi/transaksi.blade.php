@@ -14,24 +14,24 @@
             </div>
             <div class="modal-body mx-3">
                 <form id="form" act="">
-                    <input type="hidden" name="idxdetail" id="idxdetail">
-                    <input type="hidden" name="iddetail" id="iddetail">
+                    <input {{ $readonly }} type="hidden" name="idxdetail" id="idxdetail">
+                    <input {{ $readonly }} type="hidden" name="iddetail" id="iddetail">
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodehs">Kode HS</label>
                         <div class="col-md-9">
-                            <input type="text" id="kodehs" name="kodehs" class="form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="kodehs" name="kodehs" class="form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="booking">Booking</label>
                         <div class="col-md-9">
-                            <input type="text" id="booking" name="booking" class="number form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="booking" name="booking" class="number form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="satuan">Satuan</label>
                         <div class="col-md-9 pt-2">
-                            <select class="form-control form-control-sm" id="satuan" name="satuan">
+                            <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="satuan" name="satuan">
                                 <option value=""></option>
                                 @foreach($datasatuan as $satuan)
                                 <option value="{{ $satuan->id }}">{{ $satuan->satuan }}</option>
@@ -42,8 +42,10 @@
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
+                @if($readonly == '')
                 <a id="savedetail" class="btn btn-primary">Simpan</a>
                 <a class="btn btn-danger" data-dismiss="modal">Batal</a>
+                @endif
             </div>
         </div>
     </div>
@@ -59,15 +61,15 @@
             </div>
             <div class="modal-body mx-3">
                 <form id="formkontainer" act="">
-                    <input type="hidden" name="idxdetailkontainer" id="idxdetailkontainer">
-                    <input type="hidden" name="iddetailkontainer" id="iddetailkontainer">
+                    <input {{ $readonly }} type="hidden" name="idxdetailkontainer" id="idxdetailkontainer">
+                    <input {{ $readonly }} type="hidden" name="iddetailkontainer" id="iddetailkontainer">
                     <div class="mb-1">
                         <label for="nokontainer">No. Kontainer</label>
-                        <input type="text" maxlength="15" id="nokontainer" name="nokontainer" class="form-control form-control-sm validate">
+                        <input {{ $readonly }} type="text" maxlength="15" id="nokontainer" name="nokontainer" class="form-control form-control-sm validate">
                     </div>
                     <div class="mb-1">
                         <label for="ukuran">Ukuran Kontainer</label>
-                        <select class="form-control form-control-sm" id="ukuran" name="ukuran">
+                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="ukuran" name="ukuran">
                             @foreach($ukurankontainer as $ukur)
                             <option value="{{ $ukur->KODE }}">{{ $ukur->URAIAN }}</option>
                             @endforeach
@@ -76,8 +78,10 @@
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
+                @if($readonly == '')
                 <a id="savekontainer" class="btn btn-primary">Simpan</a>
                 <a class="btn btn-danger" data-dismiss="modal">Batal</a>
+                @endif
             </div>
         </div>
     </div>
@@ -90,25 +94,27 @@
                     Form Perekaman Schedule {{ $notransaksi }}
                 </div>
                 <div class="col-md-8 py-0 pr-4 text-right">
+                    @if($readonly == '')
                     <button type="button" id="btnsimpan" class="btn btn-primary btn-sm m-0">Simpan</button>&nbsp;
                     <a href="/" class="btn btn-default btn-sm m-0">Batal</a>&nbsp;
                     @if($canDelete)
                     <button type="button" id="deletetrans" class="btn btn-danger btn-sm m-0">Hapus</button>
                     <form id="formdelete">
                     @csrf
-                    <input type="hidden" name="iddelete" value="{{ $header->ID }}">
+                    <input {{ $readonly }} type="hidden" name="iddelete" value="{{ $header->ID }}">
                     </form>
+                    @endif
                     @endif
                 </div>
             </div>
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
-            <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
+            <input {{ $readonly }} type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
             <div class="row mt-0 mb-2">
                 <label class="form-control-sm">Kantor</label>
                 <div class="col-md-2 px-1">
-                    <select class="form-control form-control-sm" id="kantor" name="kantor" value="{{ $header->KANTOR_ID }}">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="kantor" name="kantor" value="{{ $header->KANTOR_ID }}">
                         <option value=""></option>
                         @foreach($kodekantor as $kantor)
                         <option @if($header->KANTOR_ID == $kantor->KANTOR_ID)selected @endif value="{{ $kantor->KANTOR_ID }}">{{ $kantor->URAIAN }}</option>
@@ -119,7 +125,7 @@
                 @can('customer.view')
                 <label class="col-md-auto col-form-label form-control-sm">Customer</label>
                 <div class="col-md-3">
-                    <select class="form-control form-control-sm" id="customer" name="customer" value="{{ $header->CUSTOMER }}">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="customer" name="customer" value="{{ $header->CUSTOMER }}">
                         <option value=""></option>
                         @foreach($customer as $cust)
                         <option @if($header->CUSTOMER == $cust->id_customer)selected @endif value="{{ $cust->id_customer }}">{{ $cust->nama_customer }}</option>
@@ -131,15 +137,15 @@
                 <label class="col-md-auto col-form-label form-control-sm">Level Dok</label>
                 <div class="form-check-inline d-inline mt-1">
                     <label class="form-check-label pr-2">
-                        <input @if($header->LEVEL_DOK == 'K')checked @endif type="radio" class="form-check-input" name="leveldok" value="K">
+                        <input @if($header->LEVEL_DOK == 'K')checked @elseif($readonly == 'readonly') disabled @endif type="radio" class="form-check-input" name="leveldok" value="K">
                         <span class="bg-warning">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </label>
                     <label class="form-check-label pr-2">
-                        <input @if($header->LEVEL_DOK == 'H')checked @endif type="radio" class="form-check-input" name="leveldok" value="H">
+                        <input @if($header->LEVEL_DOK == 'H')checked @elseif($readonly == 'readonly') disabled @endif type="radio" class="form-check-input" name="leveldok" value="H">
                         <span class="bg-success">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </label>
                     <label class="form-check-label pr-2">
-                        <input @if($header->LEVEL_DOK == 'M')checked @endif type="radio" class="form-check-input" name="leveldok" value="M">
+                        <input @if($header->LEVEL_DOK == 'M')checked @elseif($readonly == 'readonly') disabled @endif type="radio" class="form-check-input" name="leveldok" value="M">
                         <span class="bg-danger">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </label>
                 </div>
@@ -153,7 +159,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm ">Shipper</label>
                                     <div class="col-md-9">
-                                        <select class="form-control form-control-sm" id="shipper" name="shipper" value="{{ $header->SHIPPER }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="shipper" name="shipper" value="{{ $header->SHIPPER }}">
                                             <option value=""></option>
                                             @foreach($shipper as $ship)
                                             <option @if($header->SHIPPER == $ship->id_pemasok) selected @endif value="{{ $ship->id_pemasok }}">{{ $ship->nama_pemasok }}</option>
@@ -164,7 +170,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Pelabuhan Muat</label>
                                     <div class="col-md-9">
-                                        <select class="form-control form-control-sm" id="pelmuat" name="pelmuat" value="{{ $header->PEL_MUAT }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="pelmuat" name="pelmuat" value="{{ $header->PEL_MUAT }}">
                                             <option value=""></option>
                                             @foreach($pelmuat as $pel)
                                             <option @if($header->PEL_MUAT == $pel->PELMUAT_ID)selected @endif value="{{ $pel->PELMUAT_ID }}">{{ $pel->URAIAN }}</option>
@@ -175,24 +181,24 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Tanggal Berangkat</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglberangkat" id="tglberangkat" value="{{ $header->TGL_BERANGKAT }}">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglberangkat" id="tglberangkat" value="{{ $header->TGL_BERANGKAT }}">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm px-0">Tanggal Tiba</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" value="{{ $header->TGL_TIBA }}" name="tgltiba" id="tgltiba">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" value="{{ $header->TGL_TIBA }}" name="tgltiba" id="tgltiba">
                                         <p class="error tgltiba">Tgl Tiba harus diisi</p>
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Kapal</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control form-control-sm" value="{{ $header->KAPAL }}" name="kapal" id="kapal">
+                                        <input {{ $readonly }} type="text" class="form-control form-control-sm" value="{{ $header->KAPAL }}" name="kapal" id="kapal">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-3 form-control-sm">Consignee</label>
                                     <div class="col-md-9">
-                                        <select class="form-control form-control-sm" id="consignee" name="consignee" value="{{ $header->CONSIGNEE }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="consignee" name="consignee" value="{{ $header->CONSIGNEE }}">
                                             <option value=""></option>
                                             @foreach($importir as $imp)
                                             <option @if($header->CONSIGNEE == $imp->IMPORTIR_ID)selected @endif value="{{ $imp->IMPORTIR_ID }}">{{ $imp->NAMA }}</option>
@@ -203,7 +209,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Importir</label>
                                     <div class="col-md-9">
-                                        <select class="form-control form-control-sm" id="importir" name="importir" value="{{ $header->IMPORTIR }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="importir" name="importir" value="{{ $header->IMPORTIR }}">
                                             <option value=""></option>
                                             @foreach($importir as $imp)
                                             <option @if($header->IMPORTIR == $imp->IMPORTIR_ID)selected @endif value="{{ $imp->IMPORTIR_ID }}">{{ $imp->NAMA }}</option>
@@ -222,52 +228,52 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">No. Inv</label>
                                     <div class="col-md-4">
-                                        <input type="text" maxlength="24" class="form-control form-control-sm" name="noinv" id="noinv" value="{{ $header->NO_INV }}">
+                                        <input {{ $readonly }} type="text" maxlength="24" class="form-control form-control-sm" name="noinv" id="noinv" value="{{ $header->NO_INV }}">
                                         <p class="error noinv">Nomor Inv harus diisi</p>
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Inv</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglinv" value="{{ $header->TGL_INV }}" id="tglinv">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglinv" value="{{ $header->TGL_INV }}" id="tglinv">
                                     </div>
                                 </div>
                                 <div class="form-row px-2 pb-0">
                                     <label class="col-md-3 col-form-label form-control-sm">No. PO</label>
                                     <div class="col-md-4">
-                                        <input type="text" class="form-control form-control-sm" name="nopo" value="{{ $header->NO_PO }}" id="nopo">
+                                        <input {{ $readonly }} type="text" class="form-control form-control-sm" name="nopo" value="{{ $header->NO_PO }}" id="nopo">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl PO</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglpo" value="{{ $header->TGL_PO }}" id="tglpo">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglpo" value="{{ $header->TGL_PO }}" id="tglpo">
                                     </div>
                                 </div>
                                 <div class="form-row px-2 pb-0">
                                     <label class="col-md-3 col-form-label form-control-sm">No. S/C</label>
                                     <div class="col-md-4">
-                                        <input type="text" class="form-control form-control-sm" name="nosc" value="{{ $header->NO_SC }}" id="nosc">
+                                        <input {{ $readonly }} type="text" class="form-control form-control-sm" name="nosc" value="{{ $header->NO_SC }}" id="nosc">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl S/C</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglsc" value="{{ $header->TGL_SC }}" id="tglsc">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglsc" value="{{ $header->TGL_SC }}" id="tglsc">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">No. BL</label>
                                     <div class="col-md-4">
-                                        <input type="text" maxlength="24" class="form-control form-control-sm" name="nobl" id="nobl" value="{{ $header->NO_BL }}">
+                                        <input {{ $readonly }} type="text" maxlength="24" class="form-control form-control-sm" name="nobl" id="nobl" value="{{ $header->NO_BL }}">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl BL</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglbl" value="{{ $header->TGL_BL }}" id="tglbl">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglbl" value="{{ $header->TGL_BL }}" id="tglbl">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm ">No. Form</label>
                                     <div class="col-md-4">
-                                        <input type="text" class="form-control form-control-sm" id="noform" name="noform" value="{{ $header->NO_FORM }}">
+                                        <input {{ $readonly }} type="text" class="form-control form-control-sm" id="noform" name="noform" value="{{ $header->NO_FORM }}">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Form</label>
                                     <div class="col-md-3">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglform" value="{{ $header->TGL_FORM }}" id="tglform">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglform" value="{{ $header->TGL_FORM }}" id="tglform">
                                     </div>
                                 </div>
                             </div>
@@ -280,11 +286,11 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Jumlah Kemasan</label>
                                     <div class="col-md-2">
-                                        <input type="text" class="number form-control form-control-sm" name="jmlkemasan" value="{{ $header->JUMLAH_KEMASAN }}" id="jmlkemasan">
+                                        <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="jmlkemasan" value="{{ $header->JUMLAH_KEMASAN }}" id="jmlkemasan">
                                     </div>
                                     <label class="col-md-3 col-form-label form-control-sm ">Jenis Kemasan</label>
                                     <div class="col-md-4">
-                                        <select class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan" value="{{ $header->JENIS_KEMASAN }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan" value="{{ $header->JENIS_KEMASAN }}">
                                             <option value=""></option>
                                             @foreach($jeniskemasan as $jenis)
                                             <option @if($header->JENIS_KEMASAN == $jenis->JENISKEMASAN_ID)selected @endif value="{{ $jenis->JENISKEMASAN_ID }}">{{ $jenis->URAIAN }}</option>
@@ -297,7 +303,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 col-form-label form-control-sm">Jenis Barang</label>
                                     <div class="col-md-3">
-                                        <select class="form-control form-control-sm" id="jenisbarang" name="jenisbarang" value="{{ $header->JENIS_BARANG }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jenisbarang" name="jenisbarang" value="{{ $header->JENIS_BARANG }}">
                                             <option value=""></option>
                                             @foreach($jenisbarang as $jenis)
                                             <option @if($header->JENIS_BARANG == $jenis->JENISBARANG_ID)selected @endif value="{{ $jenis->JENISBARANG_ID }}">{{ $jenis->URAIAN }}</option>
@@ -306,11 +312,11 @@
                                     </div>
                                     <label class="px-1 col-form-label form-control-sm">GW</label>
                                     <div class="col-md-2">
-                                        <input type="text" class="number form-control form-control-sm" name="gw" value="{{ $header->GW }}" id="gw">
+                                        <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="gw" value="{{ $header->GW }}" id="gw">
                                     </div>
                                     <label class="px-1 col-form-label form-control-sm">CBM</label>
                                     <div class="col-md-2">
-                                        <input type="text" class="number form-control form-control-sm" name="cbm" value="{{ $header->CBM }}" id="cbm">
+                                        <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="cbm" value="{{ $header->CBM }}" id="cbm">
                                     </div>
                                     <div class="col-md-3"></div>
                                     <div class="col-md-9"><p class="error jenisbarang">Jenis Barang harus dipilih</p></div>
@@ -318,7 +324,7 @@
                                 <div class="form-row px-2 pb-0">
                                     <label class="col-md-3 col-form-label form-control-sm">Kode HS</label>
                                     <div class="col-md-9">
-                                        <textarea class="form-control form-control-sm" name="kodehs" id="kodehs">{{ $header->KODE_HS }}</textarea>
+                                        <textarea {{ $readonly }} class="form-control form-control-sm" name="kodehs" id="kodehs">{{ $header->KODE_HS }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -331,7 +337,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-3 form-control-sm">Jumlah Kontainer</label>
                                     <div class="col-md-2">
-                                        <select class="form-control form-control-sm" id="jmlkontainer" name="jmlkontainer" value="{{ $header->JUMLAH_KONTAINER }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jmlkontainer" name="jmlkontainer" value="{{ $header->JUMLAH_KONTAINER }}">
                                             <option value=""></option>
                                             @foreach($jumlahkontainer as $jml)
                                             <option @if($header->JUMLAH_KONTAINER == $jml->JUMLAH)selected @endif value="{{ $jml->JUMLAH }}">{{ $jml->JUMLAH }}</option>
@@ -346,7 +352,9 @@
                                         Detail Kontainer
                                     </div>
                                     <div class="col primary-color text-white text-right p-2" style="text-decoration:underline">
+                                        @if($readonly == '')
                                         <a href="#modalkontainer" data-toggle="modal" class="text-white" id="addkontainer">Tambah Detail</a>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="form-row">
@@ -356,7 +364,9 @@
                                                 <tr>
                                                     <th>Nomor</th>
                                                     <th>Ukuran</th>
+                                                    @if($readonly == '')
                                                     <th>Opsi</th>
+                                                    @endif
                                                 </tr>
                                             </thead>
                                         </table>
@@ -373,44 +383,44 @@
                             <div class="form-row px-2">
                                 <label class="col-md-3 col-form-label form-control-sm">No. PI</label>
                                 <div class="col-md-4">
-                                    <input type="text" readonly maxlength="24" class="form-control form-control-sm" name="nopi" id="nopi" value="{{ $pi->NO_PI }}">
-                                    <input type="hidden" id="idpi" name="idpi" value="{{ $pi->ID }}">
+                                    <input {{ $readonly }} type="text" readonly maxlength="24" class="form-control form-control-sm" name="nopi" id="nopi" value="{{ $pi->NO_PI }}">
+                                    <input {{ $readonly }} type="hidden" id="idpi" name="idpi" value="{{ $pi->ID }}">
                                 </div>
                                 <label class="col-md-1 col-form-label form-control-sm">Tgl. PI</label>
                                 <div class="col-md-2">
-                                    <input type="text" readonly maxlength="24" class="form-control form-control-sm" name="tglpi" id="tglpi" value="{{ $pi->TGLPI }}">
+                                    <input {{ $readonly }} type="text" readonly maxlength="24" class="form-control form-control-sm" name="tglpi" id="tglpi" value="{{ $pi->TGLPI }}">
                                 </div>
                             </div>
                             <div class="form-row px-2">
                                 <label class="col-md-3 col-form-label form-control-sm">No. VO</label>
                                 <div class="col-md-5">
-                                    <input type="text" maxlength="24" class="form-control form-control-sm" name="novo" id="novo" value="{{ $header->NO_VO }}">
+                                    <input {{ $readonly }} type="text" maxlength="24" class="form-control form-control-sm" name="novo" id="novo" value="{{ $header->NO_VO }}">
                                 </div>
                                 <label class="col-md-1 px-0 col-form-label form-control-sm">Tgl VO</label>
                                 <div class="col-md-2">
-                                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglvo" value="{{ $header->TGL_VO }}" id="tglvo">
+                                    <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglvo" value="{{ $header->TGL_VO }}" id="tglvo">
                                 </div>
                             </div>
                             <div class="form-row px-2 pb-0">
                                 <label class="col-md-3 col-form-label form-control-sm">Kode HS</label>
                                 <div class="col-md-9">
-                                    <textarea class="form-control form-control-sm" name="kodehsvo" id="kodehsvo">{{ $header->KODE_HS_VO }}</textarea>
+                                    <textarea {{ $readonly }} class="form-control form-control-sm" name="kodehsvo" id="kodehsvo">{{ $header->KODE_HS_VO }}</textarea>
                                 </div>
                             </div>
                             <div class="form-row px-2">
                                 <label class="col-md-3 col-form-label form-control-sm">Tgl Periksa</label>
                                 <div class="col-md-3">
-                                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglperiksavo" value="{{ $header->TGL_PERIKSA_VO }}" id="tglperiksavo">
+                                    <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglperiksavo" value="{{ $header->TGL_PERIKSA_VO }}" id="tglperiksavo">
                                 </div>
                                 <label class="col-md-auto col-form-label form-control-sm">Tgl LS</label>
                                 <div class="col-md-3">
-                                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglls" value="{{ $header->TGL_LS }}" id="tglls">
+                                    <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglls" value="{{ $header->TGL_LS }}" id="tglls">
                                 </div>
                             </div>
                             <div class="form-row px-2">
                                 <label class="col-md-3 col-form-label form-control-sm">Status</label>
                                 <div class="col-md-4">
-                                    <select class="form-control form-control-sm" id="status" name="status" value="{{ $header->STATUS }}">
+                                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="status" name="status" value="{{ $header->STATUS }}">
                                         <option @if($header->STATUS == "")selected @endif value=""></option>
                                         <option @if($header->STATUS == "K")selected @endif value="K">Konfirmasi</option>
                                         <option @if($header->STATUS == "B")selected @endif value="B">Belum Inspect</option>
@@ -429,7 +439,9 @@
                                                 Detail Quota
                                             </div>
                                             <div class="col primary-color text-white text-right p-2" style="text-decoration:underline">
+                                                @if($readonly == '')
                                                 <a href="#modaldetail" data-toggle="modal" class="text-white" id="adddetail">Tambah Detail</a>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="form-row">
@@ -440,7 +452,9 @@
                                                             <th>Kode HS</th>
                                                             <th>Booking</th>
                                                             <th>Satuan</th>
+                                                            @if($readonly == '')
                                                             <th>Opsi</th>
+                                                            @endif
                                                         </tr>
                                                     </thead>
                                                 </table>
@@ -459,7 +473,7 @@
                                 <div class="form-row px-2">
                                     <label class="col-md-2 col-form-label form-control-sm">Jns Dokumen</label>
                                     <div class="col-md-2">
-                                        <select class="form-control form-control-sm" id="jenisdokumen" name="jenisdokumen" value="{{ $header->JENIS_DOKUMEN }}">
+                                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jenisdokumen" name="jenisdokumen" value="{{ $header->JENIS_DOKUMEN }}">
                                             <option value=""></option>
                                             @foreach($jenisdokumen as $jenis)
                                             <option @if($header->JENIS_DOKUMEN == $jenis->JENISDOKUMEN_ID)selected @endif value="{{ $jenis->JENISDOKUMEN_ID }}">{{ $jenis->URAIAN }}</option>
@@ -468,48 +482,48 @@
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Nopen</label>
                                     <div class="col-md-2">
-                                        <input maxlength="6" type="text" class="form-control form-control-sm" name="nopen" value="{{ $header->NOPEN }}" id="nopen">
+                                        <input {{ $readonly }} maxlength="6" type="text" class="form-control form-control-sm" name="nopen" value="{{ $header->NOPEN }}" id="nopen">
                                         <p class="error nopen">Nopen 6 digit</p>
                                     </div>
                                     <label class="col-md-auto col-form-label form-control-sm">Tgl Nopen</label>
                                     <div class="col-md-2">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglnopen" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglnopen" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-2 col-form-label form-control-sm">No.Aju</label>
                                     <div class="col-md-2">
-                                        <input type="text" class="form-control form-control-sm" name="noaju" value="{{ $header->NOAJU }}" id="noaju">
+                                        <input {{ $readonly }} type="text" class="form-control form-control-sm" name="noaju" value="{{ $header->NOAJU }}" id="noaju">
                                     </div>
                                     <label class="col-md-2 col-form-label form-control-sm">Tgl Periksa</label>
                                     <div class="col-md-2">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglperiksa" value="{{ $header->TGL_PERIKSA }}" id="tglperiksa">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglperiksa" value="{{ $header->TGL_PERIKSA }}" id="tglperiksa">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-2 col-form-label form-control-sm">Hasil Periksa</label>
                                     <div class="col-md-10">
-                                        <textarea class="form-control form-control-sm" name="hasilperiksa" id="hasilperiksa">{{ $header->HASIL_PERIKSA }}</textarea>
+                                        <textarea {{ $readonly }} class="form-control form-control-sm" name="hasilperiksa" id="hasilperiksa">{{ $header->HASIL_PERIKSA }}</textarea>
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
                                     <label class="col-md-2 col-form-label form-control-sm">Catatan</label>
                                     <div class="col-md-10">
-                                        <textarea class="form-control form-control-sm" name="catatan" id="catatan">{{ $header->CATATAN }}</textarea>
+                                        <textarea {{ $readonly }} class="form-control form-control-sm" name="catatan" id="catatan">{{ $header->CATATAN }}</textarea>
                                     </div>
                                 </div>
                                 <div class="form-row px-2 pb-0">
                                     <label class="col-md-2 col-form-label form-control-sm ">Tanggal SPPB</label>
                                     <div class="col-md-2">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" value="{{ $header->TGL_SPPB }}" name="tglsppb" id="tglsppb">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" value="{{ $header->TGL_SPPB }}" name="tglsppb" id="tglsppb">
                                     </div>
                                     <label class="col-form-label form-control-sm ">Tanggal Keluar</label>
                                     <div class="col-md-2">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" value="{{ $header->TGL_KELUAR }}" name="tglkeluar" id="tglkeluar">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" value="{{ $header->TGL_KELUAR }}" name="tglkeluar" id="tglkeluar">
                                     </div>
                                     <label class="col-md-auto col-form-label form-control-sm">Tgl Masuk Gudang</label>
                                     <div class="col-md-2">
-                                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglmasuk" value="{{ $header->TGL_MASUK_GUDANG }}" id="tglmasuk">
+                                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglmasuk" value="{{ $header->TGL_MASUK_GUDANG }}" id="tglmasuk">
                                     </div>
                                 </div>
                             </div>
@@ -518,8 +532,8 @@
                 </div>
             </div>
         </div>
-        <input type="hidden" name="deletekontainer">
-        <input type="hidden" name="deletedetail">
+        <input {{ $readonly }} type="hidden" name="deletekontainer">
+        <input {{ $readonly }} type="hidden" name="deletedetail">
         </form>
     </div>
 </div>
@@ -550,6 +564,88 @@ Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
 			j = (j = i.length) > 3 ? j % 3 : 0;
 	return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
 };
+$(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
+$(".number").inputmask("numeric", {
+    radixPoint: ".",
+    groupSeparator: ",",
+    digits: 2,
+    autoGroup: true,
+    rightAlign: false,
+    removeMaskOnSubmit: true,
+    oncleared: function () { self.setValue(''); }
+});
+var tabelkontainer = $("#gridkontainer").DataTable({
+    processing: false,
+    serverSide: false,
+    data: datadetailkontainer,
+    dom: "t",
+    pageLength: 50,
+    rowCallback: function(row, data)
+    {
+        $(row).attr("id-transaksi", data.id);
+        $('td:eq(1)', row).html('<input type="hidden" class="ukurankontainer" value="' + data.UKURAN_KONTAINER + '">' + data.URAIAN);
+        @if($readonly == '')
+        $('td:eq(2)', row).html('<a href="#modalkontainer" class="editkontainer" data-toggle="modal" idkontainer="' + data.ID +
+                                '"><i class="fa fa-edit"></i></a>' +
+                                '&nbsp;&nbsp;<a class="delkontainer" idkontainer="' + data.ID + '"><i class="fa fa-trash"></i></a>'
+                                );
+        @endif
+    },
+    select: 'single',     // enable single row selection
+    responsive: false,     // enable responsiveness,
+    rowId: 0,
+    columns: [{
+                target: 0,
+                data: "NOMOR_KONTAINER"
+              },
+              { target: 1,
+                data: "URAIAN"
+              },
+              @if($readonly == '')
+              { target: 2,
+                data: null
+              }
+              @endif
+             ]
+})
+var tabel = $("#griddetail").DataTable({
+    processing: false,
+    serverSide: false,
+    data: datadetail,
+    dom: "t",
+    pageLength: 1000,
+    rowCallback: function(row, data)
+    {
+        $('td:eq(1)', row).html(parseFloat(data.BOOKING).formatMoney(2,"",",","."));
+        @if($readonly == '')
+        $('td:eq(3)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
+                                '"><i class="fa fa-edit"></i></a>' +
+                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
+                                );
+        @endif
+    },
+    select: 'single',     // enable single row selection
+    responsive: false,     // enable responsiveness,
+    rowId: 0,
+    columns: [{
+        target: 0,
+        data: "KODE_HS"
+      },
+      { target: 1,
+        data: "BOOKING"
+      },
+      { target: 2,
+        data: "satuan"
+      },
+      @if($readonly == '')
+      { target: 3,
+        data: null
+      }
+      @endif
+     ],
+})
+$("#nopen").inputmask({"mask": "999999","removeMaskOnSubmit": true});
+@if($readonly == '')
 $('#modalkontainer').on('shown.bs.modal', function () {
     $('#nokontainer').focus();
 })
@@ -571,46 +667,7 @@ $("#savekontainer").on("click", function(){
         $("#modalkontainer").modal("hide");
     }
 });
-$(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
-$(".number").inputmask("numeric", {
-    radixPoint: ".",
-    groupSeparator: ",",
-    digits: 2,
-    autoGroup: true,
-    rightAlign: false,
-    removeMaskOnSubmit: true,
-    oncleared: function () { self.setValue(''); }
-});
-var tabelkontainer = $("#gridkontainer").DataTable({
-    processing: false,
-    serverSide: false,
-    data: datadetailkontainer,
-    dom: "t",
-    pageLength: 50,
-    rowCallback: function(row, data)
-    {
-        $(row).attr("id-transaksi", data.id);
-        $('td:eq(1)', row).html('<input type="hidden" class="ukurankontainer" value="' + data.UKURAN_KONTAINER + '">' + data.URAIAN);
-        $('td:eq(2)', row).html('<a href="#modalkontainer" class="editkontainer" data-toggle="modal" idkontainer="' + data.ID +
-                                '"><i class="fa fa-edit"></i></a>' +
-                                '&nbsp;&nbsp;<a class="delkontainer" idkontainer="' + data.ID + '"><i class="fa fa-trash"></i></a>'
-                                );
-    },
-    select: 'single',     // enable single row selection
-    responsive: false,     // enable responsiveness,
-    rowId: 0,
-    columns: [{
-                target: 0,
-                data: "NOMOR_KONTAINER"
-              },
-              { target: 1,
-                data: "URAIAN"
-              },
-              { target: 2,
-                data: null
-              }
-             ]
-})
+
 $("#addkontainer").on("click", function(){
     $("#nokontainer").val("");
     $("#ukuran").val("");
@@ -636,7 +693,7 @@ $("body").on("click", ".delkontainer", function(){
     }
     var index = tabelkontainer.row(row).remove().draw();
 })
-$("#nopen").inputmask({"mask": "999999","removeMaskOnSubmit": true});
+
 function checkEmpty(elem){
     if ($("#" + elem).val().trim() === ""){
         $(".error." + elem).show();
@@ -683,7 +740,7 @@ $("#noinv, #jmlkemasan, #tgltiba, #customer, #importir, #jmlkontainer, #kantor, 
 })
 $("#btnsimpan").on("click", function(){
         var detail = [];
-        var rows = tabel.rows().data();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ;
+        var rows = tabel.rows().data();               ;
         $(rows).each(function(index,elem){
             detail.push(elem);
         })
@@ -789,38 +846,7 @@ $("#savedetail").on("click", function(){
     }
     $(this).prop("disabled", false);
 });
-var tabel = $("#griddetail").DataTable({
-    processing: false,
-    serverSide: false,
-    data: datadetail,
-    dom: "t",
-    pageLength: 1000,
-    rowCallback: function(row, data)
-    {
-        $('td:eq(1)', row).html(parseFloat(data.BOOKING).formatMoney(2,"",",","."));
-        $('td:eq(3)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
-                                '"><i class="fa fa-edit"></i></a>' +
-                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
-                                );
-    },
-    select: 'single',     // enable single row selection
-    responsive: false,     // enable responsiveness,
-    rowId: 0,
-    columns: [{
-        target: 0,
-        data: "KODE_HS"
-      },
-      { target: 1,
-        data: "BOOKING"
-      },
-      { target: 2,
-        data: "satuan"
-      },
-      { target: 3,
-        data: null
-      }
-     ],
-})
+
 $("#adddetail").on("click", function(){
     $("#kodehs").val("");
     $("#booking").val("");
@@ -848,7 +874,6 @@ $("body").on("click", ".del", function(){
     }
     var index = tabel.row(row).remove().draw();
 })
-$("#kodehs").inputmask("9999.99.99");
 $("#consignee").on("change", function(){
     var id = $(this).find("option:selected").val();
     $.ajax({
@@ -862,6 +887,8 @@ $("#consignee").on("change", function(){
         }
     });
 });
+@endif
+$("#kodehs").inputmask("9999.99.99");
 
 })
 </script>

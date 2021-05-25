@@ -21,6 +21,8 @@ use App\Models\Pembeli;
 use App\Models\Pemasok;
 use App\Models\Gudang;
 use App\Models\Customer;
+use App\Models\JenisTruk;
+use App\Models\Ekspedisi;
 
 class MasterController extends Controller
 {
@@ -263,6 +265,34 @@ class MasterController extends Controller
 		$dataTable = datatables()->of($dataSource);
 		return $dataTable->toJson();
 	}
+	public function jenistruk()
+	{
+		$breadcrumb[] = Array("link" => "../", "text" => "Home");
+		$breadcrumb[] = Array("text" => "Jenis Truk");
+		return view("master.jenistruk",
+									 ["breads" => $breadcrumb,
+									 "columns" => Array("Jenis Truk")]);
+	}
+	public function getdata_jenistruk()
+	{
+		$dataSource = JenisTruk::all();
+		$dataTable = datatables()->of($dataSource);
+		return $dataTable->toJson();
+	}
+	public function ekspedisi()
+	{
+		$breadcrumb[] = Array("link" => "../", "text" => "Home");
+		$breadcrumb[] = Array("text" => "Ekspedisi");
+		return view("master.ekspedisi",
+									 ["breads" => $breadcrumb,
+									 "columns" => Array("Kode","Nama","Alamat","Telepon")]);
+	}
+	public function getdata_ekspedisi()
+	{
+		$dataSource = Ekspedisi::all();
+		$dataTable = datatables()->of($dataSource);
+		return $dataTable->toJson();
+	}
 	public function crud(Request $request)
 	{
 		$action = $request->input("action");
@@ -448,6 +478,28 @@ class MasterController extends Controller
 							$result = Rate::drop($input["id"]);
 						}
 						break;
+					case "jenistruk":
+						if ($input["input-action"] == "add"){
+							$result = JenisTruk::add($input);
+						}
+						else if ($input["input-action"] == "edit"){
+							$result = JenisTruk::edit($input);
+						}
+						else if ($input["input-action"] == "delete"){
+							$result = JenisTruk::drop($input["id"]);
+						}
+						break;
+					case "ekspedisi":
+							if ($input["input-action"] == "add"){
+								$result = Ekspedisi::add($input);
+							}
+							else if ($input["input-action"] == "edit"){
+								$result = Ekspedisi::edit($input);
+							}
+							else if ($input["input-action"] == "delete"){
+								$result = Ekspedisi::drop($input["id"]);
+							}
+							break;
 				}
 				$message["result"] = $result;
 			}

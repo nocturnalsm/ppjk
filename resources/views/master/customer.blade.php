@@ -13,7 +13,7 @@
     </div>
     <div class="mb-1">
         <label for="input-alamat">Alamat</label>
-        <input type="text" id="input-alamat" name="input-alamat" class="form-control validate">
+        <textarea id="input-alamat" name="input-alamat" class="form-control validate" rows="5"></textarea>
     </div>
     <div class="mb-1">
         <label for="input-alamat">Negara</label>
@@ -29,7 +29,7 @@
         <input type="text" id="input-telepon" name="input-telepon" class="form-control validate">
     </div>
     <div class="mb-1">
-        <label for="input-email">Fax</label>
+        <label for="input-fax">Fax</label>
         <input type="text" id="input-fax" name="input-fax" class="form-control validate">
     </div>
     <div class="mb-1">
@@ -189,9 +189,9 @@
                             $("#input-alamat").val("");
                             $("#input-telepon").val("");
                             $("#input-fax").val("");
-                            $("#input-email").val("");
                             $("#input-code").val("");
-                            $("#input-link").focus();
+                            $("#input-link").val("");
+                            $("#input-nama").focus();
                         }
                         table.ajax.reload();
                         $("#modal .modal-body").html("Data tersimpan");

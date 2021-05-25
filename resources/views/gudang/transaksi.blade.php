@@ -14,31 +14,31 @@
             </div>
             <div class="modal-body mx-3">
                 <form id="form" act="">
-                    <input type="hidden" name="idxdetail" id="idxdetail">
-                    <input type="hidden" name="iddetail" id="iddetail">
-                    <input type="hidden" name="formseri" id="formseri" value="">
+                    <input {{ $readonly }} type="hidden" name="idxdetail" id="idxdetail">
+                    <input {{ $readonly }} type="hidden" name="iddetail" id="iddetail">
+                    <input {{ $readonly }} type="hidden" name="formseri" id="formseri" value="">
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodebarang">Kode Barang</label>
                         <div class="col-md-9">
-                            <input type="text" id="kodebarang" name="kodebarang" class="form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="kodebarang" name="kodebarang" class="form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodebarang">Uraian Barang</label>
                         <div class="col-md-9">
-                            <textarea rows="5" id="uraian" name="kodebarang" class="form-control form-control-sm validate"></textarea>
+                            <textarea {{ $readonly }} rows="5" id="uraian" name="kodebarang" class="form-control form-control-sm validate"></textarea>
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-md-3 col-form-label">Jumlah Kemasan</label>
                         <div class="col-md-9">
-                            <input type="text" class="number form-control form-control-sm" name="jmlkemasan" id="jmlkemasan">
+                            <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="jmlkemasan" id="jmlkemasan">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                       <label class="col-md-3 col-form-label">Jenis Kemasan</label>
                       <div class="col-md-4">
-                          <select class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan">
+                          <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan">
                               <option value=""></option>
                               @foreach($jeniskemasan as $jenis)
                               <option @if($header->JENIS_KEMASAN == $jenis->JENISKEMASAN_ID)selected @endif value="{{ $jenis->JENISKEMASAN_ID }}">{{ $jenis->URAIAN }}</option>
@@ -49,13 +49,13 @@
                     <div class="form-row mb-1">
                         <label class="col-md-3 col-form-label">Jumlah Satuan Harga</label>
                         <div class="col-md-9">
-                            <input type="text" class="number form-control form-control-sm" name="jmlsatharga" id="jmlsatharga">
+                            <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="jmlsatharga" id="jmlsatharga">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="satuan">Satuan</label>
                         <div class="col-md-9 pt-2">
-                            <select class="form-control form-control-sm" id="satuan" name="satuan">
+                            <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="satuan" name="satuan">
                                 <option value=""></option>
                                 @foreach($datasatuan as $satuan)
                                 <option value="{{ $satuan->id }}">{{ $satuan->satuan }}</option>
@@ -66,7 +66,7 @@
                     <div class="form-row mb-1">
                         <label class="col-md-3 col-form-label">CIF</label>
                         <div class="col-md-9">
-                            <input type="text" class="number form-control form-control-sm" name="cif" id="cif">
+                            <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="cif" id="cif">
                         </div>
                     </div>
                     <div class="form-row mb-1">
@@ -84,8 +84,10 @@
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
+                @if($readonly != 'readonly')
                 <a id="savedetail" class="btn btn-primary">Simpan</a>
                 <a class="btn btn-danger" data-dismiss="modal">Batal</a>
+                @endif
             </div>
         </div>
     </div>
@@ -101,15 +103,15 @@
             </div>
             <div class="modal-body mx-3">
                 <form id="formkontainer" act="">
-                    <input type="hidden" name="idxdetailkontainer" id="idxdetailkontainer">
-                    <input type="hidden" name="iddetailkontainer" id="iddetailkontainer">
+                    <input {{ $readonly }} type="hidden" name="idxdetailkontainer" id="idxdetailkontainer">
+                    <input {{ $readonly }} type="hidden" name="iddetailkontainer" id="iddetailkontainer">
                     <div class="mb-1">
                         <label for="nokontainer">No. Kontainer</label>
-                        <input type="text" maxlength="15" id="nokontainer" name="nokontainer" class="form-control form-control-sm validate">
+                        <input {{ $readonly }} type="text" maxlength="15" id="nokontainer" name="nokontainer" class="form-control form-control-sm validate">
                     </div>
                     <div class="mb-1">
                         <label for="ukuran">Ukuran Kontainer</label>
-                        <select class="form-control form-control-sm" id="ukuran" name="ukuran">
+                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="ukuran" name="ukuran">
                             @foreach($ukurankontainer as $ukur)
                             <option value="{{ $ukur->KODE }}">{{ $ukur->URAIAN }}</option>
                             @endforeach
@@ -118,8 +120,10 @@
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
+                @if($readonly != 'readonly')
                 <a id="savekontainer" class="btn btn-primary">Simpan</a>
                 <a class="btn btn-danger" data-dismiss="modal">Batal</a>
+                @endif
             </div>
         </div>
     </div>
@@ -132,25 +136,27 @@
                     Form Perekaman Data {{ $notransaksi }}
                 </div>
                 <div class="col-md-8 py-0 pr-4 text-right">
+                    @if($readonly == '')
                     <button type="button" id="btnsimpan" class="btn btn-primary btn-sm m-0">Simpan</button>&nbsp;
                     <a href="/" class="btn btn-default btn-sm m-0">Batal</a>&nbsp;
                     @can('gudang.transaksi.delete')
                     <button type="button" id="deletetrans" @if($header->id == '') disabled @endif class="btn btn-danger btn-sm m-0">Hapus</button>
                     <form id="formdelete">
                     @csrf
-                    <input type="hidden" name="iddelete" value="{{ $header->ID }}">
+                    <input {{ $readonly }} type="hidden" name="iddelete" value="{{ $header->ID }}">
                     </form>
                     @endcan
+                    @endif
                 </div>
             </div>
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
-            <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
+            <input {{ $readonly }} type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Kantor</label>
                 <div class="col-md-2">
-                    <select class="form-control form-control-sm" id="kantor" name="kantor" value="{{ $header->KANTOR_ID }}">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="kantor" name="kantor" value="{{ $header->KANTOR_ID }}">
                         <option value=""></option>
                         @foreach($kodekantor as $kantor)
                         <option @if($header->KANTOR_ID == $kantor->KANTOR_ID)selected @endif value="{{ $kantor->KANTOR_ID }}">{{ $kantor->URAIAN }}</option>
@@ -161,7 +167,7 @@
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Importir</label>
                 <div class="col-md-4">
-                    <select class="form-control form-control-sm" id="importir" name="importir" value="{{ $header->IMPORTIR }}">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="importir" name="importir" value="{{ $header->IMPORTIR }}">
                         <option value=""></option>
                         @foreach($importir as $imp)
                         <option @if($header->IMPORTIR == $imp->IMPORTIR_ID)selected @endif value="{{ $imp->IMPORTIR_ID }}">{{ $imp->NAMA }}</option>
@@ -169,9 +175,10 @@
                     </select>
                     <p class="error importir">Importir harus dipilih</p>
                 </div>
+                @if($header->ID == "")
                 <label class="col-md-1 col-form-label form-control-sm text-right">Customer</label>
                 <div class="col-md-4">
-                    <select class="form-control form-control-sm" id="customer" name="customer" value="{{ $header->CUSTOMER }}">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="customer" name="customer" value="{{ $header->CUSTOMER }}">
                         <option value=""></option>
                         @foreach($customer as $cust)
                         <option @if($header->CUSTOMER == $cust->id_customer)selected @endif value="{{ $cust->id_customer }}">{{ $cust->nama_customer }}</option>
@@ -179,41 +186,42 @@
                     </select>
                     <p class="error customer">Customer harus dipilih</p>
                 </div>
+                @endif
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">No.Aju</label>
                 <div class="col-md-2">
-                    <input type="text" class="form-control form-control-sm" name="noaju" value="{{ $header->NOAJU }}" id="noaju">
+                    <input {{ $readonly }} type="text" class="form-control form-control-sm" name="noaju" value="{{ $header->NOAJU }}" id="noaju">
                 </div>
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Nopen</label>
                 <div class="col-md-2">
-                    <input maxlength="6" type="text" class="form-control form-control-sm" name="nopen" value="{{ $header->NOPEN }}" id="nopen">
+                    <input {{ $readonly }} maxlength="6" type="text" class="form-control form-control-sm" name="nopen" value="{{ $header->NOPEN }}" id="nopen">
                     <p class="error nopen">Nopen 6 digit</p>
                 </div>
                 <div class="col-md-2"></div>
                 <label class="col-md-1 col-form-label form-control-sm text-right">Tgl Nopen</label>
                 <div class="col-md-2">
-                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglentri" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
+                    <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglentri" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
                 </div>
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">No. Inv</label>
                 <div class="col-md-2">
-                    <input type="text" maxlength="24" class="form-control form-control-sm" name="noinv" id="noinv" value="{{ $header->NO_INV }}">
+                    <input {{ $readonly }} type="text" maxlength="24" class="form-control form-control-sm" name="noinv" id="noinv" value="{{ $header->NO_INV }}">
                 </div>
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Kurs</label>
                 <div class="col-md-2">
-                    <input type="text" class="number form-control form-control-sm" name="kurs" id="kurs" value="{{ $header->NDPBM }}">
+                    <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="kurs" id="kurs" value="{{ $header->NDPBM }}">
                 </div>
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Tgl SPPB</label>
                 <div class="col-md-2">
-                    <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglsppb" value="{{ $header->TGL_SPPB }}" id="tglsppb">
+                    <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglsppb" value="{{ $header->TGL_SPPB }}" id="tglsppb">
                 </div>
             </div>
             <div class="row mt-4">
@@ -225,7 +233,9 @@
                                 Detail Kontainer
                             </div>
                             <div class="col primary-color text-white text-right p-2" style="text-decoration:underline">
+                                @if($readonly == '')
                                 <a href="#modalkontainer" data-toggle="modal" class="text-white" id="addkontainer">Tambah Detail</a>
+                                @endif
                             </div>
                         </div>
                         <div class="form-row">
@@ -235,7 +245,9 @@
                                         <tr>
                                             <th>Nomor</th>
                                             <th>Ukuran</th>
+                                            @if($readonly == '')
                                             <th>Opsi</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                 </table>
@@ -253,7 +265,9 @@
                                 Detail Barang
                             </div>
                             <div class="col primary-color text-white text-right p-2" style="text-decoration:underline">
+                                @if($readonly == '')
                                 <a href="#modaldetail" data-toggle="modal" class="text-white" id="adddetail">Tambah Detail</a>
+                                @endif
                             </div>
                         </div>
                         <div class="form-row">
@@ -267,7 +281,9 @@
                                             <th>CIF</th>
                                             <th>Harga Satuan</th>
                                             <th>Rupiah</th>
+                                            @if($readonly == '')
                                             <th>Opsi</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                 </table>
@@ -276,8 +292,8 @@
                     </div>
                 </div>
             </div>
-        <input type="hidden" name="deletekontainer">
-        <input type="hidden" name="deletedetail">
+        <input {{ $readonly }} type="hidden" name="deletekontainer">
+        <input {{ $readonly }} type="hidden" name="deletedetail">
         </form>
     </div>
 </div>
@@ -308,6 +324,101 @@ Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
 			j = (j = i.length) > 3 ? j % 3 : 0;
 	return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
 };
+$(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
+$(".number").inputmask("numeric", {
+    radixPoint: ".",
+    groupSeparator: ",",
+    digits: 2,
+    autoGroup: true,
+    rightAlign: false,
+    removeMaskOnSubmit: true,
+    oncleared: function () { self.setValue(''); }
+});
+var tabelkontainer = $("#gridkontainer").DataTable({
+    processing: false,
+    serverSide: false,
+    data: datadetailkontainer,
+    dom: "t",
+    pageLength: 50,
+    rowCallback: function(row, data)
+    {
+        $(row).attr("id-transaksi", data.id);
+        $('td:eq(1)', row).html('<input type="hidden" class="ukurankontainer" value="' + data.UKURAN_KONTAINER + '">' + data.URAIAN);
+        @if($readonly == '')
+        $('td:eq(2)', row).html('<a href="#modalkontainer" class="editkontainer" data-toggle="modal" idkontainer="' + data.ID +
+                                '"><i class="fa fa-edit"></i></a>' +
+                                '&nbsp;&nbsp;<a class="delkontainer" idkontainer="' + data.ID + '"><i class="fa fa-trash"></i></a>'
+                                );
+        @endif
+    },
+    select: 'single',     // enable single row selection
+    responsive: false,     // enable responsiveness,
+    rowId: 0,
+    columns: [{
+                target: 0,
+                data: "NOMOR_KONTAINER"
+              },
+              { target: 1,
+                data: "URAIAN"
+              },
+              @if($readonly == '')
+              { target: 2,
+                data: null
+              }
+              @endif
+             ]
+})
+var tabel = $("#griddetail").DataTable({
+    processing: false,
+    serverSide: false,
+    data: datadetail,
+    dom: "t",
+    pageLength: 1000,
+    rowCallback: function(row, data)
+    {
+        $('td:eq(0)', row).html('<div>' +data.KODEBARANG + "</div><div>" + (data.URAIAN || '&nbsp;') + "</div>");
+        $('td:eq(1)', row).html(parseFloat(data.JMLKEMASAN).formatMoney(0,"",",",".") + " " +(data.NAMAJENISKEMASAN || ""));
+        $('td:eq(2)', row).html('<div>' +parseFloat(data.JMLSATHARGA).formatMoney(2,"",",",".") + "</div><div>" + (data.NAMASATUAN || "&nbsp;") + "</div>");
+        $('td:eq(3)', row).html(parseFloat(data.CIF).formatMoney(2,"",",","."));
+        $('td:eq(4)', row).html(parseFloat(data.HARGA).formatMoney(3,"",",","."));
+        $('td:eq(5)', row).html((parseFloat(data.HARGA)*parseFloat($("#kurs").val().replace(/,/g,""))).formatMoney(2,"",",","."));
+        @if($readonly == '')
+        $('td:eq(6)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
+                                '"><i class="fa fa-edit"></i></a>' +
+                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
+                                );
+        @endif
+    },
+    select: 'single',     // enable single row selection
+    responsive: false,     // enable responsiveness,
+    rowId: 0,
+    columns: [
+      { target: 0,
+          data: "KODEBARANG"
+      },
+      { target: 1,
+          data: "JMLKEMASAN"
+      },
+      { target: 2,
+          data: "JMLSATHARGA"
+      },
+      { target: 3,
+          data: "CIF"
+      },
+      { target: 4,
+          data: "HARGA"
+      },
+      { target: 5,
+          data: null
+      },
+      @if($readonly == '')
+      { target: 6,
+          data: null
+      }
+      @endif
+     ],
+})
+@if($readonly == '')
 $('#modalkontainer').on('shown.bs.modal', function () {
     $('#nokontainer').focus();
 })
@@ -329,46 +440,6 @@ $("#savekontainer").on("click", function(){
         $("#modalkontainer").modal("hide");
     }
 });
-$(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
-$(".number").inputmask("numeric", {
-    radixPoint: ".",
-    groupSeparator: ",",
-    digits: 2,
-    autoGroup: true,
-    rightAlign: false,
-    removeMaskOnSubmit: true,
-    oncleared: function () { self.setValue(''); }
-});
-var tabelkontainer = $("#gridkontainer").DataTable({
-    processing: false,
-    serverSide: false,
-    data: datadetailkontainer,
-    dom: "t",
-    pageLength: 50,
-    rowCallback: function(row, data)
-    {
-        $(row).attr("id-transaksi", data.id);
-        $('td:eq(1)', row).html('<input type="hidden" class="ukurankontainer" value="' + data.UKURAN_KONTAINER + '">' + data.URAIAN);
-        $('td:eq(2)', row).html('<a href="#modalkontainer" class="editkontainer" data-toggle="modal" idkontainer="' + data.ID +
-                                '"><i class="fa fa-edit"></i></a>' +
-                                '&nbsp;&nbsp;<a class="delkontainer" idkontainer="' + data.ID + '"><i class="fa fa-trash"></i></a>'
-                                );
-    },
-    select: 'single',     // enable single row selection
-    responsive: false,     // enable responsiveness,
-    rowId: 0,
-    columns: [{
-                target: 0,
-                data: "NOMOR_KONTAINER"
-              },
-              { target: 1,
-                data: "URAIAN"
-              },
-              { target: 2,
-                data: null
-              }
-             ]
-})
 $("#addkontainer").on("click", function(){
     $("#nokontainer").val("");
     $("#ukuran").val("");
@@ -544,52 +615,7 @@ $("#savedetail").on("click", function(){
     }
     $(this).prop("disabled", false);
 });
-var tabel = $("#griddetail").DataTable({
-    processing: false,
-    serverSide: false,
-    data: datadetail,
-    dom: "t",
-    pageLength: 1000,
-    rowCallback: function(row, data)
-    {
-        $('td:eq(0)', row).html('<div>' +data.KODEBARANG + "</div><div>" + (data.URAIAN || '&nbsp;') + "</div>");
-        $('td:eq(1)', row).html(parseFloat(data.JMLKEMASAN).formatMoney(0,"",",",".") + " " +(data.NAMAJENISKEMASAN || ""));
-        $('td:eq(2)', row).html('<div>' +parseFloat(data.JMLSATHARGA).formatMoney(2,"",",",".") + "</div><div>" + (data.NAMASATUAN || "&nbsp;") + "</div>");
-        $('td:eq(3)', row).html(parseFloat(data.CIF).formatMoney(2,"",",","."));
-        $('td:eq(4)', row).html(parseFloat(data.HARGA).formatMoney(3,"",",","."));
-        $('td:eq(5)', row).html((parseFloat(data.HARGA)*parseFloat($("#kurs").val().replace(/,/g,""))).formatMoney(2,"",",","."));
-        $('td:eq(6)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
-                                '"><i class="fa fa-edit"></i></a>' +
-                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
-                                );
-    },
-    select: 'single',     // enable single row selection
-    responsive: false,     // enable responsiveness,
-    rowId: 0,
-    columns: [
-      { target: 0,
-          data: "KODEBARANG"
-      },
-      { target: 1,
-          data: "JMLKEMASAN"
-      },
-      { target: 2,
-          data: "JMLSATHARGA"
-      },
-      { target: 3,
-          data: "CIF"
-      },
-      { target: 4,
-          data: "HARGA"
-      },
-      { target: 5,
-          data: null
-      },
-      { target: 6,
-          data: null
-      }
-     ],
-})
+
 $("#adddetail").on("click", function(){
     $("#satuan").val("");
     $("#kodebarang").val("");
@@ -612,7 +638,7 @@ $("#adddetail").on("click", function(){
 
     $("#form").attr("act","add");
 })
-$("#nopen").inputmask({"mask": "999999","removeMaskOnSubmit": true});
+
 function nopenChange(){
     tabel.rows().every(function(index, tabLoop, rowLoop){
         var data = this.data();
@@ -682,6 +708,8 @@ $('#modaldetail').on('shown.bs.modal', function (e) {
     $("#savedetail").removeClass("disabled");
     $('#kodebarang').focus();
 })
+@endif
+$("#nopen").inputmask({"mask": "999999","removeMaskOnSubmit": true});
 })
 </script>
 @endpush

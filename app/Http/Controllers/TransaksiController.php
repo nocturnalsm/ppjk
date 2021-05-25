@@ -19,9 +19,6 @@ class TransaksiController extends Controller {
 
 	public function schedule(Request $request, $id = "")
 	{
-		if(!auth()->user()->can('schedule.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("text" => "Transaksi");
 
@@ -40,6 +37,9 @@ class TransaksiController extends Controller {
 		$dtTransaksi = Array();
 		$pi = [];
 		$dtTransaksi = Transaksi::getTransaksi($id);
+		if (!$dtTransaksi){
+				abort(404, 'Data tidak ada');
+		}
 		$pi = Transaksi::getPI($dtTransaksi["header"]->CONSIGNEE);
 
 		if ($id != ""){
@@ -58,41 +58,53 @@ class TransaksiController extends Controller {
 				"jumlahkontainer" => $dtJumlahKontainer, "quota" => isset($detailQuota) ? $detailQuota : "{}", "pi" => $pi,
 				"jenisbarang" => $dtJenisBarang, "idtransaksi" => $id,
 				"ukurankontainer" => $dtUkuranKontainer, "notransaksi" => $notransaksi,
-				"canDelete" => $id != ""
+				"canDelete" => $id != "", "readonly" => auth()->user()->cannot('schedule.transaksi') ? "readonly" : ""
 			];
 		return view("transaksi.transaksi", $data);
 	}
 	public function transaksibayar(Request $request)
   {
-		if(!auth()->user()->can('pembayaran.transaksi')){
-			abort(403, 'User does not have the right roles.');
+		$canBrowse = auth()->user()->can('pembayaran.browse');
+		$canEdit = auth()->user()->can('pembayaran.transaksi');
+
+		$dtTransaksi = Array();
+		$id = $request->id ?? "";
+		if ($id != ""){
+			if (!$canBrowse){
+					abort(403, "User does not have the right roles");
+			}
 		}
-  	$breadcrumb[] = Array("link" => "/", "text" => "Home");
+		else {
+			if (!$canEdit){
+					abort(403, "User does not have the right roles");
+			}
+			$notransaksi = " (Baru)";
+		}
+		$dtTransaksi = Transaksi::getTransaksiBayar($id);
+		if (!$dtTransaksi){
+				abort(404, 'Data tidak ada');
+		}
+
+		$breadcrumb[] = Array("link" => "/", "text" => "Home");
+
 		$breadcrumb[] = Array("text" => "Transaksi Pembayaran");
 
 		$dtRekening = Transaksi::getRekening();
 		$dtMataUang = Transaksi::getMataUang();
 		$dtKantor = Transaksi::getKantor();
-		$dtTransaksi = Array();
-		$id = $request->id ?? "";
-		if ($id != ""){
-			Transaksi::calculateBayar($id);
-		}
-		else {
-			$notransaksi = " (Baru)";
-		}
-		$dtTransaksi = Transaksi::getTransaksiBayar($id);
+
 		$data = [
 				"header" => isset($dtTransaksi["header"]) ? $dtTransaksi["header"] : "{}" , "breads" => $breadcrumb,
 				"rekening" => $dtRekening,
 				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
-				"matauang" => $dtMataUang
+				"matauang" => $dtMataUang,
+				"readonly" => $canEdit ? '' : 'readonly'
 			];
 		return view("transaksi.transaksibayar", $data);
 	}
 	public function userdo(Request $request)
   {
-		if(!auth()->user()->can('dokumen.transaksi')){
+		if(!auth()->user()->can('dokumen.browse')){
 			abort(403, 'User does not have the right roles.');
 		}
 		$breadcrumb[] = Array("link" => "/", "text" => "Home");
@@ -100,8 +112,14 @@ class TransaksiController extends Controller {
 		$breadcrumb[] = Array("text" => "Perekaman Do");
 
 		$id = $request->id;
+		if (trim($id) == ""){
+				abort(404, 'Data tidak ada');
+		}
 		$dtPelmuat = Transaksi::getPelmuat();
 		$dtTransaksi = Transaksi::getTransaksiDo($id);
+		if (!$dtTransaksi){
+				abort(404, 'Data tidak ada');
+		}
 		$dtMataUang = Transaksi::getMataUang();
 
 		$dtTOP = Transaksi::getTOP();
@@ -112,19 +130,25 @@ class TransaksiController extends Controller {
 				"header" => isset($dtTransaksi) ? $dtTransaksi : "{}" , "breads" => $breadcrumb,
 				"idtransaksi" => $id,"notransaksi" => $notransaksi, "pelmuat" => $dtPelmuat,
 				"files" => $dtFiles,"top" => $dtTOP, "matauang" => $dtMataUang,
-				"jenisfile" => $dtJenisFile
+				"jenisfile" => $dtJenisFile, "readonly" => auth()->user()->can('dokumen.transaksi') ? "" : "readonly"
 			];
 		return view("transaksi.transaksido", $data);
 	}
-	public function uservo(Request $request, $id = "")
+	public function uservo(Request $request, $id)
   {
-		if(!auth()->user()->can('vo.transaksi')){
+		if(!auth()->user()->can('vo.browse')){
 			abort(403, 'User does not have the right roles.');
+		}
+		if (trim($id) == ""){
+				abort(404, 'Data tidak ada');
 		}
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("link" => "/transaksi/perekamanvo", "text" => "Browse VO");
 		$breadcrumb[] = Array("text" => "Perekaman VO");
 		$dtTransaksi = Transaksi::getTransaksiVo($id);
+		if (!$dtTransaksi){
+				abort(404, 'Data not found');
+		}
 		$dtImportir = Transaksi::getImportir();
 		$dtSatuan = Transaksi::getSatuan();
 		$detailQuota = json_encode(Transaksi::getRealisasiQuota($id));
@@ -140,14 +164,36 @@ class TransaksiController extends Controller {
 				"header" => $dtTransaksi, "breads" => $breadcrumb,
 				"quota" => $detailQuota, "datasatuan" => $dtSatuan,
 				"idtransaksi" => $id, "importir" => $dtImportir,
-				"notransaksi" => $notransaksi
+				"notransaksi" => $notransaksi,
+				"readonly" => auth()->user()->cannot('vo.transaksi') ? "readonly" : ""
 			];
 		return view("transaksi.transaksivo", $data);
 	}
 	public function usersptnp(Request $request, $id = "")
   {
-		if(!auth()->user()->can('sptnp.transaksi')){
-			abort(403, 'User does not have the right roles.');
+		$canEdit = auth()->user()->can('sptnp.transaksi');
+		$canBrowse = auth()->user()->can('sptnp.browse');
+
+		if ($id != ""){
+			if ($canBrowse){
+					$dtTransaksi = Sptnp::getTransaksiSPTNP($id);
+					if (!$dtTransaksi){
+							abort(404, 'Data tidak ada');
+					}
+					$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
+			}
+			else {
+					abort(403, "User doesn't have the right roles");
+			}
+		}
+		else {
+			if ($canEdit){
+					$dtTransaksi = new Sptnp;
+					$notransaksi = "Baru";
+			}
+			else {
+					abort(403, "User doesn't have the right roles");
+			}
 		}
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("text" => "Perekaman SPTNP");
@@ -155,18 +201,10 @@ class TransaksiController extends Controller {
 		$kantor = Transaksi::getKantor();
 		$importir = Transaksi::getImportir();
 
-		if ($id != ""){
-			$dtTransaksi = Sptnp::getTransaksiSPTNP($id);
-			$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
-		}
-		else {
-			$dtTransaksi = new Sptnp;
-			$notransaksi = "Baru";
-		}
-
 		$data = [
 				"header" => $dtTransaksi, "kodekantor" => $kantor, "importir" => $importir, "breads" => $breadcrumb,
-				"idtransaksi" => $id, "notransaksi" => $notransaksi
+				"idtransaksi" => $id, "notransaksi" => $notransaksi,
+				"readonly" => $canEdit ? '' : 'readonly'
 			];
 		return view("transaksi.transaksisptnp", $data);
 	}
@@ -250,13 +288,14 @@ class TransaksiController extends Controller {
 									"datakantor" => $kantor, "datacustomer" => $customer,
 									"dataimportir" => $importir,
 									"datakategori" => Array("Tanggal Tiba","Tanggal Keluar",
-															"Tanggal Nopen")]);
+															"Tanggal Nopen", "Tanggal SPPB")]);
 	}
 	public function perekamanvo(Request $request)
   {
 		if(!auth()->user()->can('vo.browse')){
 			abort(403, 'User does not have the right roles.');
 		}
+		$canViewCustomer = auth()->user()->can('customer.view');
 		$filter = $request->input('filter');
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
@@ -287,21 +326,25 @@ class TransaksiController extends Controller {
 					else {
 					    $sheet->setCellValue('C1', "Semua");
 					}
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+					$row = 2;
+					if ($canViewCustomer){
+							$sheet->setCellValue('A2', 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C2', "Semua");
+							}
+							$row += 1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-					$lastrow = 3;
+					$lastrow = $row;
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -344,35 +387,42 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai3 == "" ? "-" : Date("d M Y", strtotime($sampai3)));
 					}
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'Ktr');
-					$sheet->setCellValue('B' .$lastrow, 'Importir');
-					$sheet->setCellValue('C' .$lastrow, 'Customer');
-					$sheet->setCellValue('D' .$lastrow, 'No Inv');
-					$sheet->setCellValue('E' .$lastrow, 'No. VO');
-					$sheet->setCellValue('F' .$lastrow, 'Tgl VO');
-					$sheet->setCellValue('G' .$lastrow, 'Tgl Tiba');
-					$sheet->setCellValue('H' .$lastrow, 'Nopen');
-					$sheet->setCellValue('I' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('J' .$lastrow, 'Kode HS');
-					$sheet->setCellValue('K' .$lastrow, 'Tgl Periksa');
-					$sheet->setCellValue('L' .$lastrow, 'Tgl LS');
-					$sheet->setCellValue('M' .$lastrow, 'Status VO');
+					$colNo = 0;
+					$columns = 'ABCDEFGHIJKLM';
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Ktr');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. VO');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl VO');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kode HS');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Periksa');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl LS');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Status VO');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->KANTOR);
-						$sheet->setCellValue('B' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('C' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('D' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('E' .$lastrow, $dt->NO_VO);
-						$sheet->setCellValue('F' .$lastrow, $dt->TGLVO);
-						$sheet->setCellValue('G' .$lastrow, $dt->TGLTIBA);
-						$sheet->setCellValue('H' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('I' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('J' .$lastrow, $dt->KODE_HS_VO);
-						$sheet->setCellValue('K' .$lastrow, $dt->TGLPERIKSAVO);
-						$sheet->setCellValue('L' .$lastrow, $dt->TGLLS);
-						$sheet->setCellValue('LM' .$lastrow, $dt->STATUSVO);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KANTOR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+						if ($canViewCustomer){
+								$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+						}
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_VO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLVO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KODE_HS_VO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLPERIKSAVO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLLS);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->STATUSVO);
 					}
 					return $this->exportXls($spreadsheet, "browse_vo");
 				}
@@ -406,6 +456,7 @@ class TransaksiController extends Controller {
 		if(!auth()->user()->can('pembayaran.browse')){
 			abort(403, 'User does not have the right roles.');
 		}
+		$canViewCustomer = auth()->user()->can('customer.view');
 		$filter = $request->input("filter");
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
@@ -433,21 +484,25 @@ class TransaksiController extends Controller {
 					else {
 					    $sheet->setCellValue('C1', "Semua");
 					}
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+					$row = 2;
+					if ($canViewCustomer){
+							$sheet->setCellValue('A2', 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C2', "Semua");
+							}
+							$row += 1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-					$lastrow = 3;
+					$lastrow = $row;
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -483,35 +538,42 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'Importir');
-					$sheet->setCellValue('B' .$lastrow, 'Customer');
-					$sheet->setCellValue('C' .$lastrow, 'No Inv');
-					$sheet->setCellValue('D' .$lastrow, 'No Aju');
-					$sheet->setCellValue('E' .$lastrow, 'Jml Kmsn');
-					$sheet->setCellValue('F' .$lastrow, 'TT/Non TT');
-					$sheet->setCellValue('G' .$lastrow, 'TOP');
-					$sheet->setCellValue('H' .$lastrow, 'Jth Tempo');
-					$sheet->setCellValue('I' .$lastrow, 'Curr');
-					$sheet->setCellValue('J' .$lastrow, 'CIF');
-					$sheet->setCellValue('K' .$lastrow, 'Nominal');
-					$sheet->setCellValue('L' .$lastrow, 'Saldo');
-					$sheet->setCellValue('M' .$lastrow, 'Faktur');
+					$columns = "ABCDEFGHIJKLM";
+					$colNo = 0;
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Aju');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kmsn');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'TT/Non TT');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'TOP');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jth Tempo');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Curr');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'CIF');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nominal');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Saldo');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Faktur');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('B' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('C' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('D' .$lastrow, $dt->NOAJU);
-						$sheet->setCellValue('E' .$lastrow, $dt->JUMLAH_KEMASAN);
-						$sheet->setCellValue('F' .$lastrow, $dt->PEMBAYARAN);
-						$sheet->setCellValue('G' .$lastrow, $dt->TERM);
-						$sheet->setCellValue('H' .$lastrow, $dt->TGLJTHTEMPO);
-						$sheet->setCellValue('I' .$lastrow, $dt->MATAUANG);
-						$sheet->setCellValue('J' .$lastrow, $dt->CIF);
-						$sheet->setCellValue('K' .$lastrow, $dt->BAYAR);
-						$sheet->setCellValue('L' .$lastrow, $dt->CIF - $dt->BAYAR);
-						$sheet->setCellValue('M' .$lastrow, $dt->FAKTUR);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+						if ($canViewCustomer){
+								$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+						}
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOAJU);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->PEMBAYARAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TERM);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLJTHTEMPO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->MATAUANG);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CIF);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->BAYAR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CIF - $dt->BAYAR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->FAKTUR);
 						$detail = Transaksi::getDetailBayar($dt->ID);
 						if (count($detail) > 0){
 							$lastrow += 2;
@@ -568,6 +630,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
 			$postCustomer = $request->input("customer");
@@ -589,27 +652,32 @@ class TransaksiController extends Controller {
 					$spreadsheet = new Spreadsheet();
 					$sheet = $spreadsheet->getActiveSheet();
 					$sheet->setCellValue('A1', 'KANTOR');
+
 					if ($postKantor && trim($postKantor) != ""){
     					$sheet->setCellValue('C1', Transaksi::getKantor($postKantor)->URAIAN);
 					}
 					else {
 					    $sheet->setCellValue('C1', "Semua");
 					}
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+					$row = 2;
+					if (auth()->user()->can('customer.view')){
+							$sheet->setCellValue('A2', 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C2', "Semua");
+							}
+							$row += 1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-					$lastrow = 3;
+					$lastrow = $row;
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -631,37 +699,44 @@ class TransaksiController extends Controller {
 					}
 
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'Importir');
-					$sheet->setCellValue('B' .$lastrow, 'Customer');
-					$sheet->setCellValue('C' .$lastrow, 'No Inv');
-					$sheet->setCellValue('D' .$lastrow, 'No PO');
-					$sheet->setCellValue('E' .$lastrow, 'No SC');
-					$sheet->setCellValue('F' .$lastrow, 'No BL');
-					$sheet->setCellValue('G' .$lastrow, 'Tgl BL');
-			    $sheet->setCellValue('H' .$lastrow, 'No Aju');
-			    $sheet->setCellValue('I' .$lastrow, 'Nopen');
-			    $sheet->setCellValue('J' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('K' .$lastrow, 'Tgl Tiba');
-					$sheet->setCellValue('L' .$lastrow, 'No. Form');
-					$sheet->setCellValue('M' .$lastrow, 'Tgl LS');
-					$sheet->setCellValue('N' .$lastrow, 'Tgl Dok Trm');
+					$columns = "ABCDEFGHIJKLMN";
+					$colNo = 0;
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No PO');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No SC');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No BL');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl BL');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Aju');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. Form');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl LS');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Dok Trm');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('B' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('C' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('D' .$lastrow, $dt->NO_PO);
-						$sheet->setCellValue('E' .$lastrow, $dt->NO_SC);
-						$sheet->setCellValue('F' .$lastrow, $dt->NO_BL);
-						$sheet->setCellValue('G' .$lastrow, $dt->TGLBL);
-						$sheet->setCellValue('H' .$lastrow, $dt->NOAJU);
-						$sheet->setCellValue('I' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('J' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('K' .$lastrow, $dt->TGLTIBA);
-						$sheet->setCellValue('L' .$lastrow, $dt->NO_FORM);
-						$sheet->setCellValue('M' .$lastrow, $dt->TGLLS);
-						$sheet->setCellValue('N' .$lastrow, $dt->TGLDOKTRM);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+						if ($canViewCustomer){
+								$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+						}
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_PO);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_SC);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_BL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLBL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOAJU);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_FORM);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLLS);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLDOKTRM);
 					}
 					return $this->exportXls($spreadsheet, "browse_do");
 				}
@@ -703,6 +778,7 @@ class TransaksiController extends Controller {
 
 		$data = Transaksi::browse($postKantor, $postCustomer, $postImportir, $postKategori1,
 								$dari1, $sampai1, $postKategori2, $dari2, $sampai2);
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($data){
 			if ($export == '1'){
 				$spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -714,21 +790,25 @@ class TransaksiController extends Controller {
 				else {
 					$sheet->setCellValue('C1', "Semua");
 				}
-				$sheet->setCellValue('A2', 'CUSTOMER');
-				if ($postCustomer && trim($postCustomer) != ""){
-					$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+				$row = 2;
+				if ($canViewCustomer){
+						$sheet->setCellValue('A2', 'CUSTOMER');
+						if ($postCustomer && trim($postCustomer) != ""){
+							$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+						}
+						else {
+							$sheet->setCellValue('C2', "Semua");
+						}
+						$row += 1;
 				}
-				else {
-					$sheet->setCellValue('C2', "Semua");
-				}
-				$sheet->setCellValue('A3', 'IMPORTIR');
+				$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 				if ($postImportir && trim($postImportir) != ""){
-					$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+					$sheet->setCellValue('C'.strval($row), Transaksi::getImportir($postImportir)->NAMA);
 				}
 				else {
-					$sheet->setCellValue('C3', "Semua");
+					$sheet->setCellValue('C'.strval($row), "Semua");
 				}
-				$lastrow = 4;
+				$lastrow = $row;
 				if ($postKategori1 && trim($postKategori1) != ""){
 					$lastrow += 1;
 					$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -744,45 +824,52 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 				}
 				$lastrow += 2;
-				$sheet->setCellValue('A' .$lastrow, 'Kd Kantor');
-				$sheet->setCellValue('B' .$lastrow, 'No. Inv');
-				$sheet->setCellValue('C' .$lastrow, 'No. BL');
-				$sheet->setCellValue('D' .$lastrow, 'Jml Kmsn');
-				$sheet->setCellValue('E' .$lastrow, 'Customer');
-				$sheet->setCellValue('F' .$lastrow, 'Importir');
-				$sheet->setCellValue('G' .$lastrow, 'Tgl Tiba');
-				$sheet->setCellValue('H' .$lastrow, 'Tgl SPPB');
-				$sheet->setCellValue('I' .$lastrow, 'Tgl Keluar');
-				$sheet->setCellValue('J' .$lastrow, 'Tgl Terima');
-				$sheet->setCellValue('K' .$lastrow, 'No.Aju');
-				$sheet->setCellValue('L' .$lastrow, 'Nopen');
-				$sheet->setCellValue('M' .$lastrow, 'Tgl Nopen');
+				$columns = 'ABCDEFGHIJKLMN';
+				$colNo = 0;
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kd Kantor');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. Inv');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. BL');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kmsn');
+				if ($canViewCustomer){
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+				}
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl SPPB');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Keluar');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Terima');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No.Aju');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
 				/*
 				$sheet->setCellValue('K' .$lastrow, 'No. PO');
 				$sheet->setCellValue('L' .$lastrow, 'No. SC');
 				*/
-				$sheet->setCellValue('N' .$lastrow, 'Jml Kontainer');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kontainer');
 
 				foreach ($data as $dt){
 					$lastrow += 1;
-					$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
-					$sheet->setCellValue('B' .$lastrow, $dt->NO_INV);
-					$sheet->setCellValue('C' .$lastrow, $dt->NO_BL);
-					$sheet->setCellValue('D' .$lastrow, $dt->JUMLAH_KEMASAN);
-					$sheet->setCellValue('E' .$lastrow, $dt->NAMA);
-					$sheet->setCellValue('F' .$lastrow, $dt->IMPORTIR);
-					$sheet->setCellValue('G' .$lastrow, $dt->TGLTIBA);
-					$sheet->setCellValue('H' .$lastrow, $dt->TGLSPPB);
-					$sheet->setCellValue('I' .$lastrow, $dt->TGLKELUAR);
-					$sheet->setCellValue('J' .$lastrow, $dt->TGLTERIMA);
-					$sheet->setCellValue('K' .$lastrow, $dt->NOAJU);
-					$sheet->setCellValue('L' .$lastrow, $dt->NOPEN);
-					$sheet->setCellValue('M' .$lastrow, $dt->TGLNOPEN);
+					$colNo = 0;
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KODEKANTOR);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_BL);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JUMLAH_KEMASAN);
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NAMA);
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLSPPB);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLKELUAR);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTERIMA);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOAJU);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
 					/*
 					$sheet->setCellValue('K' .$lastrow, $dt->NO_PO);
 					$sheet->setCellValue('L' .$lastrow, $dt->NO_SC);
 					*/
-					$sheet->setCellValue('N' .$lastrow, $dt->JUMLAH_KONTAINER);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JUMLAH_KONTAINER);
 				}
 
 				return $this->exportXls($spreadsheet, "browse");
@@ -992,7 +1079,11 @@ class TransaksiController extends Controller {
 																."no_form, no_po")
 										->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer","=", "h.customer")
 										->whereRaw("USERGUDANG IS NULL");
-
+		$user = auth()->user();
+		if ($user->hasRole('impor_company') || $user->hasRole('company')){
+				$company = $user->hasCompany();
+				$dataSource = $dataSource->where("IMPORTIR", $company->id);
+		}
 		$dataTable = datatables()->of($dataSource);
 		if (isset($request->input('columns')[0]['search']['value'])){
 			$dataTable = $dataTable->filterColumn('id', function($query, $keyword) {
@@ -1210,7 +1301,7 @@ class TransaksiController extends Controller {
 				$id = Transaksi::saveFile($realname, $extension, $type);
 				$file->move(storage_path() ."/uploads", $id."." .$extension);
 				DB::commit();
-				return response()->json(["id" => $id]);
+				return response($id);
 			}
 			catch (Exception $e){
 				DB::rollBack();
@@ -1300,12 +1391,13 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
 			$postKategori = $request->input("kategori");
 			$postCustomer = $request->input("customer");
-            $postImportir = $request->input("importir");
-            $postShipper = $request->input("shipper");
+      $postImportir = $request->input("importir");
+      $postShipper = $request->input("shipper");
 			//$postKategori1 = $request->input("kategori1");
 			//$isikategori1 = $request->input("isikategori1");
 			$postKategori2 = $request->input("kategori2");
@@ -1317,36 +1409,40 @@ class TransaksiController extends Controller {
 				$export = $request->input("export");
 				if ($export == "1"){
 					$spreadsheet = new Spreadsheet();
-                    $sheet = $spreadsheet->getActiveSheet();
-                    $sheet->setCellValue('A1', 'KANTOR');
-                    if ($postKantor && trim($postKantor) != ""){
-                        $sheet->setCellValue('A1', Transaksi::getKantor($postKantor)->URAIAN);
-                    }
-                    else {
-                        $sheet->setCellValue('C1', "Semua");
-                    }
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+          $sheet = $spreadsheet->getActiveSheet();
+          $sheet->setCellValue('A1', 'KANTOR');
+          if ($postKantor && trim($postKantor) != ""){
+              $sheet->setCellValue('A1', Transaksi::getKantor($postKantor)->URAIAN);
+          }
+          else {
+              $sheet->setCellValue('C1', "Semua");
+          }
+					$row = 2;
+					if ($canViewCustomer){
+							$sheet->setCellValue('A2', 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C2', "Semua");
+							}
+							$row += 1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
-                    }
-                    $sheet->setCellValue('A4', 'SHIPPER');
+						$sheet->setCellValue('C' .strval($row), "Semua");
+          }
+          $sheet->setCellValue('A' .strval($row), 'SHIPPER');
 					if ($postShipper && trim($postShipper) != ""){
-						$sheet->setCellValue('C4', Transaksi::getShipper($postShipper)->nama_pemasok);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getShipper($postShipper)->nama_pemasok);
 					}
 					else {
-						$sheet->setCellValue('C4', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-                    $lastrow = 4;
+          $lastrow = $row;
                     /*
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
@@ -1383,28 +1479,32 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('D' .$lastrow, "sampai");
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
-                    $lastrow += 2;
-                    $sheet->setCellValue('A' .$lastrow, 'No');
-                    $sheet->setCellValue('B' .$lastrow, 'Kantor');
-					$sheet->setCellValue('C' .$lastrow, 'Importir');
-                    $sheet->setCellValue('D' .$lastrow, 'Customer');
-                    $sheet->setCellValue('E' .$lastrow, 'Shipper');
-                    $sheet->setCellValue('F' .$lastrow, 'Jns Dok');
-                    $sheet->setCellValue('G' .$lastrow, 'Nopen');
-                    $sheet->setCellValue('H' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('I' .$lastrow, 'No Inv');
-					$sheet->setCellValue('J' .$lastrow, 'Tgl Inv');
-					$sheet->setCellValue('K' .$lastrow, 'Jth Tempo');
-					$sheet->setCellValue('L' .$lastrow, 'Curr');
-					$sheet->setCellValue('M' .$lastrow, 'CIF');
-					$sheet->setCellValue('N' .$lastrow, 'Payment');
-					$sheet->setCellValue('O' .$lastrow, 'Saldo');
-					$sheet->setCellValue('P' .$lastrow, "NO PPU");
-					$sheet->setCellValue('Q' .$lastrow, "MATA UANG");
-					$sheet->setCellValue('R' .$lastrow, "KURS");
-					$sheet->setCellValue('S' .$lastrow, "NOMINAL");
-					$sheet->setCellValue('T' .$lastrow, "RUPIAH");
-					$sheet->setCellValue('U' .$lastrow, "TGL BAYAR");
+          $lastrow += 2;
+					$columns = "ABCDEFGHIJKLMNOPQRSTU";
+					$colNo = 0;
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'No');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kantor');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+          		$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Shipper');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jns Dok');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jth Tempo');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Curr');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'CIF');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Payment');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Saldo');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "NO PPU");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "MATA UANG");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "KURS");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "NOMINAL");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "RUPIAH");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "TGL BAYAR");
 
           $lastrow += 1;
           $no = 0;
@@ -1412,49 +1512,53 @@ class TransaksiController extends Controller {
 						$detail = Transaksi::getDetailBayar($dt->ID);
 						$no += 1;
 						if (count($detail) > 0){
-                            $lastrow += 1;
+              $lastrow += 1;
 							foreach ($detail as $det){
-							    $sheet->setCellValue('A' .$lastrow, $no);
-                  $sheet->setCellValue('B' .$lastrow, $dt->KANTOR);
-      						$sheet->setCellValue('C' .$lastrow, $dt->IMPORTIR);
-                  $sheet->setCellValue('D' .$lastrow, $dt->CUSTOMER);
-                  $sheet->setCellValue('E' .$lastrow, $dt->SHIPPER);
-                  $sheet->setCellValue('F' .$lastrow, $dt->JENISDOKUMEN);
-                  $sheet->setCellValue('G' .$lastrow, $dt->NOPEN);
-                  $sheet->setCellValue('H' .$lastrow, $dt->TGLNOPEN);
-                  $sheet->setCellValue('I' .$lastrow, $dt->NO_INV);
-                  $sheet->setCellValue('J' .$lastrow, $dt->TGLINV);
-	    						$sheet->setCellValue('K' .$lastrow, $dt->TGLJTHTEMPO);
-	    						$sheet->setCellValue('L' .$lastrow, $dt->MATAUANG);
-	    						$sheet->setCellValue('M' .$lastrow, $dt->CIF);
-	    						$sheet->setCellValue('N' .$lastrow, $dt->TOT_PAYMENT);
-	    						$sheet->setCellValue('O' .$lastrow, $dt->SALDO);
-									$sheet->setCellValue('P' .$lastrow, $det->NO_PPU);
-									$sheet->setCellValue('Q' .$lastrow, $det->MATAUANG);
-									$sheet->setCellValue('R' .$lastrow, $det->KURS);
-									$sheet->setCellValue('S' .$lastrow, $det->NOMINAL);
-									$sheet->setCellValue('T' .$lastrow, $det->RUPIAH);
-									$sheet->setCellValue('U' .$lastrow, $det->TGLBAYAR);
+									$colNo = 0;
+							    $sheet->setCellValue($columns[$colNo++] .$lastrow, $no);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KANTOR);
+      						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+									if ($canViewCustomer){
+                  		$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+									}
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->SHIPPER);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JENISDOKUMEN);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+                  $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLINV);
+	    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLJTHTEMPO);
+	    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->MATAUANG);
+	    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CIF);
+	    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TOT_PAYMENT);
+	    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->SALDO);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NO_PPU);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->MATAUANG);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->KURS);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NOMINAL);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->RUPIAH);
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->TGLBAYAR);
 									$lastrow += 1;
 							}
 							$lastrow += 1;
 						}
 						else {
-					    $sheet->setCellValue('A' .$lastrow, $no);
-              $sheet->setCellValue('B' .$lastrow, $dt->KANTOR);
-  						$sheet->setCellValue('C' .$lastrow, $dt->IMPORTIR);
-              $sheet->setCellValue('D' .$lastrow, $dt->CUSTOMER);
-              $sheet->setCellValue('E' .$lastrow, $dt->SHIPPER);
-              $sheet->setCellValue('F' .$lastrow, $dt->JENISDOKUMEN);
-              $sheet->setCellValue('G' .$lastrow, $dt->NOPEN);
-              $sheet->setCellValue('H' .$lastrow, $dt->TGLNOPEN);
-              $sheet->setCellValue('I' .$lastrow, $dt->NO_INV);
-              $sheet->setCellValue('J' .$lastrow, $dt->TGLINV);
-  						$sheet->setCellValue('K' .$lastrow, $dt->TGLJTHTEMPO);
-  						$sheet->setCellValue('L' .$lastrow, $dt->MATAUANG);
-  						$sheet->setCellValue('M' .$lastrow, $dt->CIF);
-  						$sheet->setCellValue('N' .$lastrow, $dt->TOT_PAYMENT);
-  						$sheet->setCellValue('O' .$lastrow, $dt->SALDO);
+							$colNo = 0;
+					    $sheet->setCellValue($columns[$colNo++] .$lastrow, $no);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KANTOR);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->SHIPPER);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JENISDOKUMEN);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+              $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLINV);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLJTHTEMPO);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->MATAUANG);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CIF);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TOT_PAYMENT);
+  						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->SALDO);
   						$lastrow += 1;
 						}
 					}
@@ -1488,10 +1592,24 @@ class TransaksiController extends Controller {
 	}
 	public function userbarang(Request $request)
   {
-		if(!auth()->user()->can('barang.transaksi')){
+		if(!auth()->user()->can('barang.browse')){
 			abort(403, 'User does not have the right roles.');
 		}
 		$id = $request->id;
+		if (trim($id) == ""){
+				abort(404,'Data tidak ada');
+		}
+
+		$dtTransaksi = Array();
+		if ($id != ""){
+			$dtTransaksi = Transaksi::getTransaksiBarang($id);
+			if (!$dtTransaksi){
+					abort(404, 'Data tidak ada');
+			}
+			$dtFiles = Transaksi::getFiles($dtTransaksi["header"]->ID, 1);
+		}
+		Transaksi::where("ID", $id)
+				     ->update(["TOTAL" => DB::raw("BM + BMT + PPN + PPH")]);
 		$breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("link" => "/transaksi/perekamanbarang", "text" => "Perekaman Barang");
 		$breadcrumb[] = Array("text" => "Transaksi Perekaman Barang");
@@ -1503,13 +1621,6 @@ class TransaksiController extends Controller {
 		$dtImportir = Transaksi::getImportir();
 		$dtMataUang = Transaksi::getMataUang();
 		$dtJenisFile = Transaksi::getJenisFile();
-		Transaksi::where("ID", $id)
-				  ->update(["TOTAL" => DB::raw("BM + BMT + PPN + PPH")]);
-		$dtTransaksi = Array();
-		if ($id != ""){
-			$dtTransaksi = Transaksi::getTransaksiBarang($id);
-			$dtFiles = Transaksi::getFiles($dtTransaksi["header"]->ID, 1);
-		}
 		$dtProduk = Produk::get();
 		$dtSatuan = Transaksi::getSatuan();
 		$data = [
@@ -1520,6 +1631,7 @@ class TransaksiController extends Controller {
 				"files" => isset($dtFiles) ? $dtFiles : "{}", "datasatuan" => $dtSatuan,
 				"jenisfile" => $dtJenisFile,
 				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
+				"readonly" => auth()->user()->cannot('barang.transaksi') ? "readonly" : ""
 			];
 		return view("transaksi.transaksibarang", $data);
 	}
@@ -1587,6 +1699,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
 			$postCustomer = $request->input("customer");
@@ -1611,21 +1724,25 @@ class TransaksiController extends Controller {
 					else {
 					    $sheet->setCellValue('C1', "Semua");
 					}
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+					$row = 2;
+					if ($canViewCustomer){
+							$sheet->setCellValue('A' .strval($row), 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C' .strval($row), Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C' .strval($row), "Semua");
+							}
+							$row +=1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-					$lastrow = 3;
+					$lastrow = $row;
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -1639,46 +1756,54 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'No');
-					$sheet->setCellValue('B' .$lastrow, 'Importir');
-					$sheet->setCellValue('C' .$lastrow, 'Customer');
-					$sheet->setCellValue('D' .$lastrow, 'Tgl Tiba');
-					$sheet->setCellValue('E' .$lastrow, 'No Aju');
-					$sheet->setCellValue('F' .$lastrow, 'Tgl Aju');
-					$sheet->setCellValue('G' .$lastrow, 'Nopen');
-					$sheet->setCellValue('H' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('I' .$lastrow, 'No BL');
-					$sheet->setCellValue('J' .$lastrow, 'Tgl BL');
-					$sheet->setCellValue('K' .$lastrow, 'No Inv');
-					$sheet->setCellValue('L' .$lastrow, 'Tgl Inv');
-					$sheet->setCellValue('M' .$lastrow, 'Jml Kmsn');
-					$sheet->setCellValue('N' .$lastrow, 'Tgl SPPB');
-					$sheet->setCellValue('O' .$lastrow, 'Tgl Keluar');
-					$sheet->setCellValue('P' .$lastrow, 'Tgl Terima');
-					$sheet->setCellValue('Q' .$lastrow, 'Jalur');
-					$sheet->setCellValue('R' .$lastrow, 'Faktur');
-					$sheet->setCellValue('S' .$lastrow, 'No. Form');
-					$sheet->setCellValue('T' .$lastrow, 'Tgl Form');
-					$sheet->setCellValue('U' .$lastrow, 'No LS');
-					$sheet->setCellValue('V' .$lastrow, 'Tgl LS');
-          $sheet->setCellValue('W' .$lastrow, 'Jns Dokumen');
-          $sheet->setCellValue('X' .$lastrow, 'Valuta');
-          $sheet->setCellValue('Y' .$lastrow, 'NDPBM');
-          $sheet->setCellValue('Z' .$lastrow, 'Nilai');
-          $sheet->setCellValue('AA' .$lastrow, 'BM');
-          $sheet->setCellValue('AB' .$lastrow, 'BMT');
-          $sheet->setCellValue('AC' .$lastrow, 'PPn');
-          $sheet->setCellValue('AD' .$lastrow, 'PPh');
-          $sheet->setCellValue('AE' .$lastrow, 'Total');
-          $sheet->setCellValue('AF' .$lastrow, 'PPh Bebas');
-          $sheet->setCellValue('AG' .$lastrow, 'Kode Barang');
-					$sheet->setCellValue('AH' .$lastrow, 'Uraian');
-			    $sheet->setCellValue('AI' .$lastrow, 'Jml Kemasan');
-			    $sheet->setCellValue('AK' .$lastrow, 'Jml Sat Harga');
-			    $sheet->setCellValue('AM' .$lastrow, 'CIF');
-			    $sheet->setCellValue('AN' .$lastrow, 'Harga');
-			    $sheet->setCellValue('AO' .$lastrow, 'No. SPTNP');
-			    $sheet->setCellValue('AP' .$lastrow, 'Tgl SPTNP');
+					$columns = Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
+													 'Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE',
+													 'AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO', 'AP');
+					$colNo = 0;
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Aju');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Aju');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No BL');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl BL');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kmsn');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl SPPB');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Keluar');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Terima');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jalur');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Faktur');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. Form');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Form');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No LS');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl LS');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jns Dokumen');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Valuta');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'NDPBM');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nilai');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'BM');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'BMT');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'PPn');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'PPh');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Total');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'PPh Bebas');
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kode Barang');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Uraian');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kemasan');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, '');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Sat Harga');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, '');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'CIF');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Harga');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'No. SPTNP');
+			    $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl SPTNP');
 
 					$rowIndex = 0;
 					$rowId = 0;
@@ -1689,59 +1814,62 @@ class TransaksiController extends Controller {
 						    $lastrow += 1;
 						}
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $rowIndex);
-						$sheet->setCellValue('B' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('C' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('D' .$lastrow, $dt->TGLTIBA);
-						$sheet->setCellValue('E' .$lastrow, $dt->NOAJU);
-						$sheet->setCellValue('F' .$lastrow, $dt->TGLAJU);
-						$sheet->setCellValue('G' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('H' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('I' .$lastrow, $dt->NO_BL);
-						$sheet->setCellValue('J' .$lastrow, $dt->TGLBL);
-						$sheet->setCellValue('K' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('L' .$lastrow, $dt->TGLINV);
-						$sheet->setCellValue('M' .$lastrow, $dt->JUMLAH_KEMASAN);
-						$sheet->setCellValue('N' .$lastrow, $dt->TGLSPPB);
-						$sheet->setCellValue('O' .$lastrow, $dt->TGLKELUAR);
-						$sheet->setCellValue('P' .$lastrow, $dt->TGLTERIMA);
-						$sheet->setCellValue('Q' .$lastrow, $dt->JALURDOK);
-  					$sheet->setCellValue('R' .$lastrow, $dt->PENGIRIM);
-  					$sheet->setCellValue('S' .$lastrow, $dt->NO_FORM);
-  					$sheet->setCellValue('T' .$lastrow, $dt->TGLFORM);
-  					$sheet->setCellValue('U' .$lastrow, $dt->NO_LS);
-  					$sheet->setCellValue('V' .$lastrow, $dt->TGLLS);
-            $sheet->setCellValue('W' .$lastrow, $dt->JENISDOKUMEN);
-            $sheet->setCellValue('X' .$lastrow, $dt->MATAUANG);
-            $sheet->setCellValue('Y' .$lastrow, $dt->NDPBM);
-            $sheet->setCellValue('Z' .$lastrow, $dt->NILAI);
-            $sheet->getStyle('Z' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->setCellValue('AA' .$lastrow, $dt->BM);
-            $sheet->getStyle('AA' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->setCellValue('AB' .$lastrow, $dt->BMT);
-            $sheet->getStyle('AB' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->setCellValue('AC' .$lastrow, $dt->PPN);
-            $sheet->getStyle('AC' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->setCellValue('AD' .$lastrow, $dt->PPH);
-            $sheet->getStyle('AD' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->setCellValue('AE' .$lastrow, $dt->TOTAL);
-						$sheet->getStyle('AE' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-						$sheet->setCellValue('AF' .$lastrow, $dt->PPH_BEBAS);
-						$sheet->getStyle('AF' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-						$sheet->setCellValue('AG' .$lastrow, $dt->KODEBARANG);
-						$sheet->setCellValue('AH' .$lastrow, $dt->URAIAN);
-						$sheet->setCellValue('AI' .$lastrow, $dt->JMLKEMASAN);
-						$sheet->getStyle('AH' .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
-						$sheet->setCellValue('AJ' .$lastrow, $dt->SATUANKEMASAN);
-						$sheet->setCellValue('AK' .$lastrow, $dt->JMLSATHARGA);
-						$sheet->getStyle('AJ' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-						$sheet->setCellValue('AL' .$lastrow, $dt->satuan);
-						$sheet->setCellValue('AM' .$lastrow, $dt->CIF);
-						$sheet->getStyle('AL' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.000');
-						$sheet->setCellValue('AN' .$lastrow, $dt->HARGA);
-						$sheet->getStyle('AM' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.000');
-						$sheet->setCellValue('AO' .$lastrow, $dt->NOSPTNP);
-						$sheet->setCellValue('AP' .$lastrow, $dt->TGLSPTNP);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $rowIndex);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+						if ($canViewCustomer){
+								$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+						}
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOAJU);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLAJU);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_BL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLBL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLINV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLSPPB);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLKELUAR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTERIMA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JALURDOK);
+  					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->PENGIRIM);
+  					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_FORM);
+  					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLFORM);
+  					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_LS);
+  					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLLS);
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JENISDOKUMEN);
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->MATAUANG);
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NDPBM);
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NILAI);
+            $sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->BM);
+            $sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->BMT);
+            $sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->PPN);
+            $sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->PPH);
+            $sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TOTAL);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->PPH_BEBAS);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KODEBARANG);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->URAIAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JMLKEMASAN);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->SATUANKEMASAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JMLSATHARGA);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->satuan);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CIF);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0.000');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->HARGA);
+						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0.000');
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOSPTNP);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLSPTNP);
 
 					}
 					return $this->exportXls($spreadsheet, "browse_barang");
@@ -1777,6 +1905,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postKantor = $request->input("kantor");
 			$postCustomer = $request->input("customer");
@@ -1804,21 +1933,25 @@ class TransaksiController extends Controller {
 					else {
 					    $sheet->setCellValue('C1', "Semua");
 					}
-					$sheet->setCellValue('A2', 'CUSTOMER');
-					if ($postCustomer && trim($postCustomer) != ""){
-						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+					$row = 2;
+					if ($canViewCustomer){
+							$sheet->setCellValue('A2', 'CUSTOMER');
+							if ($postCustomer && trim($postCustomer) != ""){
+								$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
+							}
+							else {
+								$sheet->setCellValue('C2', "Semua");
+							}
+							$row += 1;
 					}
-					else {
-						$sheet->setCellValue('C2', "Semua");
-					}
-					$sheet->setCellValue('A3', 'IMPORTIR');
+					$sheet->setCellValue('A' .strval($row), 'IMPORTIR');
 					if ($postImportir && trim($postImportir) != ""){
-						$sheet->setCellValue('C3', Transaksi::getImportir($postImportir)->NAMA);
+						$sheet->setCellValue('C' .strval($row), Transaksi::getImportir($postImportir)->NAMA);
 					}
 					else {
-						$sheet->setCellValue('C3', "Semua");
+						$sheet->setCellValue('C' .strval($row), "Semua");
 					}
-					$lastrow = 3;
+					$lastrow = $row;
 					if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
@@ -1840,33 +1973,38 @@ class TransaksiController extends Controller {
 					}
 
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'Importir');
-					$sheet->setCellValue('B' .$lastrow, 'Customer');
-					$sheet->setCellValue('C' .$lastrow, 'Tgl Tiba');
-					$sheet->setCellValue('D' .$lastrow, 'Nopen');
-					$sheet->setCellValue('E' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('F' .$lastrow, 'No BL');
-					$sheet->setCellValue('G' .$lastrow, 'No Inv');
-					$sheet->setCellValue('H' .$lastrow, 'Jml Kmsn');
-					$sheet->setCellValue('I' .$lastrow, 'Tgl SPPB');
-					$sheet->setCellValue('J' .$lastrow, 'Tgl Keluar');
-					$sheet->setCellValue('K' .$lastrow, 'Tgl Konversi');
-					$sheet->setCellValue('L' .$lastrow, 'Jalur');
+					$colNo = 0;
+					$columns = "ABCDEFGHIJKL";
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Customer');
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No BL');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No Inv');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jml Kmsn');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl SPPB');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Keluar');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Konversi');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Jalur');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
-						$sheet->setCellValue('B' .$lastrow, $dt->CUSTOMER);
-						$sheet->setCellValue('C' .$lastrow, $dt->TGLTIBA);
-						$sheet->setCellValue('D' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('E' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('F' .$lastrow, $dt->NO_BL);
-						$sheet->setCellValue('G' .$lastrow, $dt->NO_INV);
-						$sheet->setCellValue('H' .$lastrow, $dt->JUMLAH_KEMASAN);
-						$sheet->setCellValue('I' .$lastrow, $dt->TGLSPPB);
-						$sheet->setCellValue('J' .$lastrow, $dt->TGLKELUAR);
-						$sheet->setCellValue('K' .$lastrow, $dt->TGLKONVERSI);
-						$sheet->setCellValue('L' .$lastrow, $dt->JALURDOK);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->IMPORTIR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->CUSTOMER);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_BL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NO_INV);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLSPPB);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLKELUAR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLKONVERSI);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->JALURDOK);
 					}
 					return $this->exportXls($spreadsheet, "konversi");
 				}
@@ -2367,6 +2505,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postImportir = $request->input("importir");
 			$postKategori1 = $request->input("kategori1");
@@ -2400,13 +2539,17 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('F' .$lastrow, 'Stok Akhir');
 					$sheet->setCellValue('G' .$lastrow, "Satuan");
 					$sheet->setCellValue('H' .$lastrow, "Consignee");
-					$sheet->setCellValue('I' .$lastrow, "Customer");
-					$sheet->setCellValue('J' .$lastrow, "No. VO");
-					$sheet->setCellValue('K' .$lastrow, "No Inv");
-					$sheet->setCellValue('L' .$lastrow, "No BL");
-          $sheet->setCellValue('M' .$lastrow, "Booking");
-          $sheet->setCellValue('N' .$lastrow, "Realisasi");
-          $sheet->setCellValue('O' .$lastrow, "Satuan");
+					$colNo = 8;
+					$columns = "ABCDEFGHIJKLMNO";
+					if ($canViewCustomer){
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, "Customer");
+					}
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No. VO");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No Inv");
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No BL");
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Booking");
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Realisasi");
+          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Satuan");
           $no = 0;
 					foreach ($data as $dt){
 						$detail = Transaksi::detailSaldoQuota($dt->ID, $dt->KODE_HS);
@@ -2425,15 +2568,18 @@ class TransaksiController extends Controller {
     						$sheet->getStyle('F' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
     						$sheet->setCellValue('G' .$lastrow, $dt->SATUAN);
     						$sheet->setCellValue('H' .$lastrow, $det->NAMACONSIGNEE);
-    						$sheet->setCellValue('I' .$lastrow, $det->NAMACUSTOMER);
-    						$sheet->setCellValue('J' .$lastrow, $det->NO_VO);
-    						$sheet->setCellValue('K' .$lastrow, $det->NO_INV);
-    						$sheet->setCellValue('L' .$lastrow, $det->NO_BL);
-    						$sheet->setCellValue('M' .$lastrow, $det->BOOKING);
-    						$sheet->getStyle('M' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-    						$sheet->setCellValue('N' .$lastrow, $det->REALISASI);
-    						$sheet->getStyle('N' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-    						$sheet->setCellValue('O' .$lastrow, $det->NAMASATUAN);
+								$colNo = 8;
+								if ($canViewCustomer){
+    								$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NAMACUSTOMER);
+								}
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NO_VO);
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NO_INV);
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NO_BL);
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->BOOKING);
+    						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->REALISASI);
+    						$sheet->getStyle($columns[$colNo] .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
+    						$sheet->setCellValue($columns[$colNo++] .$lastrow, $det->NAMASATUAN);
   						}
 						}
 						else {
@@ -2759,6 +2905,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$filter = $request->input("filter");
+		$canViewCustomer = auth()->user()->can('customer.view');
 		if ($filter && $filter == "1"){
 			$postSupplier = $request->input("supplier");
 			$postImportir = $request->input("importir");
@@ -2804,31 +2951,38 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai1 == "" ? "-" : Date("d M Y", strtotime($sampai1)));
 					}
 					$lastrow += 1;
-					$sheet->setCellValue('A' .$lastrow, 'Kantor');
-					$sheet->setCellValue('B' .$lastrow, 'Supplier');
-					$sheet->setCellValue('C' .$lastrow, 'Importir');
-					$sheet->setCellValue('D' .$lastrow, 'Customer');
-				  $sheet->setCellValue('E' .$lastrow, 'Tgl BL');
-				  $sheet->setCellValue('F' .$lastrow, 'Nopen');
-					$sheet->setCellValue('G' .$lastrow, 'Tgl Nopen');
-					$sheet->setCellValue('H' .$lastrow, 'Kode Brg');
-					$sheet->setCellValue('I' .$lastrow, 'Uraian');
-					$sheet->setCellValue('J' .$lastrow, 'Harga');
-					$sheet->setCellValue('K' .$lastrow, 'No SPTNP');
+					$columns = "ABCDEFGHIJK";
+					$colNo = 0;
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kantor');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Supplier');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Importir');
+					if ($canViewCustomer){
+							$sheet->setCellValue('D' .$lastrow, 'Customer');
+					}
+				  $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl BL');
+				  $sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Kode Brg');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Uraian');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Harga');
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No SPTNP');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->KODEKANTOR);
-						$sheet->setCellValue('B' .$lastrow, $dt->NAMASUPPLIER);
-						$sheet->setCellValue('C' .$lastrow, $dt->NAMAIMPORTIR);
-						$sheet->setCellValue('D' .$lastrow, $dt->NAMACUSTOMER);
-						$sheet->setCellValue('E' .$lastrow, $dt->TGLBL);
-						$sheet->setCellValue('F' .$lastrow, $dt->NOPEN);
-						$sheet->setCellValue('G' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('H' .$lastrow, $dt->KODEBARANG);
-						$sheet->setCellValue('I' .$lastrow, $dt->URAIAN);
-						$sheet->setCellValue('J' .$lastrow, $dt->HARGA);
-						$sheet->setCellValue('K' .$lastrow, $dt->NOSPTNP);
+						$colNo = 0;
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KODEKANTOR);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NAMASUPPLIER);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NAMAIMPORTIR);
+						if ($canViewCustomer){
+								$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NAMACUSTOMER);
+						}
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLBL);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->KODEBARANG);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->URAIAN);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->HARGA);
+						$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOSPTNP);
 					}
 
 					$writer = new Xlsx($spreadsheet);

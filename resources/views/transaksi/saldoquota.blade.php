@@ -98,7 +98,7 @@
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
 
-        var columns = [{target: 0, data: null}, {target: 1, data: "NAMAIMPORTIR"}, {target: 2, data: "KODE_HS"},
+        var columns = [{target: 0, data: null @cannot('quota.edit') , visible: false @endcannot}, {target: 1, data: "NAMAIMPORTIR"}, {target: 2, data: "KODE_HS"},
             {target: 3, data: "AWAL"}, {target: 4, data: "TERPAKAI"},
             {target: 5, data: "AKHIR"}, {target: 6, data: "SATUAN"}
         ];
@@ -122,7 +122,9 @@
             rowCallback: function(row, data)
             {
                 $(row).attr("id-transaksi", data[0]);
+                @can('quota.edit')
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                @endcan
                 $('td:eq(3)', row).html(parseFloat(data.AWAL).formatMoney(2,"",",","."));
                 $('td:eq(4)', row).html(parseFloat(data.TERPAKAI).formatMoney(2,"",",","."));
                 $('td:eq(5)', row).html(parseFloat(data.AKHIR).formatMoney(2,"",",","."));

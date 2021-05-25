@@ -29,8 +29,18 @@ class Sptnp extends Model
                                       ."TGL_BRT, HSL_BRT, NO_KEPBRT, TGL_KEPBRT, TGL_JTHTEMPO_BDG,"
                                       ."NO_BDG, TGL_BDG, MAJELIS, SDG01, SDG02, SDG03,"
                                       ."SDG04, SDG05, SDG06, SDG07, HASIL_BDG, NO_KEP_BDG, TGL_KEP_BDG")
-                    ->where("ID", $id)
-                    ->first();
+                    ->where("ID", $id);
+        $user = auth()->user();
+    		if ($user->hasRole('impor_company') || $user->hasRole('company')){
+    				$company = $user->hasCompany();
+    				$data = $data->where("IMPORTIR", $company->id);
+    		}
+        if ($data->exists()){
+            $data = $data->first();
+        }
+        else {
+            return false;
+        }
         $data->TGL_NOPEN = $data->TGL_NOPEN == "" ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));
         $data->TGL_LUNAS = $data->TGL_LUNAS == "" ? "" : Date("d-m-Y", strtotime($data->TGL_LUNAS));
         $data->TGL_SPTNP = $data->TGL_SPTNP == "" ? "" : Date("d-m-Y", strtotime($data->TGL_SPTNP));
@@ -146,7 +156,7 @@ class Sptnp extends Model
             $where .= (trim($where) != "" ? " AND " : "") ."IMPORTIR = '" .$importir ."'";
         }
         if (trim($kantor) != ""){
-            $where .= (trim($where) != "" ? " AND " : "") ."KANTOR_ID = '" .$kantor ."'";
+            $where .= (trim($where) != "" ? " AND " : "") ."k.KANTOR_ID = '" .$kantor ."'";
         }
         $data = DB::table(DB::raw("sptnp h"))
                     ->selectRaw("ID, k.KODE AS KODEKANTOR, NO_SPTNP, NOPEN, NOAJU, DENDA_TB, "

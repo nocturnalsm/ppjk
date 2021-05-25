@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use DB;
 
 class Gudang extends Model
 {
@@ -42,8 +43,8 @@ class Gudang extends Model
   	public static function drop($id)
   	{
   		$checkStat = DB::table("kontainer_masuk")
-                     ->select("ID")->firstWhere("GUDANG_ID", $id);
-  		if ($checkStat){
+                     ->select("ID")->where("GUDANG_ID", $id);
+  		if ($checkStat->exists()){
   			throw new \Exception("Jenis Barang tidak dapat dihapus karena sudah dipakai di transaksi");
   		}
   		else {

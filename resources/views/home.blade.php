@@ -80,6 +80,12 @@
                     @can('gudang.bongkar')
                     <a class="list-group-item list-group-item-action" href="./gudang/perekamanbongkar">Perekaman Bongkar</a>
                     @endcan
+                    @can('gudang.pengeluaran')
+                    <a class="list-group-item list-group-item-action" href="./gudang/pengeluaran">Perekaman Pengeluaran</a>
+                    @endcan
+                    @can('gudang.konversistok')
+                    <a class="list-group-item list-group-item-action" href="./gudang/konversistok">Konversi Stok</a>
+                    @endcan
                 </ul>
             </div>
         </div>
@@ -136,6 +142,15 @@
                     @endcan
                     @can('master.pembeli.browse')
                     <a class="list-group-item list-group-item-action" href="./master/pembeli">Referensi Pembeli</a>
+                    @endcan
+                    @can('master.gudang.browse')
+                    <a class="list-group-item list-group-item-action" href="./master/gudang">Referensi Gudang</a>
+                    @endcan
+                    @can('master.jenistruk.browse')
+                    <a class="list-group-item list-group-item-action" href="./master/jenistruk">Referensi Jenis Truk</a>
+                    @endcan
+                    @can('master.ekspedisi.browse')
+                    <a class="list-group-item list-group-item-action" href="./master/ekspedisi">Referensi Ekspedisi</a>
                     @endcan
                 </ul>
             </div>

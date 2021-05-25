@@ -4,36 +4,30 @@
     <input type="hidden" id="input-id" name="input-id">
     <input type="hidden" id="input-action" name="input-action">
     <div class="mb-1">
-        <label for="input-npwp">NPWP</label>
-        <input type="text" id="input-npwp" name="input-npwp" class="form-control validate">
-    </div>
-    <div class="mb-1">
         <label for="input-nama">Nama</label>
         <input type="text" id="input-nama" name="input-nama" class="form-control validate">
     </div>
     <div class="mb-1">
+        <label for="input-link">Kode</label>
+        <input type="text" id="input-kode" name="input-kode" class="form-control validate">
+    </div>
+    <div class="mb-1">
         <label for="input-alamat">Alamat</label>
-        <textarea id="input-alamat" name="input-alamat" class="form-control validate" rows="5"></textarea>                        
+        <textarea id="input-alamat" name="input-alamat" class="form-control validate" rows="5"></textarea>
     </div>
     <div class="mb-1">
         <label for="input-telepon">Telepon</label>
         <input type="text" id="input-telepon" name="input-telepon" class="form-control validate">
     </div>
-    <div class="mb-1">
-        <label for="input-email">Email</label>
-        <input type="email" id="input-email" name="input-email" class="form-control validate">
-    </div>
 </form>
 @endpush
 @push('scripts_end')
-    <script src="{{ asset('js/jquery.inputmask.bundle.js') }}" type="text/javascript"></script>
     <script>
         $(function(){
             var table = $("#grid").DataTable({
             "processing": false,
             "serverSide": true,
-            "ajax": "/master/getdata_importir",
-            "paging": false,
+            "ajax": "/master/getdata_ekspedisi",
             dom: 'Bfrtip',        // element order: NEEDS BUTTON CONTAINER (B) ****
             select: 'single',     // enable single row selection
             responsive: true,     // enable responsiveness,
@@ -54,34 +48,30 @@
             columns: [
                 {
                     "target": 0,
-                    "data": "npwp"
+                    "data": "KODE"
                 }, {
                     "target": 1,
-                    "data": "nama"
+                    "data": "NAMA"
                 }, {
                     "target": 2,
-                    "data": "alamat"
+                    "data": "ALAMAT"
                 }, {
                     "target": 3,
-                    "data": "telepon"
-                }, {
-                    "target": 1,
-                    "data": "email"
+                    "data": "TELEPON"
                 }],
             rowCallback: function(row, data)
             {
-                $(row).attr("row-id", data.importir_id);
+                $(row).attr("row-id", data.EKSPEDISI_ID);
             },
             buttons: [{
             text: 'Tambah',
             name: 'add',        // DO NOT change name,
             action: function () {
                 $("#modalform .modal-title").html("Tambah Data");
-                $("#input-npwp").val("");
                 $("#input-nama").val("");
                 $("#input-alamat").val("");
                 $("#input-telepon").val("");
-                $("#input-email").val("");
+                $("#input-kode").val("");
                 $("#input-action").val("add");
                 $("#modalform").modal("show");
                 $("#modalform input").eq(0).focus();
@@ -94,13 +84,12 @@
             action: function (e, dt) {
                 var row = dt.rows( { selected: true } ).data();
                 $("#modalform .modal-title").html("Edit Data");
-                $("#input-npwp").val(row[0].npwp);
-                $("#input-nama").val(row[0].nama);
-                $("#input-alamat").val(row[0].alamat);
-                $("#input-telepon").val(row[0].telepon);
-                $("#input-email").val(row[0].email);
+                $("#input-nama").val(row[0].NAMA);
+                $("#input-alamat").val(row[0].ALAMAT);
+                $("#input-telepon").val(row[0].TELEPON);
+                $("#input-kode").val(row[0].KODE);
                 $("#input-action").val("edit");
-                $("#input-id").val(row[0].importir_id);
+                $("#input-id").val(row[0].EKSPEDISI_ID);
                 $("#modalform").modal("show");
             }
             },
@@ -116,7 +105,7 @@
                     var row = dt.rows( { selected: true } ).data();
                     $.ajax({
                         url: "/master/crud",
-                        data: {_token: "{{ csrf_token() }}", action: "importir", input: $.param({"input-action": "delete", "id": row[0].importir_id})},
+                        data: {_token: "{{ csrf_token() }}", action: "ekspedisi", input: $.param({"input-action": "delete", "id": row[0].EKSPEDISI_ID})},
                         type: "POST",
                         success: function(msg) {
                             $("#modal .btn-ok").addClass("d-none");
@@ -141,14 +130,14 @@
         }]
         })
         $('#modalform').on('shown.bs.modal', function () {
-            $('#input-npwp').focus();
+            $('#input-nama').focus();
         })
         $("#saveform").on("click", function(){
             $(this).addClass("disabled");
             $(".loader").show()
             $.ajax({
                 url: "/master/crud",
-                data: {_token: "{{ csrf_token() }}", action: "importir", input: $("#form").serialize()},
+                data: {_token: "{{ csrf_token() }}", action: "ekspedisi", input: $("#form").serialize()},
                 type: "POST",
                 success: function(msg) {
                     if (typeof msg.error != 'undefined'){
@@ -163,12 +152,11 @@
                             $("#modalform").modal("hide");
                         }
                         else {
-                            $("#input-npwp").val("");
                             $("#input-nama").val("");
                             $("#input-alamat").val("");
                             $("#input-telepon").val("");
-                            $("#input-email").val("");
-                            $("#input-npwp").focus();
+                            $("#input-kode").val("");
+                            $("#input-nama").focus();
                         }
                         table.ajax.reload();
                         $("#modal .modal-body").html("Data tersimpan");
@@ -184,7 +172,6 @@
                 }
             });
         });
-        $("#input-npwp").inputmask("99.999.999.9-999.999");
     })
     </script>
 @endpush

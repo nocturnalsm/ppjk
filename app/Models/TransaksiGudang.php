@@ -50,7 +50,11 @@ class TransaksiGudang extends Model
         }
         else {
             $header = TransaksiGudang::select("tbl_penarikan_header.*")
-                            ->where("ID", $id)->first();
+                            ->where("ID", $id);
+            if (!$header->exists()){
+                return false;
+            }
+            $header = $header->first();
         }
         if ($includeKontainer){
             $kontainer = DB::table("tbl_penarikan_kontainer")
@@ -362,14 +366,16 @@ class TransaksiGudang extends Model
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, NOAJU, NOPEN,"
                             ."i.nama AS IMPORTIR, "
-                            ."g.KODE AS NAMAGUDANG,"
+                            ."(SELECT g.KODE FROM kontainer_masuk km "
+                            ."INNER JOIN tbl_penarikan_kontainer k ON km.NO_KONTAINER = k.ID "
+                            ."INNER JOIN ref_gudang g ON g.GUDANG_ID = km.GUDANG_ID "
+                            ."WHERE k.ID_HEADER = h.ID LIMIT 1) AS NAMAGUDANG,"
                             ."DATE_FORMAT(TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,"
                             ."IF(HASIL_BONGKAR = 'S', 'Sesuai', IF(HASIL_BONGKAR = 'K', 'Kurang',"
                             ."IF(HASIL_BONGKAR = 'L', 'Lebih',''))) AS HASILBONGKAR,"
                             ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
                     ->join(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "h.ID", "=", "b.ID_HEADER")
-                    ->leftJoin(DB::raw("ref_gudang g"), "b.GUDANG_ID", "=", "g.GUDANG_ID")
                     ->whereExists(function ($query) {
                        $query->select(DB::raw(1))
                              ->from(DB::raw('tbl_penarikan_kontainer k'))
@@ -567,7 +573,7 @@ class TransaksiGudang extends Model
 
 		    return $data->get();
     }
-    public static function savePengeluaran($id, $data)
+    public static function saveTransaksiPengeluaran($header, $detail)
     {
         DB::table("tbl_pengeluaran")->where("ID_HEADER", $id)->delete();
         $arrDetail = Array();
@@ -739,7 +745,12 @@ class TransaksiGudang extends Model
     {
           $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, i.NAMA AS NAMAIMPORTIR, h.NOAJU, NOPEN, TGL_NOPEN, "
-                               ."TGL_BONGKAR, b.ID AS IDBONGKAR, b.GUDANG_ID, b.CATATAN, b.HASIL_BONGKAR")
+                               ."TGL_BONGKAR, b.ID AS IDBONGKAR, b.CATATAN, b.HASIL_BONGKAR, "
+                               ."(SELECT g.KODE FROM kontainer_masuk km "
+                               ."INNER JOIN tbl_penarikan_kontainer k ON km.NO_KONTAINER = k.ID "
+                               ."INNER JOIN ref_gudang g ON g.GUDANG_ID = km.GUDANG_ID "
+                               ."WHERE k.ID_HEADER = h.ID) AS NAMAGUDANG"
+                               )
                     ->join(DB::raw("importir i"), "i.IMPORTIR_ID","=","h.IMPORTIR")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "b.ID_HEADER","=","h.ID")
                     ->where("h.ID", $id)
@@ -765,29 +776,28 @@ class TransaksiGudang extends Model
               $data->detail = $detail->get();
               return $data;
           }
+          else {
+              return false;
+          }
     }
-    public static function saveTransaksiBongkar($input)
+    public static function saveTransaksiBongkar($header, $files)
     {
-          if (isset($input["idtransaksi"]) && $input['type'] == 'bongkar'){
-              $anyDetail = false;
-              $item = 0;
-
+          if (isset($header["idtransaksi"])){
               DB::table("tbl_header_bongkar")
                 ->updateOrInsert(
-                    ["ID_HEADER" => $input["idtransaksi"]],
-                    ["TGL_BONGKAR" => Date("Y-m-d", strtotime($input["tglbongkar"])),
-                     "GUDANG_ID" => $input["gudang"],
-                     "HASIL_BONGKAR"  => $input["hasilbongkar"],
-                     "CATATAN" => $input["catatan"]
+                    ["ID_HEADER" => $header["idtransaksi"]],
+                    ["TGL_BONGKAR" => Date("Y-m-d", strtotime($header["tglbongkar"])),
+                     "HASIL_BONGKAR"  => trim($header["hasilbongkar"]),
+                     "CATATAN" => trim($header["catatan"])
                     ]
                   );
               $idHeader = DB::table("tbl_header_bongkar")
-                      ->where("ID_HEADER", $input["idtransaksi"])
+                      ->where("ID_HEADER", $header["idtransaksi"])
                       ->value("ID");
               $item = 0;
-              foreach($input["kodebarang"] as $barang){
-                  $kmsbkr = trim($input["kmsbkr"][$item]);
-                  $satbkr = trim($input['satbkr'][$item]);
+              foreach($header["kodebarang"] as $barang){
+                  $kmsbkr = trim($header["kmsbkr"][$item]);
+                  $satbkr = trim($header['satbkr'][$item]);
                   DB::table("tbl_detail_bongkar")
                      ->updateOrInsert(
                         ["KODEBARANG" => $barang, "ID_HEADER" => $idHeader],
@@ -797,17 +807,239 @@ class TransaksiGudang extends Model
                      );
                   $item++;
               }
+              $oldFiles = Array();
+              if (!is_array($files)){
+                  $fileIds = Array();
+              }
+              else {
+                  $fileIds = array_map(function($elem){
+                      return $elem["id"];
+                  }, $files);
+              }
+              $dtFiles = DB::table("tbl_files")
+                            ->selectRaw("GROUP_CONCAT(ID) AS STR")
+                            ->where("ID_HEADER", $idHeader);
+              if ($dtFiles->count() > 0){
+                  $oldFiles = explode(",",$dtFiles->first()->STR);
+              }
+              $diff = array_diff($fileIds, $oldFiles);
+              if (count($diff) > 0){
+                  $strFile = "('" .implode("','", $diff) ."')";
+                  DB::table("tbl_files")
+                      ->whereRaw("ID IN " .$strFile)
+                      ->update(["ID_HEADER" => $idHeader, "AKTIF" => "Y"]);
+              }
+              $diff = array_diff($oldFiles, $fileIds);
+              if (count($diff) > 0){
+                  $strFile = "('" .implode("','", $diff) ."')";
+                  DB::table("tbl_files")->whereRaw("ID IN " .$strFile)
+                      ->delete();
+              }
           }
     }
     public static function searchNopen($nopen)
     {
-        $data = TransaksiGudang::where("NOPEN", trim($nopen))
+        $data = TransaksiGudang::where("NOPEN", "LIKE", "%" .trim($nopen) ."%")
                                ->select("ID");
         if ($data->exists()){
             return $data->first();
         }
         else {
             return false;
+        }
+    }
+    public static function browsePengeluaran($importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
+    {
+        $array1 = Array("Nopen" => "NOPEN","No Aju" => "NOAJU");
+
+        $array2 = Array("Tanggal Kirim" => "TGL_KIRIM", "Tanggal Nopen" => "TGL_NOPEN");
+        $where = " 1 = 1";
+        if ($kategori1 != ""){
+            if (trim($isikategori1) == ""){
+                $where  .=  " AND (" .$array1[$kategori1] ." IS NULL OR " .$array1[$kategori1] ." = '')";
+            }
+            else {
+                $where  .=  " AND (" .$array1[$kategori1] ." LIKE '%" .$isikategori1 ."%')";
+            }
+
+        }
+        if ($kategori2 != ""){
+            if (trim($dari2) == "" && trim($sampai2) == ""){
+                $where  .=  " AND (" .$array2[$kategori2] ." IS NULL OR " .$array2[$kategori2] ." = '')";
+            }
+            else {
+                if (trim($dari2) == ""){
+                    $dari2 = "0000-00-00";
+                }
+                if (trim($sampai2) == ""){
+                    $sampai2 = "9999-99-99";
+                }
+                $where  .=  " AND (" .$array2[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+            }
+        }
+        if (trim($importir) != ""){
+            $where .= " AND IMPORTIR = '" .$importir ."'";
+        }
+
+        $data = DB::table(DB::raw("tbl_penarikan_header h"))
+                    ->selectRaw("h.ID, NOAJU, NOPEN,"
+                            ."i.nama AS IMPORTIR, "
+                            ."DATE_FORMAT(TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,"
+                            ."DATE_FORMAT(TGL_KIRIM, '%d-%m-%Y') AS TGLKIRIM,"
+                            ."IF(HASIL_BONGKAR = 'S', 'Sesuai', IF(HASIL_BONGKAR = 'K', 'Kurang',"
+                            ."IF(HASIL_BONGKAR = 'L', 'Lebih',''))) AS HASILBONGKAR,"
+                            ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
+                    ->join(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
+                    ->leftJoin(DB::raw("tbl_header_bongkar b"), "h.ID", "=", "b.ID_HEADER")
+                    ->leftJoin(DB::raw("tbl_header_pengeluaran pu"), "h.ID", "=", "pu.ID_HEADER")
+                    ->whereRaw("TGL_BONGKAR IS NOT NULL");
+        if (trim($where) != ""){
+            $data = $data->whereRaw($where);
+        }
+        return $data->get();
+    }
+    public static function getPengeluaran($id)
+    {
+          $data = DB::table(DB::raw("tbl_penarikan_header h"))
+                    ->selectRaw("h.ID, i.NAMA AS NAMAIMPORTIR, h.NOAJU, NOPEN, TGL_NOPEN, "
+                               ."b.ID AS IDPENGELUARAN, b.CATATAN, b.TGL_KIRIM")
+                    ->join(DB::raw("importir i"), "i.IMPORTIR_ID","=","h.IMPORTIR")
+                    ->leftJoin(DB::raw("tbl_header_pengeluaran b"), "b.ID_HEADER","=","h.ID")
+                    ->where("h.ID", $id);
+
+          if ($data->exists()){
+              $data = $data->first();
+              $data->TGLNOPEN = $data->TGL_NOPEN && $data->TGL_NOPEN != "" ? Date("d-m-Y", strtotime($data->TGL_NOPEN)) : "";
+              $data->TGLKIRIM = $data->TGL_KIRIM && $data->TGL_KIRIM != "" ? Date("d-m-Y", strtotime($data->TGL_KIRIM)) : "";
+
+              $detail = DB::table(DB::raw("tbl_detail_pengeluaran dp"))
+                          ->select("NOPOL","SOPIR","JMLROLL","NOSJ",DB::raw("e.NAMA AS NAMAEKSPEDISI"),"JENISTRUK",
+                                  "EKSPEDISI","JENIS_TRUK",
+                                   DB::raw("DATE_FORMAT(TGL_KELUAR, '%d-%m-%Y') AS TGL_KELUAR"))
+                          ->leftJoin(DB::raw("ref_jenis_truk jt"), "jt.JENISTRUK_ID","=","dp.JENISTRUK")
+                          ->leftJoin(DB::raw("ekspedisi e"), "e.EKSPEDISI_ID","=","dp.EKSPEDISI")
+                          ->where("ID_HEADER", $data->IDPENGELUARAN);
+              $data->detail = $detail->get();
+              return $data;
+          }
+          else {
+              return false;
+          }
+    }
+    public static function savePengeluaran($header, $detail)
+    {
+        DB::table("tbl_header_pengeluaran")
+          ->updateOrInsert(
+              ["ID_HEADER" => $header["idtransaksi"]],
+              ["TGL_KIRIM" => Date("Y-m-d", strtotime($header["tglkirim"])),
+               "CATATAN" => $header["catatan"]
+              ]
+            );
+        $idHeader = DB::table("tbl_header_pengeluaran")
+                ->where("ID_HEADER", $header["idtransaksi"])
+                ->value("ID");
+        DB::table("tbl_detail_pengeluaran")->where("ID_HEADER", $idHeader)
+           ->delete();
+        $arrDetail = Array();
+        foreach($detail as $item){
+            $sopir = trim($item["SOPIR"]);
+            $jmlroll = trim($item['JMLROLL']);
+            $tglkeluar = trim($item['TGL_KELUAR']);
+            $nopol = trim($item["NOPOL"]);
+            $nosj = trim($item["NOSJ"]);
+            $ekspedisi = isset($item["EKSPEDISI"]) ? $item["EKSPEDISI"] : NULL;
+            $jenistruk = isset($item["JENISTRUK"]) ? $item["JENISTRUK"] : NULL;
+            $arrDetail[] = Array(
+                  "ID_HEADER" => $idHeader, "NOPOL" => $nopol, "SOPIR" => $sopir,
+                  "TGL_KELUAR" => Date("Y-m-d", strtotime($tglkeluar)),
+                  "NOSJ" => $nosj, "JENISTRUK" => $jenistruk, "EKSPEDISI" => $ekspedisi,
+                  "JMLROLL" => $jmlroll != "" ? str_replace(",","", $jmlroll) : 0
+               );
+        }
+        if (count($arrDetail) > 0){
+            DB::table("tbl_detail_pengeluaran")
+              ->insert($arrDetail);
+        }
+
+    }
+    public static function konversiStok($customer, $importir, $kodebarang, $kategori2, $dari2, $sampai2, $kategori3, $dari3, $sampai3)
+    {
+        $arrayKategori =  Array("Tanggal Bongkar" => "TGL_BONGKAR","Tanggal Konversi" => "ks.TGL_KONVERSI");
+
+        $where = "1 = 1";
+        if ($kategori2 != ""){
+            if (trim($dari2) == "" && trim($sampai2) == ""){
+                $where  .=  " AND (" .$arrayKategori[$kategori2] ." IS NULL OR " .$arrayKategori[$kategori2] ." = '')";
+            }
+            else {
+                if (trim($dari2) == ""){
+                    $dari2 = "0000-00-00";
+                }
+                if (trim($sampai2) == ""){
+                    $sampai2 = "9999-99-99";
+                }
+                $where  .=  " AND (" .$arrayKategori[$kategori2] ." BETWEEN '" .Date("Y-m-d", strtotime($dari2)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai2)) ."')";
+            }
+        }
+        if ($kategori3 != ""){
+            if (trim($dari3) == "" && trim($sampai3) == ""){
+                $where  .=  " AND (" .$arrayKategori[$kategori3] ." IS NULL OR " .$arrayKategori[$kategori3] ." = '')";
+            }
+            else {
+                if (trim($dari3) == ""){
+                    $dari3 = "0000-00-00";
+                }
+                if (trim($sampai3) == ""){
+                    $sampai3 = "9999-99-99";
+                }
+                $where  .=  " AND (" .$arrayKategori[$kategori3] ." BETWEEN '" .Date("Y-m-d", strtotime($dari3)) ."'
+                                            AND '" .Date("Y-m-d", strtotime($sampai3)) ."')";
+            }
+        }
+        if (trim($customer) != ""){
+            $where .= " AND CUSTOMER = '" .$customer ."'";
+        }
+        if (trim($importir) != ""){
+            $where .= " AND IMPORTIR = '" .$importir ."'";
+        }
+        if (trim($kodebarang) != ""){
+            $where .= " AND db.KODEBARANG LIKE '%" .$kodebarang ."%'";
+        }
+
+        $data = DB::table(DB::raw("tbl_detail_bongkar bd"))
+                    ->selectRaw("db.ID, db.KODEBARANG, pr.KODE AS KODEPRODUK, ks.PRODUK_ID,"
+                            ."c.nama_customer AS NAMACUSTOMER, db.JMLSATHARGA, ks.JMLSATKONVERSI,"
+                            ."ks.SATKONVERSI, db.HARGA*h.NDPBM AS RUPIAH, db.SATUAN_ID AS SATHARGA, TAX,"
+                            ."(SELECT satuan FROM satuan WHERE id =  db.SATUAN_ID) AS NAMASATHARGA,"
+                            ."(SELECT satuan FROM satuan WHERE id =  ks.SATKONVERSI) AS NAMASATKONVERSI,"
+                            ."DATE_FORMAT(bh.TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,"
+                            ."DATE_FORMAT(ks.TGL_KONVERSI, '%d-%m-%Y') AS TGLKONVERSI")
+                    ->leftJoin(DB::raw("konversistok ks"),"bd.KODEBARANG","=","ks.KODEBARANG")
+                    ->leftJoin(DB::raw("produk pr"),"pr.id","=","ks.PRODUK_ID")
+                    ->leftJoin(DB::raw("tbl_header_bongkar bh"),"bh.ID","=","bd.ID_HEADER")
+                    ->join(DB::raw("tbl_detail_barang db"), "db.ID","=","bd.KODEBARANG")
+                    ->join(DB::raw("tbl_penarikan_header h"), "h.ID","=","db.ID_HEADER")
+                    ->leftJoin(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
+                    ->leftJoin(DB::raw("plbbandu_app15.tb_customer c"), "h.CUSTOMER", "=", "c.id_customer");
+        if (trim($where) != ""){
+            $data = $data->whereRaw($where);
+        }
+        return $data->get();
+    }
+    public static function saveKonversiStok($input)
+    {
+        if (isset($input["iddetail"])){
+            DB::table("konversistok")
+            ->updateOrInsert(
+                ["KODEBARANG" => $input['iddetail']],
+                ["PRODUK_ID" => $input['produk'],
+                 "JMLSATKONVERSI" => str_replace(",","", $input["jmlsatkonversi"]),
+                 "SATKONVERSI" => $input["satkonversi"],
+                 "TAX" => str_replace(",","",$input['tax']),
+                 "TGL_KONVERSI" => Date("Y-m-d", strtotime($input['tglkonversi']))]
+              );
         }
     }
 }

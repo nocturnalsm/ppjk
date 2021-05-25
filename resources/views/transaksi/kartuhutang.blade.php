@@ -5,7 +5,7 @@
         Kartu Hutang
     </div>
     <div class="card-body">
-        <div class="row">            
+        <div class="row">
             <div class="col-md-10">
                 <form id="form" method="POST" action="/transaksi/kartuhutang?filter=1&export=1">
                     @csrf
@@ -19,7 +19,8 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>                    
+                    </div>
+                    @can('customer.view')
                     <div class="row">
                         <label class="col-md-2">Customer</label>
                         <div class="col-md-3">
@@ -31,11 +32,11 @@
                             </select>
                         </div>
                     </div>
+                    @endcan
                     <div class="row">
                         <label class="col-md-2">Importir</label>
                         <div class="col-md-3">
-                            <select class="form-control form-control-sm" id="importir" name="importir">
-                                <option value="">Semua</option>
+                            <select class="form-control form-control-sm" id="importir" name="importir">                                
                                 @if(count($dataimportir) != 1)
                                 <option value="">Semua</option>
                                 @endif
@@ -55,7 +56,7 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="row">
                         <div class="col-md-2">
                             Kategori
@@ -82,7 +83,7 @@
                 <a id="preview" class="btn btn-primary">Filter</a>
                 <a id="export" class="btn btn-primary disabled">Export</a>
             </div>
-        </div>  
+        </div>
         </form>
         <div class="row mt-4 pt-4">
             <div class="col" id="divtable">
@@ -90,26 +91,26 @@
                     <thead>
                         <th></th>
                         <th>Kantor</th>
-                        <th>Importir</th>                        
+                        <th>Importir</th>
                         <th>Customer</th>
                         <th>Shipper</th>
                         <th>Jns Dok</th>
                         <th>Nopen</th>
-                        <th>Tgl Nopen</th>       
+                        <th>Tgl Nopen</th>
                         <th>No Inv</th>
                         <th>Tgl Inv</th>
                         <th>Jth Tempo</th>
                         <th>Curr</th>
                         <th>CIF</th>
                         <th>Penarikan</th>
-                        <th>Saldo</th>           
+                        <th>Saldo</th>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-        </div>      
+        </div>
     </div>
-</div>  
+</div>
 @endsection
 @push('stylesheets_end')
     <link href="{{ asset('jquery-ui/jquery-ui.min.css') }}" rel="stylesheet">
@@ -132,18 +133,18 @@
                     j = (j = i.length) > 3 ? j % 3 : 0;
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
-        var columns = [{target:0, data: null, orderable: false, classname: "show-control"}, {target: 1, data: "KANTOR"}, 
-        {target: 2, data: "IMPORTIR"}, {target: 3, data: "CUSTOMER"}, 
+        var columns = [{target:0, data: null, orderable: false, classname: "show-control"}, {target: 1, data: "KANTOR"},
+        {target: 2, data: "IMPORTIR"}, {target: 3, data: "CUSTOMER" @cannot('customer.view') , visible: false @endcannot},
         {target: 4, data: "SHIPPER"}, {target: 5, data: "JENISDOKUMEN"},
-        {target: 6, data: "NOPEN"}, {target: 7, data: "TGLNOPEN"}, 
+        {target: 6, data: "NOPEN"}, {target: 7, data: "TGLNOPEN"},
         {target: 8, data: "NO_INV"}, {target: 9, data: "TGLINV"},
-        {target: 10, data: "TGLJTHTEMPO"},{target: 11, data: "MATAUANG"}, 
-        {target: 12, data: "CIF"}, {target: 13, data: "TOT_PAYMENT"}, 
+        {target: 10, data: "TGLJTHTEMPO"},{target: 11, data: "MATAUANG"},
+        {target: 12, data: "CIF"}, {target: 13, data: "TOT_PAYMENT"},
         {target: 14, data: "SALDO"}];
 
         var grid = $("#grid").DataTable({responsive: false,
             dom: "rtip",
-            "language": 
+            "language":
             {
                 "lengthMenu": "Menampilkan _MENU_ record per halaman",
                 "info": "",
@@ -159,14 +160,14 @@
             order: [[0, 'asc']],
             columns: columns,
             rowCallback: function(row, data)
-            {                
-                $(row).attr("id-transaksi", data[0]);        
+            {
+                $(row).attr("id-transaksi", data[0]);
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
                 $('td:eq(14)', row).html(parseFloat(data.SALDO).formatMoney(0,"",",","."));
                 $('td:eq(12)', row).html(parseFloat(data.CIF).formatMoney(3,"",",","."));
                 $('td:eq(13)', row).html(parseFloat(data.TOT_PAYMENT).formatMoney(0,"",",","."));
             }
-        }); 
+        });
         $("#kategori1").on("change", function(){
             var value = $(this).val();
             if (value == "TOP"){
@@ -199,15 +200,15 @@
             method: "POST",
             url: "/transaksi/kartuhutang?filter=1",
             data: $("#form").serialize(),
-            success: function(msg){           
+            success: function(msg){
                     grid.clear().rows.add(msg);
-                    grid.columns.adjust().draw();  
+                    grid.columns.adjust().draw();
                     if (msg.length == 0){
                         $("#export").addClass("disabled");
                     }
                     else {
                         $("#export").removeClass("disabled");
-                    }                             
+                    }
             }
             });
         })
@@ -239,7 +240,7 @@
                             //var  response = JSON.parse(msg);
                             if (typeof response.error != 'undefined'){
                                 return false;
-                            }            
+                            }
                             var data = response.data;
                             var detail =  '<table class="table" width="100%">'+
                                     '<thead>'+
@@ -271,17 +272,17 @@
                                 detail += '<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>';
                             }
                             detail += '</tbody></table>';
-                            row.child(detail).show();           
+                            row.child(detail).show();
                             tr.addClass('shown');
                             $(tr).find("a.showdetail i").attr("class","fa fa-minus-circle");
-                        }        
-                    })              
+                        }
+                    })
                 }
-                else {        
+                else {
                     row.child.show();
                     tr.addClass('shown');
                     $(this).find("i").attr("class","fa fa-minus-circle");
-                }        
+                }
             }
         });
     })

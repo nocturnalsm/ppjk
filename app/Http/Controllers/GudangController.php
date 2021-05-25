@@ -19,9 +19,6 @@ class GudangController extends Controller {
 
 	public function rekamData(Request $request, $id = "")
 	{
-		if(!auth()->user()->can('gudang.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
 		$breadcrumb[] = Array("text" => "Gudang");
 
@@ -36,6 +33,9 @@ class GudangController extends Controller {
 		$dtTransaksi = TransaksiGudang::getTransaksi($id);
 
 		if ($id != ""){
+			if ($dtTransaksi === false){
+					abort(404, "Data not found");
+			}
 			$notransaksi = " No. " .sprintf('%08d', $dtTransaksi["header"]->ID);
 		}
 		else {
@@ -48,63 +48,9 @@ class GudangController extends Controller {
 				"jeniskemasan" => $dtJenisKemasan, "customer" => $dtCustomer,
 				"datasatuan" => $dtSatuan, "idtransaksi" => $id, "kodekantor" => $dtKantor,
 				"ukurankontainer" => $dtUkuranKontainer, "notransaksi" => $notransaksi,
-				"canDelete" => $id != ""
+				"canDelete" => $id != "", "readonly" => auth()->user()->cannot('gudang.transaksi') ? "readonly" : ""
 			];
 		return view("gudang.transaksi", $data);
-	}
-	public function transaksibayar(Request $request)
-  {
-		if(!auth()->user()->can('pembayaran.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
-  	$breadcrumb[] = Array("link" => "/", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Transaksi Pembayaran");
-
-		$dtRekening = Transaksi::getRekening();
-		$dtMataUang = Transaksi::getMataUang();
-		$dtKantor = Transaksi::getKantor();
-		$dtTransaksi = Array();
-		$id = $request->id ?? "";
-		if ($id != ""){
-			Transaksi::calculateBayar($id);
-		}
-		else {
-			$notransaksi = " (Baru)";
-		}
-		$dtTransaksi = Transaksi::getTransaksiBayar($id);
-		$data = [
-				"header" => isset($dtTransaksi["header"]) ? $dtTransaksi["header"] : "{}" , "breads" => $breadcrumb,
-				"rekening" => $dtRekening,
-				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
-				"matauang" => $dtMataUang
-			];
-		return view("transaksi.transaksibayar", $data);
-	}
-	public function userdo(Request $request)
-  {
-		if(!auth()->user()->can('dokumen.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
-		$breadcrumb[] = Array("link" => "/", "text" => "Home");
-		$breadcrumb[] = Array("link" => "/transaksi/perekamando", "text" => "Browse Do");
-		$breadcrumb[] = Array("text" => "Perekaman Do");
-
-		$id = $request->id;
-		$dtPelmuat = Transaksi::getPelmuat();
-		$dtTransaksi = Transaksi::getTransaksiDo($id);
-		$dtMataUang = Transaksi::getMataUang();
-
-		$dtTOP = Transaksi::getTOP();
-		$dtFiles = Transaksi::getFiles($id);
-		$dtJenisFile = Transaksi::getJenisFile();
-		$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
-		$data = [
-				"header" => isset($dtTransaksi) ? $dtTransaksi : "{}" , "breads" => $breadcrumb,
-				"idtransaksi" => $id,"notransaksi" => $notransaksi, "pelmuat" => $dtPelmuat,
-				"files" => $dtFiles,"top" => $dtTOP, "matauang" => $dtMataUang,
-				"jenisfile" => $dtJenisFile
-			];
-		return view("transaksi.transaksido", $data);
 	}
 	public function userbongkar(Request $request, $id = "")
   {
@@ -115,39 +61,18 @@ class GudangController extends Controller {
 		$breadcrumb[] = Array("link" => "/gudang/perekamanbongkar", "text" => "Browse Bongkar");
 		$breadcrumb[] = Array("text" => "Perekaman Bongkar");
 		$dtTransaksi = TransaksiGudang::getTransaksiBongkar($id);
+
+		if (!$dtTransaksi){
+				abort(404, 'Data tidak ada');
+		}
 		$dtImportir = Transaksi::getImportir();
 		$dtGudang = Gudang::all();
+		$dtFiles = Transaksi::getFiles($dtTransaksi->IDBONGKAR, 3);
 		$data = [
 				"header" => $dtTransaksi, "breads" => $breadcrumb,
-				"datagudang" => $dtGudang, "idtransaksi" => $id, "importir" => $dtImportir,
+				"datagudang" => $dtGudang, "idtransaksi" => $id, "importir" => $dtImportir, "files" => $dtFiles
 			];
 		return view("gudang.transaksibongkar", $data);
-	}
-	public function usersptnp(Request $request, $id = "")
-  {
-		if(!auth()->user()->can('sptnp.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
-    $breadcrumb[] = Array("link" => "/", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Perekaman SPTNP");
-
-		$kantor = Transaksi::getKantor();
-		$importir = Transaksi::getImportir();
-
-		if ($id != ""){
-			$dtTransaksi = Sptnp::getTransaksiSPTNP($id);
-			$notransaksi = " No. " .sprintf('%08d', $dtTransaksi->ID);
-		}
-		else {
-			$dtTransaksi = new Sptnp;
-			$notransaksi = "Baru";
-		}
-
-		$data = [
-				"header" => $dtTransaksi, "kodekantor" => $kantor, "importir" => $importir, "breads" => $breadcrumb,
-				"idtransaksi" => $id, "notransaksi" => $notransaksi
-			];
-		return view("transaksi.transaksisptnp", $data);
 	}
 	public function exportXls($spreadsheet, $prefix)
 	{
@@ -156,39 +81,6 @@ class GudangController extends Controller {
 					$writer->save('php://output');
 				}, $prefix ."_" .Date("YmdHis") .'.xlsx',
 				['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
-	}
-	public function userbayar(Request $request)
-  {
-		if(!auth()->user()->can('pembayaran.transaksi')){
-			abort(403, 'User does not have the right roles.');
-		}
-		$id = $request->id;
-    $breadcrumb[] = Array("link" => "/", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Perekaman Pembayaran");
-
-		$dtCustomer = Transaksi::getCustomer();
-		$dtBank = Transaksi::getBank();
-		$dtMataUang = Transaksi::getMataUang();
-		$dtRekening = Transaksi::getRekening();
-		$dtTOP = Transaksi::getTOP();
-		$dtShipper = Transaksi::getShipper();
-		$dtImportir = Transaksi::getImportir();
-		$dtPenerima = Transaksi::getPenerima();
-		Transaksi::calculateBayar($id);
-		$dtTransaksi = Array();
-		$dtTransaksi = Transaksi::getTransaksiBayar($id);
-		$notransaksi = " No. " .sprintf('%08d', $dtTransaksi["header"]->ID);
-		$data = [
-				"header" => $dtTransaksi["header"], "breads" => $breadcrumb,
-				"idtransaksi" => $id,"datamatauang" => $dtMataUang,
-				"notransaksi" => $notransaksi, "datatop" => $dtTOP, "dataimportir" => $dtImportir,
-				"datashipper" => $dtShipper, "datacustomer" => $dtCustomer,
-				"databank" => $dtBank, "datarekening" => $dtRekening,
-				"datapenerima" => $dtPenerima,
-				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
-			];
-
-		return view("transaksi.transaksibayar", $data);
 	}
 	public function search()
   {
@@ -1045,27 +937,21 @@ class GudangController extends Controller {
 				}
 			}
 			else if ($type == "bongkar"){
-					$id = TransaksiGudang::saveTransaksiBongkar($request->input());
+					if ($postheader){
+						parse_str($postheader, $header);
+						$postfiles = $request->input('files');
+						$id = TransaksiGudang::saveTransaksiBongkar($header, $postfiles);
+					}
 			}
-			else if ($type == "userquota"){
-				if ($postheader){
-					$detail = $request->input("detail");
-					$files = $request->input('files');
-					parse_str($postheader, $header);
-					if ($header["idtransaksi"] == ""){
-						$action = "insert";
+			else if ($type == "pengeluaran"){
+					if ($postheader){
+						$detail = $request->input("detail");
+						parse_str($postheader, $header);
+						$id = TransaksiGudang::savePengeluaran($header, $detail);
 					}
-					else {
-						$action = "update";
-					}
-					$id = Transaksi::saveTransaksiQuota($action, $header, $detail, $files);
-				}
-				else {
-					$id = $request->input("delete");
-					if ($id && $id != ""){
-						Transaksi::deleteTransaksiQuota($id);
-					}
-				}
+			}
+			else if ($type == "konversistok"){
+					$id = TransaksiGudang::saveKonversiStok($request->input());
 			}
 			else if ($type == "pengeluaran"){
 				if ($postheader){
@@ -2204,7 +2090,7 @@ class GudangController extends Controller {
 	}
 	public function perekamanpengeluaran($id = "")
 	{
-		if(!auth()->user()->can('master.produk.browse')){
+		if(!auth()->user()->can('gudang.pengeluaran')){
 			abort(403, 'User does not have the right roles.');
 		}
     $breadcrumb[] = Array("link" => "../", "text" => "Home");
@@ -2616,6 +2502,7 @@ class GudangController extends Controller {
 
 			$data = TransaksiGudang::browseBongkar($postImportir, $postKategori1,
 									$isikategori1, $postKategori2, $dari2, $sampai2);
+
 			if ($data){
 				$export = $request->input("export");
 				if ($export == "1"){
@@ -2641,7 +2528,7 @@ class GudangController extends Controller {
 						$sheet->setCellValue('D' .$lastrow, "sampai");
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
-					$lastrow += 1;
+					$lastrow += 2;
 					$sheet->setCellValue('A' .$lastrow, 'Importir');
 					$sheet->setCellValue('B' .$lastrow, 'No Aju');
 					$sheet->setCellValue('C' .$lastrow, 'Nopen');
@@ -2652,7 +2539,7 @@ class GudangController extends Controller {
 
 					foreach ($data as $dt){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $dt->NAMAIMPORTIR);
+						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
 						$sheet->setCellValue('B' .$lastrow, $dt->NOAJU);
 						$sheet->setCellValue('C' .$lastrow, $dt->NOPEN);
 						$sheet->setCellValue('D' .$lastrow, $dt->TGLNOPEN);
@@ -2722,5 +2609,227 @@ class GudangController extends Controller {
 					$gudang = Gudang::all();
 					return view("gudang.kontainermasuk",['datagudang' => $gudang, 'breads' => $breadcrumb]);
 			}
+	}
+	public function transaksipengeluaran(Request $request, $id = "")
+  {
+		$dtTransaksi = TransaksiGudang::getPengeluaran($id);
+		if (!$dtTransaksi){
+				abort(404, "Data tidak ada");
+		}
+    $breadcrumb[] = Array("link" => "/", "text" => "Home");
+		$breadcrumb[] = Array("link" => "/gudang/pengeluaran", "text" => "Browse Pengeluaran");
+		$breadcrumb[] = Array("text" => "Perekaman Pengeluaran");
+
+		$dtImportir = Transaksi::getImportir();
+		$dtJenisTruk = DB::table("ref_jenis_truk")->get();
+		$dtEkspedisi = DB::table("ekspedisi")->select("EKSPEDISI_ID","NAMA")->get();
+		$data = [
+				"header" => $dtTransaksi, "breads" => $breadcrumb,
+				"idtransaksi" => $id, "importir" => $dtImportir,
+				"detail" => json_encode($dtTransaksi->detail),
+				"jenistruk" => $dtJenisTruk, "ekspedisi" => $dtEkspedisi,
+				"readonly" => auth()->user()->cannot('gudang.transaksipengeluaran') ? "readonly" : ""
+			];
+		return view("gudang.transaksipengeluaran", $data);
+	}
+	public function pengeluaran(Request $request)
+  {
+		if(!auth()->user()->can('gudang.pengeluaran')){
+			abort(403, 'User does not have the right roles.');
+		}
+		$filter = $request->input("filter");
+		if ($filter && $filter == "1"){
+			$postImportir = $request->input("importir");
+			$postKategori1 = $request->input("kategori1");
+			$isikategori1 = $request->input("isikategori1");
+			$postKategori2 = $request->input("kategori2");
+			$dari2 = $request->input("dari2");
+			$sampai2 = $request->input("sampai2");
+
+			$data = TransaksiGudang::browsePengeluaran($postImportir, $postKategori1,
+									$isikategori1, $postKategori2, $dari2, $sampai2);
+			if ($data){
+				$export = $request->input("export");
+				if ($export == "1"){
+					$spreadsheet = new Spreadsheet();
+					$sheet = $spreadsheet->getActiveSheet();
+					$sheet->setCellValue('A1', 'IMPORTIR');
+					if ($postImportir && trim($postImportir) != ""){
+						$sheet->setCellValue('C1', Transaksi::getImportir($postImportir)->NAMA);
+					}
+					else {
+						$sheet->setCellValue('C1', "Semua");
+					}
+					$lastrow = 1;
+					if ($postKategori1 && trim($postKategori1) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori1);
+						$sheet->setCellValue('C' .$lastrow, $isikategori1);
+					}
+					if ($postKategori2 && trim($postKategori2) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori2);
+						$sheet->setCellValue('C' .$lastrow, $dari2 == "" ? "-" : Date("d M Y", strtotime($dari2)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
+					}
+					$lastrow += 2;
+					$sheet->setCellValue('A' .$lastrow, 'Importir');
+					$sheet->setCellValue('B' .$lastrow, 'No Aju');
+					$sheet->setCellValue('C' .$lastrow, 'Nopen');
+					$sheet->setCellValue('D' .$lastrow, 'Tgl Nopen');
+				  $sheet->setCellValue('E' .$lastrow, 'Tgl Bongkar');
+				  $sheet->setCellValue('F' .$lastrow, 'Tgl Kirim');
+					$sheet->setCellValue('G' .$lastrow, 'Hasil Bongkar');
+
+					foreach ($data as $dt){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $dt->IMPORTIR);
+						$sheet->setCellValue('B' .$lastrow, $dt->NOAJU);
+						$sheet->setCellValue('C' .$lastrow, $dt->NOPEN);
+						$sheet->setCellValue('D' .$lastrow, $dt->TGLNOPEN);
+						$sheet->setCellValue('E' .$lastrow, $dt->TGLBONGKAR);
+						$sheet->setCellValue('F' .$lastrow, $dt->TGLKIRIM);
+						$sheet->setCellValue('G' .$lastrow, $dt->HASILBONGKAR);
+					}
+
+					$writer = new Xlsx($spreadsheet);
+					return response()->streamDownload(function() use ($writer){
+							$writer->save('php://output');
+						}, 'pengeluaran_' .Date("YmdHis") .'.xlsx',
+						['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+
+				}
+				else {
+					return response()->json($data);
+				}
+			}
+			else {
+				return response()->json([]);
+			}
+		}
+		else {
+
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Browse Pengeluaran");
+			$importir = Transaksi::getImportir();
+			return view("gudang.pengeluaran",["breads" => $breadcrumb,
+										"dataimportir" => $importir,
+										"datakategori1" => Array("Nopen","No Aju"),
+										"datakategori2" => Array("Tanggal Nopen","Tanggal Kirim")
+										]);
+		}
+	}
+	public function konversistok(Request $request)
+  {
+		if(!auth()->user()->can('gudang.konversistok')){
+			abort(403, 'User does not have the right roles.');
+		}
+		$filter = $request->input("filter");
+
+		if ($filter && $filter == "1"){
+			$postCustomer = $request->input("customer");
+			$postImportir = $request->input("importir");
+			$postKodeBarang = $request->input("kodebarang");
+			$postKategori2 = $request->input("kategori2");
+			$dari2 = $request->input("dari2");
+			$sampai2 = $request->input("sampai2");
+			$postKategori3 = $request->input("kategori3");
+			$dari3 = $request->input("dari3");
+			$sampai3 = $request->input("sampai3");
+
+			$data = TransaksiGudang::konversiStok($postCustomer, $postImportir, $postKodeBarang,
+									$postKategori2, $dari2, $sampai2, $postKategori3, $dari3, $sampai3);
+			if ($data){
+				$export = $request->input("export");
+				if ($export == "1"){
+					$spreadsheet = new Spreadsheet();
+					$sheet = $spreadsheet->getActiveSheet();
+
+					$sheet->setCellValue('A1', 'CUSTOMER');
+					if ($postCustomer && trim($postCustomer) != ""){
+						$sheet->setCellValue('C1', Transaksi::getCustomer($postCustomer)->nama_customer);
+					}
+					else {
+						$sheet->setCellValue('C1', "Semua");
+					}
+					$sheet->setCellValue('A2', 'IMPORTIR');
+					if ($postImportir && trim($postImportir) != ""){
+						$sheet->setCellValue('C2', Transaksi::getImportir($postImportir)->NAMA);
+					}
+					else {
+						$sheet->setCellValue('C2', "Semua");
+					}
+					$sheet->setCellValue('A3', 'KODE BARANG');
+					if ($postKodeBarang && trim($postKodeBarang) != ""){
+						$sheet->setCellValue('C3', $postKodeBarang);
+					}
+					else {
+						$sheet->setCellValue('C3', "Semua");
+					}
+					$lastrow = 3;
+					if ($postKategori2 && trim($postKategori2) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori2);
+						$sheet->setCellValue('C' .$lastrow, $dari2 == "" ? "-" : Date("d M Y", strtotime($dari2)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
+					}
+					if ($postKategori3 && trim($postKategori3) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $postKategori3);
+						$sheet->setCellValue('C' .$lastrow, $dari3 == "" ? "-" : Date("d M Y", strtotime($dari3)));
+						$sheet->setCellValue('D' .$lastrow, "sampai");
+						$sheet->setCellValue('E' .$lastrow, $sampai3 == "" ? "-" : Date("d M Y", strtotime($sampai3)));
+					}
+					$lastrow += 2;
+					$sheet->setCellValue('A' .$lastrow, 'Kode Barang');
+					$sheet->setCellValue('B' .$lastrow, 'Kode Produk');
+					$sheet->setCellValue('C' .$lastrow, 'Jml Sat Konv');
+					$sheet->setCellValue('D' .$lastrow, 'Satuan');
+					$sheet->setCellValue('E' .$lastrow, 'Rupiah');
+					$sheet->setCellValue('F' .$lastrow, 'Tax');
+					$sheet->setCellValue('G' .$lastrow, 'HPP');
+					$sheet->setCellValue('H' .$lastrow, 'Tgl Bongkar');
+					$sheet->setCellValue('I' .$lastrow, 'Tgl Konversi');
+					$sheet->setCellValue('J' .$lastrow, 'Customer');
+
+					foreach ($data as $dt){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, $dt->KODEBARANG);
+						$sheet->setCellValue('B' .$lastrow, $dt->KODEPRODUK);
+						$sheet->setCellValue('C' .$lastrow, $dt->JMLSATKONVERSI);
+						$sheet->setCellValue('D' .$lastrow, $dt->NAMASATKONVERSI);
+						$sheet->setCellValue('E' .$lastrow, $dt->RUPIAH);
+						$sheet->setCellValue('F' .$lastrow, $dt->TAX);
+						$sheet->setCellValue('G' .$lastrow, $dt->RUPIAH*(1+$dt->TAX/100));
+						$sheet->setCellValue('H' .$lastrow, $dt->TGLBONGKAR);
+						$sheet->setCellValue('I' .$lastrow, $dt->TGLKONVERSI);
+						$sheet->setCellValue('J' .$lastrow, $dt->NAMACUSTOMER);
+					}
+					return $this->exportXls($spreadsheet, "konversistok");
+				}
+				else {
+					return response()->json($data);
+				}
+			}
+			else {
+
+				return response()->json([]);
+			}
+		}
+		else {
+			$breadcrumb[] = Array("link" => "../", "text" => "Home");
+			$breadcrumb[] = Array("text" => "Konversi Stok");
+			$customer = Transaksi::getCustomer();
+			$importir = Transaksi::getImportir();
+			$dtSatuan = Transaksi::getSatuan();
+			$dtProduk = Produk::all();
+			return view("gudang.konversistok",["breads" => $breadcrumb,
+										"datacustomer" => $customer, "datasatuan" => $dtSatuan,
+										"dataimportir" => $importir, "dataproduk" => $dtProduk,
+										"datakategori" => Array("Tanggal Bongkar","Tanggal Konversi")
+										]);
+		}
 	}
 }

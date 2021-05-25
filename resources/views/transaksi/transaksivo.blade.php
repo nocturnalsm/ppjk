@@ -14,30 +14,30 @@ $header->@extends('layouts.base')
             </div>
             <div class="modal-body mx-3">
                 <form id="form" act="">
-                    <input type="hidden" name="idxdetail" id="idxdetail">
-                    <input type="hidden" name="iddetail" id="iddetail">
+                    <input {{ $readonly }} type="hidden" name="idxdetail" id="idxdetail">
+                    <input {{ $readonly }} type="hidden" name="iddetail" id="iddetail">
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="kodehs">Kode HS</label>
                         <div class="col-md-9">
-                            <input type="text" id="kodehs" name="kodehs" class="form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="kodehs" name="kodehs" class="form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="booking">Booking</label>
                         <div class="col-md-9">
-                            <input type="text" id="booking" name="booking" class="number form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="booking" name="booking" class="number form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="realisasi">Realisasi</label>
                         <div class="col-md-9">
-                            <input type="text" id="realisasi" name="realisasi" class="number form-control form-control-sm validate">
+                            <input {{ $readonly }} type="text" id="realisasi" name="realisasi" class="number form-control form-control-sm validate">
                         </div>
                     </div>
                     <div class="form-row mb-1">
                         <label class="col-form-label col-md-3" for="satuan">Satuan</label>
                         <div class="col-md-9 pt-2">
-                            <select class="form-control form-control-sm" id="satuan" name="satuan">
+                            <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="satuan" name="satuan">
                                 <option value=""></option>
                                 @foreach($datasatuan as $satuan)
                                 <option value="{{ $satuan->id }}">{{ $satuan->satuan }}</option>
@@ -47,10 +47,12 @@ $header->@extends('layouts.base')
                     </div>
                 </form>
             </div>
+            @can('vo.transaksi')
             <div class="modal-footer d-flex justify-content-center">
                 <a id="savedetail" class="btn btn-primary">Simpan</a>
                 <a class="btn btn-danger" data-dismiss="modal">Batal</a>
             </div>
+            @endcan
         </div>
     </div>
 </div>
@@ -61,21 +63,23 @@ $header->@extends('layouts.base')
                 <div class="col-md-4 py-0 pl-4 mt-1">
                     Form Perekaman VO {{ $notransaksi }}
                 </div>
+                @can('vo.transaksi')
                 <div class="col-md-8 py-0 pr-4 text-right">
                     <button type="button" id="btnsimpan" class="btn btn-primary btn-sm m-0">Simpan</button>&nbsp;
                     <a href="/" class="btn btn-default btn-sm m-0">Batal</a>&nbsp;
                 </div>
+                @endcan
             </div>
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
-            <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
+            <input {{ $readonly }} type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
             <div class="row">
                 <div class="col-md-7 co-sm-12 px-auto pt-0">
                 <div class="form-row px-2">
                     <label class="col-md-2 form-control-sm">Consignee</label>
                     <div class="col-md-4">
-                        <select class="form-control form-control-sm" id="consignee" name="consignee" value="{{ $header->CONSIGNEE }}">
+                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="consignee" name="consignee" value="{{ $header->CONSIGNEE }}">
                             <option value=""></option>
                             @foreach($importir as $imp)
                             <option @if($header->CONSIGNEE == $imp->IMPORTIR_ID) selected @endif value="{{ $imp->IMPORTIR_ID }}">{{ $imp->NAMA }}</option>
@@ -85,38 +89,38 @@ $header->@extends('layouts.base')
                     <label class="col-md-1 col-form-label form-control-sm">No. PI</label>
                     <div class="col-md-5">
                         <input type="text" readonly maxlength="24" class="form-control form-control-sm" name="nopi" id="nopi" value="{{ $header->NO_PI }}">
-                        <input type="hidden" name="idpi" value="{{ $header->ID_PI }}">
+                        <input {{ $readonly }} type="hidden" name="idpi" value="{{ $header->ID_PI }}">
                     </div>
                 </div>
                 <div class="form-row px-2">
                     <label class="col-md-2 col-form-label form-control-sm">No VO</label>
                     <div class="col-md-2">
-                        <input maxlength="24" type="text" class="form-control form-control-sm" name="novo" value="{{ $header->NO_VO }}" id="novo">
+                        <input {{ $readonly }} maxlength="24" type="text" class="form-control form-control-sm" name="novo" value="{{ $header->NO_VO }}" id="novo">
                         <p class="error nopen1">No VO harus diisi</p>
                     </div>
                     <label class="col-form-label form-control-sm">Tgl VO</label>
                     <div class="col-md-2">
-                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglvo" value="{{ $header->TGL_VO }}" id="tglvo">
+                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglvo" value="{{ $header->TGL_VO }}" id="tglvo">
                     </div>
                 </div>
                 <div class="form-row px-2">
                     <label class="col-md-2 col-form-label form-control-sm">Kode HS</label>
                     <div class="col-md-10">
-                        <textarea class="form-control form-control-sm" name="kodehs" id="kodehs">{{ $header->KODE_HS_VO }}</textarea>
+                        <textarea {{ $readonly }} class="form-control form-control-sm" name="kodehs" id="kodehs">{{ $header->KODE_HS_VO }}</textarea>
                     </div>
                 </div>
                 <div class="form-row px-2">
                     <label class="col-md-2 col-form-label form-control-sm">Tanggal Periksa</label>
                     <div class="col-md-2">
-                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" value="{{ $header->TGL_PERIKSA_VO }}" name="tglperiksa" id="tglperiksa">
+                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" value="{{ $header->TGL_PERIKSA_VO }}" name="tglperiksa" id="tglperiksa">
                     </div>
                     <label class="col-md-2 col-form-label form-control-sm">Tanggal LS</label>
                     <div class="col-md-2">
-                        <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" value="{{ $header->TGL_LS }}" name="tglls" id="tglls">
+                        <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" value="{{ $header->TGL_LS }}" name="tglls" id="tglls">
                     </div>
                     <label class="col-form-label form-control-sm">Status VO</label>
                     <div class="col-md-2">
-                        <select class="form-control form-control-sm" id="status" name="status" value="{{ $header->STATUS }}">
+                        <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="status" name="status" value="{{ $header->STATUS }}">
                             <option @if($header->STATUS == "") selected @endif value=""></option>
                             <option @if($header->STATUS == "K") selected @endif value="K">Konfirmasi</option>
                             <option @if($header->STATUS == "B") selected @endif value="B">Belum Inspect</option>
@@ -130,7 +134,7 @@ $header->@extends('layouts.base')
                 <div class="form-row px-2">
                     <label class="col-md-2 col-form-label form-control-sm">Catatan VO</label>
                     <div class="col-md-10">
-                        <textarea class="form-control form-control-sm" name="catatan" id="catatan">{{ $header->CATATAN }}</textarea>
+                        <textarea {{ $readonly }} class="form-control form-control-sm" name="catatan" id="catatan">{{ $header->CATATAN }}</textarea>
                     </div>
                 </div>
             </div>
@@ -162,7 +166,7 @@ $header->@extends('layouts.base')
                 </div>
             </div>
         </div>
-        <input type="hidden" name="deletedetail">
+        <input {{ $readonly }} type="hidden" name="deletedetail">
         </form>
     </div>
 </div>
@@ -198,6 +202,43 @@ $(".number").inputmask("numeric", {
     removeMaskOnSubmit: true,
     oncleared: function () { self.setValue(''); }
 });
+var tabel = $("#griddetail").DataTable({
+    processing: false,
+    serverSide: false,
+    data: datadetail,
+    dom: "t",
+    rowCallback: function(row, data)
+    {
+        $('td:eq(1)', row).html(parseFloat(data.BOOKING).formatMoney(2,"",",","."));
+        $('td:eq(2)', row).html(parseFloat(data.REALISASI).formatMoney(2,"",",","."));
+        $('td:eq(4)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
+                                '"><i class="fa fa-edit"></i></a>' +
+                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
+                                );
+    },
+    select: 'single',     // enable single row selection
+    responsive: false,     // enable responsiveness,
+    rowId: 0,
+    pageLength: 1000,
+    columns: [{
+        target: 0,
+        data: "KODE_HS"
+      },
+      { target: 1,
+        data: "BOOKING"
+      },
+      { target: 2,
+        data: "REALISASI"
+      },
+      { target: 3,
+        data: "satuan"
+      },
+      { target: 4,
+        data: null
+      }
+     ],
+})
+@can('vo.transaksi')
 function checkEmpty(elem){
     if ($("#" + elem).val().trim() === ""){
         $(".error." + elem).show();
@@ -309,42 +350,6 @@ $("#savedetail").on("click", function(){
     }
     $(this).prop("disabled", false);
 });
-var tabel = $("#griddetail").DataTable({
-    processing: false,
-    serverSide: false,
-    data: datadetail,
-    dom: "t",
-    rowCallback: function(row, data)
-    {
-        $('td:eq(1)', row).html(parseFloat(data.BOOKING).formatMoney(2,"",",","."));
-        $('td:eq(2)', row).html(parseFloat(data.REALISASI).formatMoney(2,"",",","."));
-        $('td:eq(4)', row).html('<a href="#modaldetail" class="edit" data-toggle="modal" id="' + data.ID +
-                                '"><i class="fa fa-edit"></i></a>' +
-                                '&nbsp;&nbsp;<a class="del" id="' + data.ID + '"><i class="fa fa-trash"></i></a>'
-                                );
-    },
-    select: 'single',     // enable single row selection
-    responsive: false,     // enable responsiveness,
-    rowId: 0,
-    pageLength: 1000,
-    columns: [{
-        target: 0,
-        data: "KODE_HS"
-      },
-      { target: 1,
-        data: "BOOKING"
-      },
-      { target: 2,
-        data: "REALISASI"
-      },
-      { target: 3,
-        data: "satuan"
-      },
-      { target: 4,
-        data: null
-      }
-     ],
-})
 $("#adddetail").on("click", function(){
     $("#kodehs").val("");
     $("#booking").val("");
@@ -374,6 +379,7 @@ $("body").on("click", ".del", function(){
     }
     var index = tabel.row(row).remove().draw();
 })
+@endcan
 $("#kodehs").inputmask("9999.99.99");
 
 })
