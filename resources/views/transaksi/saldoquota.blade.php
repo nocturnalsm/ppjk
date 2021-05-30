@@ -122,12 +122,14 @@
             rowCallback: function(row, data)
             {
                 $(row).attr("id-transaksi", data[0]);
+                var colNo = 0;
                 @can('quota.edit')
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                colNo = 1;
                 @endcan
-                $('td:eq(3)', row).html(parseFloat(data.AWAL).formatMoney(2,"",",","."));
-                $('td:eq(4)', row).html(parseFloat(data.TERPAKAI).formatMoney(2,"",",","."));
-                $('td:eq(5)', row).html(parseFloat(data.AKHIR).formatMoney(2,"",",","."));
+                $('td:eq(' + (colNo + 2) +')', row).html(parseFloat(data.TERPAKAI).formatMoney(2,"",",","."));
+                $('td:eq(' + (colNo + 3) +')', row).html(parseFloat(data.AWAL).formatMoney(2,"",",","."));
+                $('td:eq(' + (colNo + 4) +')', row).html(parseFloat(data.AKHIR).formatMoney(2,"",",","."));
             },
             columnDefs: [
                 { "orderable": false, "targets": 0 }

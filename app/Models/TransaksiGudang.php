@@ -101,8 +101,10 @@ class TransaksiGudang extends Model
 						               "TGL_NOPEN" => trim($header["tglentri"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglentri"])),
                            "NOPEN" => $header["nopen"],"NOAJU" => $header["noaju"],
                            "TGL_SPPB" => trim($header["tglsppb"]) == "" ? NULL : Date("Y-m-d", strtotime($header["tglsppb"])),
-                           "NDPBM" => str_replace(",","",$header["kurs"]),
-                           "KANTOR_ID" => $header["kantor"]
+                           "NDPBM" => $header["kurs"] == "" ? NULL : str_replace(",","",$header["kurs"]),
+                           "KANTOR_ID" => $header["kantor"],
+                           "JUMLAH_KEMASAN" => $header["jmlkemasan"] == "" ? NULL : str_replace(",","", $header["jmlkemasan"]),
+                           "JENIS_KEMASAN" => $header["jeniskemasan"] == "" ? NULL : $header["jeniskemasan"]
                           );
 
         if ($action == "insert"){
@@ -331,7 +333,7 @@ class TransaksiGudang extends Model
     }
     public static function browseBongkar($importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
     {
-        $array1 =  Array("Nopen" => "NOPEN","No Aju" => "NOAJU");
+        $array1 =  Array("Nopen" => "NOPEN","No Aju" => "NOAJU", "Jumlah Kemasan" => 'h.JUMLAH_KEMASAN');
 
         $array2 = Array("Tanggal Bongkar" => "TGL_BONGKAR", "Tanggal Nopen" => "TGL_NOPEN");
         $where = " 1 = 1";
@@ -365,7 +367,7 @@ class TransaksiGudang extends Model
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, NOAJU, NOPEN,"
-                            ."i.nama AS IMPORTIR, "
+                            ."i.nama AS IMPORTIR, h.JUMLAH_KEMASAN, jk.URAIAN AS JENISKEMASAN,"
                             ."(SELECT g.KODE FROM kontainer_masuk km "
                             ."INNER JOIN tbl_penarikan_kontainer k ON km.NO_KONTAINER = k.ID "
                             ."INNER JOIN ref_gudang g ON g.GUDANG_ID = km.GUDANG_ID "
@@ -376,6 +378,7 @@ class TransaksiGudang extends Model
                             ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
                     ->join(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "h.ID", "=", "b.ID_HEADER")
+                    ->leftJoin(DB::raw("ref_jenis_kemasan jk"), "h.JENIS_KEMASAN","=","jk.JENISKEMASAN_ID")
                     ->whereExists(function ($query) {
                        $query->select(DB::raw(1))
                              ->from(DB::raw('tbl_penarikan_kontainer k'))
@@ -744,15 +747,16 @@ class TransaksiGudang extends Model
     public static function getTransaksiBongkar($id)
     {
           $data = DB::table(DB::raw("tbl_penarikan_header h"))
-                    ->selectRaw("h.ID, i.NAMA AS NAMAIMPORTIR, h.NOAJU, NOPEN, TGL_NOPEN, "
+                    ->selectRaw("h.ID, i.NAMA AS NAMAIMPORTIR, h.NOAJU, NOPEN, TGL_NOPEN, h.JUMLAH_KEMASAN, jk.URAIAN AS JENISKEMASAN,"
                                ."TGL_BONGKAR, b.ID AS IDBONGKAR, b.CATATAN, b.HASIL_BONGKAR, "
                                ."(SELECT g.KODE FROM kontainer_masuk km "
                                ."INNER JOIN tbl_penarikan_kontainer k ON km.NO_KONTAINER = k.ID "
                                ."INNER JOIN ref_gudang g ON g.GUDANG_ID = km.GUDANG_ID "
-                               ."WHERE k.ID_HEADER = h.ID) AS NAMAGUDANG"
+                               ."WHERE k.ID_HEADER = h.ID LIMIT 1) AS NAMAGUDANG"
                                )
                     ->join(DB::raw("importir i"), "i.IMPORTIR_ID","=","h.IMPORTIR")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "b.ID_HEADER","=","h.ID")
+                    ->leftJoin(DB::raw("ref_jenis_kemasan jk"), "h.JENIS_KEMASAN","=","jk.JENISKEMASAN_ID")
                     ->where("h.ID", $id)
                     ->whereExists(function ($query) {
                        $query->select(DB::raw(1))
@@ -850,7 +854,7 @@ class TransaksiGudang extends Model
     }
     public static function browsePengeluaran($importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
     {
-        $array1 = Array("Nopen" => "NOPEN","No Aju" => "NOAJU");
+        $array1 = Array("Nopen" => "NOPEN","No Aju" => "NOAJU", "Jumlah Kemasan" => "h.JUMLAH_KEMASAN");
 
         $array2 = Array("Tanggal Kirim" => "TGL_KIRIM", "Tanggal Nopen" => "TGL_NOPEN");
         $where = " 1 = 1";
@@ -884,13 +888,14 @@ class TransaksiGudang extends Model
 
         $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, NOAJU, NOPEN,"
-                            ."i.nama AS IMPORTIR, "
+                            ."i.nama AS IMPORTIR, h.JUMLAH_KEMASAN, jk.URAIAN AS JENISKEMASAN,"
                             ."DATE_FORMAT(TGL_BONGKAR, '%d-%m-%Y') AS TGLBONGKAR,"
                             ."DATE_FORMAT(TGL_KIRIM, '%d-%m-%Y') AS TGLKIRIM,"
                             ."IF(HASIL_BONGKAR = 'S', 'Sesuai', IF(HASIL_BONGKAR = 'K', 'Kurang',"
                             ."IF(HASIL_BONGKAR = 'L', 'Lebih',''))) AS HASILBONGKAR,"
                             ."DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN")
                     ->join(DB::raw("importir i"), "h.IMPORTIR", "=", "i.importir_id")
+                    ->leftJoin(DB::raw("ref_jenis_kemasan jk"), "h.JENIS_KEMASAN","=","jk.JENISKEMASAN_ID")
                     ->leftJoin(DB::raw("tbl_header_bongkar b"), "h.ID", "=", "b.ID_HEADER")
                     ->leftJoin(DB::raw("tbl_header_pengeluaran pu"), "h.ID", "=", "pu.ID_HEADER")
                     ->whereRaw("TGL_BONGKAR IS NOT NULL");
@@ -903,9 +908,11 @@ class TransaksiGudang extends Model
     {
           $data = DB::table(DB::raw("tbl_penarikan_header h"))
                     ->selectRaw("h.ID, i.NAMA AS NAMAIMPORTIR, h.NOAJU, NOPEN, TGL_NOPEN, "
-                               ."b.ID AS IDPENGELUARAN, b.CATATAN, b.TGL_KIRIM")
+                               ."b.ID AS IDPENGELUARAN, b.CATATAN, b.TGL_KIRIM,"
+                               ."h.JUMLAH_KEMASAN, jk.URAIAN as JENISKEMASAN")
                     ->join(DB::raw("importir i"), "i.IMPORTIR_ID","=","h.IMPORTIR")
                     ->leftJoin(DB::raw("tbl_header_pengeluaran b"), "b.ID_HEADER","=","h.ID")
+                    ->leftJoin(DB::raw("ref_jenis_kemasan jk"), "jk.JENISKEMASAN_ID","=","h.JENIS_KEMASAN")
                     ->where("h.ID", $id);
 
           if ($data->exists()){

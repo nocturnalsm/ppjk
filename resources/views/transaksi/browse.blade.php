@@ -106,7 +106,7 @@
                         <th>Tgl Tiba</th>
                         <th>Tgl SPPB</th>
                         <th>Tgl Keluar</th>
-                        <th>Tgl Terima</th>
+                        <th>Tgl Masuk</th>
                         <th>No Aju</th>
                         <th>Nopen</th>
                         <th>Tgl Nopen</th>
@@ -153,7 +153,7 @@ $(function(){
                 {target: 3, data: "JUMLAH_KEMASAN"},
                 {target: 4, data: "NAMA"@cannot('customer.view') , visible: false @endcannot}, {target: 5, data: "IMPORTIR"},
                 {target: 6, data: "TGLTIBA"}, {target: 7, data: "TGLSPPB"}, {target: 8, data: "TGLKELUAR"},
-                {target: 9, data: "TGLTERIMA"},
+                {target: 9, data: "TGLMASUK"},
                 {target: 10, data: "NOAJU"},
                 {target: 11, data: "NOPEN"},{target: 12, data: "TGLNOPEN"},
                 /*

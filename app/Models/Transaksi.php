@@ -1000,7 +1000,9 @@ class Transaksi extends Model
                     ->selectRaw("k.KODE AS KODEKANTOR, NO_INV, NO_BL, JUMLAH_KEMASAN, nama_customer AS NAMA,"
                               ."i.nama AS IMPORTIR, NOAJU,"
                               ."DATE_FORMAT(TGL_SPPB, '%d-%m-%Y') AS TGLSPPB,"
-                              ."DATE_FORMAT(TGL_TERIMA, '%d-%m-%Y') AS TGLTERIMA,"
+                              ."(SELECT DATE_FORMAT(TGL_MASUK, '%d-%m-%Y') FROM kontainer_masuk WHERE NO_KONTAINER IN "
+                              ."(SELECT ID FROM tbl_penarikan_kontainer WHERE ID_HEADER = h.ID) "
+                              ."ORDER BY TGL_MASUK DESC LIMIT 1) AS TGLMASUK,"
                               ."DATE_FORMAT(TGL_TIBA, '%d-%m-%Y') AS TGLTIBA,"
                               ."DATE_FORMAT(TGL_KELUAR, '%d-%m-%Y') AS TGLKELUAR,"
                               ."NOPEN, DATE_FORMAT(TGL_NOPEN, '%d-%m-%Y') AS TGLNOPEN, JUMLAH_KONTAINER")

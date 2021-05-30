@@ -76,6 +76,8 @@
                         <th>No Aju</th>
                         <th>Nopen</th>
                         <th>Tgl Nopen</th>
+                        <th>Jml Kemasan</th>
+                        <th></th>
                         <th>Tgl Bongkar</th>
                         <th>Gudang</th>
                         <th>Hasil Bongkar</th>
@@ -98,9 +100,9 @@
 
         var columns = [{target: 0, data: null}, {target: 1, data: "IMPORTIR"},
                   {target: 2, data: "NOAJU"}, {target: 3, data: "NOPEN"}, {target: 4, data: "TGLNOPEN"},
-                  {target: 5, data: "TGLBONGKAR"},
-                  {target: 6, data: "NAMAGUDANG"},
-                  {target: 7, data: "HASILBONGKAR"}
+                  {target: 5, data: "JUMLAH_KEMASAN"}, {target: 6, data: "JENISKEMASAN"},
+                  {target: 7, data: "TGLBONGKAR"}, {target: 8, data: "NAMAGUDANG"},
+                  {target: 9, data: "HASILBONGKAR"}
         ];
 
         var grid = $("#grid").DataTable({responsive: false,

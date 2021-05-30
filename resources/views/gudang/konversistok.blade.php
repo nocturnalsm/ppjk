@@ -269,7 +269,7 @@
                 $('td:eq(3)', row).html(parseFloat(data.JMLSATKONVERSI).formatMoney(2,"",",","."));
                 $('td:eq(5)', row).html(parseFloat(data.RUPIAH).formatMoney(2,"",",","."));
                 $('td:eq(6)', row).html(parseFloat(data.TAX).formatMoney(2,"",",","."));
-                $('td:eq(7)', row).html((data.RUPIAH*(1+data.TAX/100)).formatMoney(2,"",",","."));
+                $('td:eq(7)', row).html((parseFloat(data.RUPIAH)+parseFloat(data.TAX)).formatMoney(2,"",",","."));
             },
             columnDefs: [
                 { "orderable": false, "targets": 0 }
@@ -315,7 +315,7 @@
             $("#editsatuan").html(row[0].NAMASATHARGA);
             $("#editjmlsatharga").html(parseFloat(row[0].JMLSATHARGA).formatMoney(2,"",",","."));
             $("#editrupiah").html(parseFloat(row[0].RUPIAH).formatMoney(2,"",",","."));
-            $("#edithpp").html((parseFloat(row[0].RUPIAH)*(1+parseFloat(row[0].TAX)/100)).formatMoney(2,"",",","."));
+            $("#edithpp").html((parseFloat(row[0].RUPIAH)+parseFloat(row[0].TAX)).formatMoney(2,"",",","."));
             $("#produk").val(produk_id);
             $("#tglkonversi").val(tglkonversi);
             $("#jmlsatkonversi").val(jmlsatkonversi);
@@ -374,9 +374,9 @@
             })
         })
         $("#tax").on("change", function(){
-            var tax  = $("#tax").val() != "" ? $("#tax").inputmask("unmaskedvalue") : 0;
+            var tax  = $("#tax").val() != "" ? parseFloat($("#tax").inputmask("unmaskedvalue")) : 0;
             var rupiah = $("#editrupiah").html().trim() == "" ? 0 : parseFloat($("#editrupiah").html().replace(/,/g,""));
-            $("#edithpp").html((rupiah*(1+tax/100)).formatMoney(2,"",",","."));
+            $("#edithpp").html((rupiah+tax).formatMoney(2,"",",","."));
         })
     })
 </script>

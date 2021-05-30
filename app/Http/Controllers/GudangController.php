@@ -2533,9 +2533,11 @@ class GudangController extends Controller {
 					$sheet->setCellValue('B' .$lastrow, 'No Aju');
 					$sheet->setCellValue('C' .$lastrow, 'Nopen');
 					$sheet->setCellValue('D' .$lastrow, 'Tgl Nopen');
-				  $sheet->setCellValue('E' .$lastrow, 'Tgl Bongkar');
-				  $sheet->setCellValue('F' .$lastrow, 'Gudang');
-					$sheet->setCellValue('G' .$lastrow, 'Hasil Bongkar');
+					$sheet->setCellValue('E' .$lastrow, 'Jml Kemasan');
+					$sheet->setCellValue('F' .$lastrow, '');
+				  $sheet->setCellValue('G' .$lastrow, 'Tgl Bongkar');
+				  $sheet->setCellValue('H' .$lastrow, 'Gudang');
+					$sheet->setCellValue('I' .$lastrow, 'Hasil Bongkar');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
@@ -2543,9 +2545,11 @@ class GudangController extends Controller {
 						$sheet->setCellValue('B' .$lastrow, $dt->NOAJU);
 						$sheet->setCellValue('C' .$lastrow, $dt->NOPEN);
 						$sheet->setCellValue('D' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('E' .$lastrow, $dt->TGLBONGKAR);
-						$sheet->setCellValue('F' .$lastrow, $dt->NAMAGUDANG);
-						$sheet->setCellValue('G' .$lastrow, $dt->HASILBONGKAR);
+						$sheet->setCellValue('E' .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue('F' .$lastrow, $dt->JENISKEMASAN);
+						$sheet->setCellValue('G' .$lastrow, $dt->TGLBONGKAR);
+						$sheet->setCellValue('H' .$lastrow, $dt->NAMAGUDANG);
+						$sheet->setCellValue('I' .$lastrow, $dt->HASILBONGKAR);
 					}
 
 					$writer = new Xlsx($spreadsheet);
@@ -2570,7 +2574,7 @@ class GudangController extends Controller {
 			$importir = Transaksi::getImportir();
 			return view("gudang.bongkar",["breads" => $breadcrumb,
 										"dataimportir" => $importir,
-										"datakategori1" => Array("Nopen","No Aju"),
+										"datakategori1" => Array("Nopen","No Aju","Jumlah Kemasan"),
 										"datakategori2" => Array("Tanggal Nopen","Tanggal Bongkar")
 										]);
 		}
@@ -2591,7 +2595,7 @@ class GudangController extends Controller {
 									$data = $data->first();
 									$data->TGL_NOPEN = $data->TGL_NOPEN == '' ? "" : Date("d-m-Y", strtotime($data->TGL_NOPEN));
 									$detail = DB::table(DB::raw("kontainer_masuk k"))
-															->select("NOPOL","GUDANG_ID","TGL_MASUK")
+															->select("NOPOL","GUDANG_ID",DB::raw("DATE_FORMAT(TGL_MASUK, '%d-%m-%Y') AS TGL_MASUK"))
 															->where("NO_KONTAINER", $data->ID);
 									if ($detail->exists()){
 											$data->detail = $detail->first();
@@ -2678,9 +2682,11 @@ class GudangController extends Controller {
 					$sheet->setCellValue('B' .$lastrow, 'No Aju');
 					$sheet->setCellValue('C' .$lastrow, 'Nopen');
 					$sheet->setCellValue('D' .$lastrow, 'Tgl Nopen');
-				  $sheet->setCellValue('E' .$lastrow, 'Tgl Bongkar');
-				  $sheet->setCellValue('F' .$lastrow, 'Tgl Kirim');
-					$sheet->setCellValue('G' .$lastrow, 'Hasil Bongkar');
+					$sheet->setCellValue('E' .$lastrow, 'Jml Kemasan');
+				  $sheet->setCellValue('F' .$lastrow, '');
+				  $sheet->setCellValue('G' .$lastrow, 'Tgl Bongkar');
+				  $sheet->setCellValue('H' .$lastrow, 'Tgl Kirim');
+					$sheet->setCellValue('I' .$lastrow, 'Hasil Bongkar');
 
 					foreach ($data as $dt){
 						$lastrow += 1;
@@ -2688,9 +2694,11 @@ class GudangController extends Controller {
 						$sheet->setCellValue('B' .$lastrow, $dt->NOAJU);
 						$sheet->setCellValue('C' .$lastrow, $dt->NOPEN);
 						$sheet->setCellValue('D' .$lastrow, $dt->TGLNOPEN);
-						$sheet->setCellValue('E' .$lastrow, $dt->TGLBONGKAR);
-						$sheet->setCellValue('F' .$lastrow, $dt->TGLKIRIM);
-						$sheet->setCellValue('G' .$lastrow, $dt->HASILBONGKAR);
+						$sheet->setCellValue('E' .$lastrow, $dt->JUMLAH_KEMASAN);
+						$sheet->setCellValue('F' .$lastrow, $dt->JENISKEMASAN);
+						$sheet->setCellValue('G' .$lastrow, $dt->TGLBONGKAR);
+						$sheet->setCellValue('H' .$lastrow, $dt->TGLKIRIM);
+						$sheet->setCellValue('I' .$lastrow, $dt->HASILBONGKAR);
 					}
 
 					$writer = new Xlsx($spreadsheet);
@@ -2715,7 +2723,7 @@ class GudangController extends Controller {
 			$importir = Transaksi::getImportir();
 			return view("gudang.pengeluaran",["breads" => $breadcrumb,
 										"dataimportir" => $importir,
-										"datakategori1" => Array("Nopen","No Aju"),
+										"datakategori1" => Array("Nopen","No Aju", "Jumlah Kemasan"),
 										"datakategori2" => Array("Tanggal Nopen","Tanggal Kirim")
 										]);
 		}

@@ -52,15 +52,19 @@
                               <div class="form-row px-2 pb-0">
                                   <label class="col-md-2 col-form-label form-control-sm">No. Aju</label>
                                   <label class="col-md-2 col-form-label form-control-sm">{{ $header->NOAJU}}</label>
-                                  <label class="col-md-1 col-form-label form-control-sm">Nopen</label>
-                                  <label class="col-md-2 col-form-label form-control-sm">{{ $header->NOPEN }}</label>
+                                  <label class="col-md-2 col-form-label form-control-sm">Nopen</label>
+                                  <label class="col-md-1 col-form-label form-control-sm">{{ $header->NOPEN }}</label>
                                   <label class="col-md-2 col-form-label text-right form-control-sm">Tgl Nopen</label>
                                   <label class="col-md-2 col-form-label form-control-sm">{{ $header->TGLNOPEN }}</label>
                               </div>
                               <div class="form-row px-2 pb-0">
                                   <label class="col-md-2 col-form-label form-control-sm">Gudang</label>
-                                  <div class="col-md-3">
+                                  <div class="col-md-2">
                                       <label class="col-form-label form-control-sm px-0">{{ $header->NAMAGUDANG }}</label>
+                                  </div>
+                                  <label class="col-md-2 col-form-label form-control-sm">Jumlah Kemasan</label>
+                                  <div class="col-md-3">
+                                      <label class="col-form-label form-control-sm px-0">{{ $header->JUMLAH_KEMASAN }} {{ $header->JENISKEMASAN }}</label>
                                   </div>
                               </div>
                               <div class="form-row px-2">

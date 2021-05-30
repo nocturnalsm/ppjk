@@ -100,25 +100,31 @@
                         <div class="card col-md-12 p-0 mb-2">
                             <div class="card-body p-3">
                                 <div class="form-row px-2 pb-0">
-                                    <label class="col-md-1 col-form-label form-control-sm">Importir</label>
+                                    <label class="col-md-2 col-form-label form-control-sm">Importir</label>
                                     <label class="col-md-4 col-form-label form-control-sm">{{ $header->NAMAIMPORTIR }}</label>
                                 </div>
                                 <div class="form-row px-2 pb-0">
-                                    <label class="col-md-1 col-form-label form-control-sm">No. Aju</label>
+                                    <label class="col-md-2 col-form-label form-control-sm">No. Aju</label>
                                     <label class="col-md-2 col-form-label form-control-sm">{{ $header->NOAJU}}</label>
-                                    <label class="col-md-1 col-form-label form-control-sm">Nopen</label>
+                                    <label class="col-md-auto col-form-label form-control-sm">Nopen</label>
                                     <label class="col-md-2 col-form-label form-control-sm">{{ $header->NOPEN }}</label>
-                                    <label class="col-md-1 col-form-label text-right form-control-sm">Tgl Nopen</label>
+                                    <label class="col-md-auto col-form-label text-right form-control-sm">Tgl Nopen</label>
                                     <label class="col-md-2 col-form-label form-control-sm">{{ $header->TGLNOPEN }}</label>
                                 </div>
+                                <div class="form-row px-2 pb-0">
+                                  <label class="col-md-2 col-form-label form-control-sm">Jumlah Kemasan</label>
+                                  <div class="col-md-3">
+                                      <label class="col-form-label form-control-sm px-0">{{ $header->JUMLAH_KEMASAN }} {{ $header->JENISKEMASAN }}</label>
+                                  </div>
+                                </div>
                                 <div class="form-row px-2">
-                                    <label class="col-md-1 col-form-label form-control-sm">Tgl Kirim</label>
+                                    <label class="col-md-2 col-form-label form-control-sm">Tgl Kirim</label>
                                     <div class="col-md-1">
                                         <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglkirim" value="{{ $header->TGLKIRIM }}" id="tglkirim">
                                     </div>
                                 </div>
                                 <div class="form-row px-2">
-                                    <label class="col-md-1 col-form-label form-control-sm ">Catatan</label>
+                                    <label class="col-md-2 col-form-label form-control-sm ">Catatan</label>
                                     <div class="col-md-4">
                                         <textarea {{ $readonly }} rows="4" class="form-control form-control-sm" id="catatan" name="catatan">{{ $header->CATATAN }}</textarea>
                                     </div>

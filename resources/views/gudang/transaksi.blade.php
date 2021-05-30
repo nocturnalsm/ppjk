@@ -202,7 +202,7 @@
                 </div>
                 <div class="col-md-2"></div>
                 <label class="col-md-1 col-form-label form-control-sm text-right">Tgl Nopen</label>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglentri" value="{{ $header->TGL_NOPEN }}" id="tglnopen">
                 </div>
             </div>
@@ -211,11 +211,24 @@
                 <div class="col-md-2">
                     <input {{ $readonly }} type="text" maxlength="24" class="form-control form-control-sm" name="noinv" id="noinv" value="{{ $header->NO_INV }}">
                 </div>
+                <label class="col-md-3 col-form-label form-control-sm text-right">Jumlah Kemasan</label>
+                <div class="col-md-1">
+                    <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="jmlkemasan" value="{{ $header->JUMLAH_KEMASAN }}" id="jmlkemasan">
+                </div>
             </div>
             <div class="form-row px-2">
                 <label class="col-md-1 col-form-label form-control-sm">Kurs</label>
                 <div class="col-md-2">
                     <input {{ $readonly }} type="text" class="number form-control form-control-sm" name="kurs" id="kurs" value="{{ $header->NDPBM }}">
+                </div>
+                <label class="col-md-3 col-form-label form-control-sm text-right">Jenis Kemasan</label>
+                <div class="col-md-2">
+                    <select {{ $readonly == 'readonly' ? 'disabled' : '' }} class="form-control form-control-sm" id="jeniskemasan" name="jeniskemasan" value="{{ $header->JENIS_KEMASAN }}">
+                        <option value=""></option>
+                        @foreach($jeniskemasan as $jenis)
+                        <option @if($header->JENIS_KEMASAN == $jenis->JENISKEMASAN_ID)selected @endif value="{{ $jenis->JENISKEMASAN_ID }}">{{ $jenis->URAIAN }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
             <div class="form-row px-2">

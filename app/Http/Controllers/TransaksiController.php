@@ -837,7 +837,7 @@ class TransaksiController extends Controller {
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Tiba');
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl SPPB');
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Keluar');
-				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Terima');
+				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Masuk');
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'No.Aju');
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Nopen');
 				$sheet->setCellValue($columns[$colNo++] .$lastrow, 'Tgl Nopen');
@@ -861,7 +861,7 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTIBA);
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLSPPB);
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLKELUAR);
-					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLTERIMA);
+					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLMASUK);
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOAJU);
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->NOPEN);
 					$sheet->setCellValue($columns[$colNo++] .$lastrow, $dt->TGLNOPEN);
@@ -2506,6 +2506,7 @@ class TransaksiController extends Controller {
 		}
 		$filter = $request->input("filter");
 		$canViewCustomer = auth()->user()->can('customer.view');
+		$canViewDetailQuota = auth()->user()->can('quota.edit');
 		if ($filter && $filter == "1"){
 			$postImportir = $request->input("importir");
 			$postKategori1 = $request->input("kategori1");
@@ -2538,21 +2539,28 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('E' .$lastrow, 'Terpakai');
 					$sheet->setCellValue('F' .$lastrow, 'Stok Akhir');
 					$sheet->setCellValue('G' .$lastrow, "Satuan");
-					$sheet->setCellValue('H' .$lastrow, "Consignee");
-					$colNo = 8;
-					$columns = "ABCDEFGHIJKLMNO";
-					if ($canViewCustomer){
-							$sheet->setCellValue($columns[$colNo++] .$lastrow, "Customer");
+					if ($canViewDetailQuota){
+							$sheet->setCellValue('H' .$lastrow, "Consignee");
+							$colNo = 8;
+							$columns = "ABCDEFGHIJKLMNO";
+							if ($canViewCustomer){
+									$sheet->setCellValue($columns[$colNo++] .$lastrow, "Customer");
+							}
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, "No. VO");
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, "No Inv");
+							$sheet->setCellValue($columns[$colNo++] .$lastrow, "No BL");
+		          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Booking");
+		          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Realisasi");
+		          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Satuan");
 					}
-					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No. VO");
-					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No Inv");
-					$sheet->setCellValue($columns[$colNo++] .$lastrow, "No BL");
-          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Booking");
-          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Realisasi");
-          $sheet->setCellValue($columns[$colNo++] .$lastrow, "Satuan");
           $no = 0;
 					foreach ($data as $dt){
-						$detail = Transaksi::detailSaldoQuota($dt->ID, $dt->KODE_HS);
+						if ($canViewDetailQuota){
+								$detail = Transaksi::detailSaldoQuota($dt->ID, $dt->KODE_HS);
+						}
+						else {
+								$detail = Array();
+						}
 						if (count($detail) > 0){
 							$no += 1;
 							foreach ($detail as $det){
