@@ -31,16 +31,18 @@
                 <div class="col-md-4 py-0 pl-4 mt-1">
                     Form Perekaman Bongkar
                 </div>
+                @if($readonly == '')
                 <div class="col-md-8 py-0 pr-4 text-right">
                     <button type="button" id="btnsimpan" class="btn btn-primary btn-sm m-0">Simpan</button>&nbsp;
                     <a href="/" class="btn btn-default btn-sm m-0">Batal</a>&nbsp;
                 </div>
+                @endif
             </div>
         </div>
         <form id="transaksi" autocomplete="off">
         <div class="card-body">
             <div class="col-md-12">
-              <input type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
+              <input {{ $readonly }} type="hidden" value="{{ $header->ID }}" id="idtransaksi" name="idtransaksi">
               <div class="row px-2">
                   <div class="col-md-7 pt-0 col-sm-12">
                       <div class="row">
@@ -70,13 +72,13 @@
                               <div class="form-row px-2">
                                   <label class="col-md-2 col-form-label form-control-sm">Tgl Bongkar</label>
                                   <div class="col-md-2">
-                                      <input autocomplete="off" type="text" class="datepicker form-control form-control-sm" name="tglbongkar" value="{{ $header->TGLBONGKAR }}" id="tglbl">
+                                      <input {{ $readonly }} autocomplete="off" type="text" class="datepicker{{ $readonly == 'readonly' ? '-readonly' : '' }} form-control form-control-sm" name="tglbongkar" value="{{ $header->TGLBONGKAR }}" id="tglbl">
                                   </div>
                               </div>
                               <div class="form-row px-2">
                                   <label class="col-md-2 col-form-label form-control-sm">Hasil Bongkar</label>
                                   <div class="col-md-2">
-                                      <select class="form-control form-control-sm" id="hasilbongkar" name="hasilbongkar" value="{{ $header->HASIL_BONGKAR }}">
+                                      <select {{ $readonly == '' ? "" : "disabled" }} class="form-control form-control-sm" id="hasilbongkar" name="hasilbongkar" value="{{ $header->HASIL_BONGKAR }}">
                                           <option @if(!$header->HASIL_BONGKAR || $header->HASIL_BONGKAR == '') selected @endif value=""></option>
                                           <option @if($header->HASIL_BONGKAR == 'S') selected @endif value="S">Sesuai</option>
                                           <option @if($header->HASIL_BONGKAR == 'K') selected @endif value="K">Kurang</option>
@@ -94,6 +96,7 @@
                       </div>
                   </div>
                   <div class="col-md-5 col-sm-12">
+                      @if($readonly == '')
                       <h6 class="card-title">Upload BA dan Foto</h6>
                       <div class="card-body py-0">
                           <div class="row">
@@ -107,6 +110,7 @@
                             </div>
                           </div>
                       </div>
+                      @endif
                       <div class="card-body p-0">
                           <div class="row px-1 mt-2">
                               <div class="col-md-12 col-sm-12">
@@ -117,10 +121,12 @@
                                               {{ $file->FILEREALNAME }}
                                           </td>
                                           <td class="text-center">
+                                              @if($readonly == '')
                                               <a href="#" class="delete" title="Hapus File">
                                                   <i class="fa fa-trash"></i>
                                               </a>
                                               <input type="hidden" value="{{ $file->ID }}" name="fileid">
+                                              @endif
                                               <a href="/transaksi/getfile?file={{ $file->ID }}" tile="Download File" class="download">
                                                   <i class="fa fa-download"></i>
                                               </a>
@@ -164,19 +170,19 @@
                                             <tbody>
                                               @if($header->detail->count() > 0)
                                               @foreach($header->detail as $detail)
-                                              <input type="hidden" name="iddetail[]" value="{{ $detail->ID }}">
-                                              <input type="hidden" name="idheader[]" value="{{ $detail->ID_HEADER }}">
-                                              <input type="hidden" name="kodebarang[]" value="{{ $detail->KODEBARANG }}">
+                                              <input {{ $readonly }} type="hidden" name="iddetail[]" value="{{ $detail->ID }}">
+                                              <input {{ $readonly }} type="hidden" name="idheader[]" value="{{ $detail->ID_HEADER }}">
+                                              <input {{ $readonly }} type="hidden" name="kodebarang[]" value="{{ $detail->KODEBARANG }}">
                                               <tr>
                                                   <td>{{ $detail->KODEBRG}}</td>
                                                   <td>{{ $detail->satuan }}</td>
                                                   <td>{{ $detail->JMLKEMASAN }}</td>
                                                   <td>{{ $detail->JMLSATHARGA }}</td>
                                                   <td>
-                                                    <input type="text" class="number form-control form-control-sm" autocomplete="off" name="kmsbkr[]" value="{{ $detail->JMLKEMASANBONGKAR }}">
+                                                    <input {{ $readonly }} type="text" class="number form-control form-control-sm" autocomplete="off" name="kmsbkr[]" value="{{ $detail->JMLKEMASANBONGKAR }}">
                                                   </td>
                                                   <td>
-                                                    <input type="text" class="number form-control form-control-sm" autocomplete="off" name="satbkr[]" value="{{ $detail->JMLSATHARGABONGKAR }}">
+                                                    <input {{ $readonly }} type="text" class="number form-control form-control-sm" autocomplete="off" name="satbkr[]" value="{{ $detail->JMLSATHARGABONGKAR }}">
                                                   </td>
                                               </tr>
                                               @endforeach
@@ -254,6 +260,7 @@
             rightAlign: false,
             removeMaskOnSubmit: true,
         });
+        @if($readonly == '')
         var numFiles = $("#listfiles tr").length;
         var maxFiles = 4;
         if (numFiles == maxFiles){
@@ -350,6 +357,7 @@
                 }
             })
         })
+        @endif
     })
 </script>
 @endpush

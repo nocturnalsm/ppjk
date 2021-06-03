@@ -54,7 +54,7 @@ class GudangController extends Controller {
 	}
 	public function userbongkar(Request $request, $id = "")
   {
-		if(!auth()->user()->can('gudang.transaksibongkar')){
+		if(!auth()->user()->can('gudang.bongkar')){
 			abort(403, 'User does not have the right roles.');
 		}
     $breadcrumb[] = Array("link" => "/", "text" => "Home");
@@ -70,6 +70,7 @@ class GudangController extends Controller {
 		$dtFiles = Transaksi::getFiles($dtTransaksi->IDBONGKAR, 3);
 		$data = [
 				"header" => $dtTransaksi, "breads" => $breadcrumb,
+				"readonly" => auth()->user()->cannot('gudang.transaksibongkar') ? "readonly" : "",
 				"datagudang" => $dtGudang, "idtransaksi" => $id, "importir" => $dtImportir, "files" => $dtFiles
 			];
 		return view("gudang.transaksibongkar", $data);

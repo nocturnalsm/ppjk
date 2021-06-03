@@ -7,8 +7,8 @@
     <div class="card-body">
         <form id="form" method="POST" action="/transaksi/browsestokproduk?filter=1&export=1">
         @csrf
-        <div class="row">            
-            <div class="col-md-10">            
+        <div class="row">
+            <div class="col-md-10">
                 <div class="row">
                     <label class="col-md-2">Importir</label>
                     <div class="col-md-3">
@@ -23,39 +23,32 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2">
-                        Kategori
-                    </div>
+                    <label class="col-md-2">Customer</label>
                     <div class="col-md-3">
-                        <select class="form-control form-control-sm" id="kategori1" name="kategori1">
-                            <option value=""></option>
-                            @foreach($datakategori1 as $kat)
-                            <option value="{{ $kat }}">{{ $kat }}</option>
+                        <select class="form-control form-control-sm" id="customer" name="customer">
+                            <option value="">Semua</option>
+                            @foreach($datacustomer as $cust)
+                            <option value="{{ $cust->id_customer }}">{{ $cust->nama_customer }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <label class="px-md-3 col-md-1">Nilai</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        Kode Produk
+                    </div>
                     <div class="col-md-3">
                         <input type="text" id="isikategori1_text" name="isikategori1" class="form-control form-control-sm" style="display:inline;">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-2">
-                        Kategori
+                        HPP Range
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-control form-control-sm" id="kategori2" name="kategori2">
-                            @foreach($datakategori2 as $kat)
-                            <option value="{{ $kat }}">{{ $kat }}</option>
-                            @endforeach
-
-                        </select>
-                    </div>
-                    <label class="px-sm-3 col-sm-1">Periode</label>
                     <div class="col-md-5">
-                        <input autocomplete="off" type="text" id="dari2" name="dari2" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                        <input autocomplete="off" type="text" id="dari" name="dari" class="number form-control d-inline form-control-sm" style="width: 120px">
                         &nbsp;&nbsp;sampai&nbsp;&nbsp;
-                        <input autocomplete="off" type="text" id="sampai2" name="sampai2" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                        <input autocomplete="off" type="text" id="sampai" name="sampai" class="number form-control d-inline form-control-sm" style="width: 120px">
                     </div>
                 </div>
             </div>
@@ -65,25 +58,23 @@
                 <a id="preview" class="btn btn-primary">Filter</a>
                 <a id="export" class="btn btn-primary disabled">Export</a>
             </div>
-        </div>  
+        </div>
         </form>
         <div class="row mt-4 pt-4">
             <div class="col" id="divtable">
                 <table width="100%" id="grid" class="table">
                     <thead>
                         <th>Opsi</th>
-                        <th>Kode Produk</th>                        
-                        <th>Saldo Awal</th>
-                        <th>Masuk</th>
-                        <th>Keluar</th>
-                        <th>Saldo Akhir</th>                  
+                        <th>Kode Produk</th>
+                        <th>Stok</th>
+                        <th>Avg HPP</th>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-        </div>      
+        </div>
     </div>
-</div>  
+</div>
 @endsection
 @push('stylesheets_end')
     <link href="{{ asset('jquery-ui/jquery-ui.min.css') }}" rel="stylesheet">
@@ -93,8 +84,6 @@
 <script type="text/javascript" src="{{ asset('jquery-ui/jquery-ui.min.js') }}"></script>
 <script>
     $(function(){
-
-        $(".datepicker").datepicker({dateFormat: "dd-mm-yy"});
 
         Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
             places = !isNaN(places = Math.abs(places)) ? places : 2;
@@ -108,25 +97,12 @@
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
 
-        var columns = [{target: 0, data: null}, {target: 1, data: "kode"}, {target: 2, data: "kemasansawal"}, 
-            {target: 3, data: "kemasanmasuk"}, {target: 4, data: "kemasankeluar"},
-            {target: 5, data: "kemasansakhir"} 
+        var columns = [{target: 0, data: null}, {target: 1, data: "KODEPRODUK"}, {target: 2, data: "STOK"},
+                       {target: 3, data: "AVGHPP"}
         ];
-        var printvalues  = function(jmlkemasan, jmlsatuan, kemasan, satuan){
-            jmlkemasan = parseFloat(jmlkemasan).formatMoney(2,"",",",".");
-            jmlsatuan = parseFloat(jmlsatuan).formatMoney(2,"",",",".");
-            
-            if (jmlkemasan){
-                var html = jmlkemasan + (kemasan ? " " + kemasan : "");
-                if (jmlsatuan){
-                    html += "<br>" + jmlsatuan + (satuan ? " " + satuan : ""); 
-                }
-            }
-            return html
-        }
         var grid = $("#grid").DataTable({responsive: false,
             dom: "rtip",
-            "language": 
+            "language":
             {
                 "lengthMenu": "Menampilkan _MENU_ record per halaman",
                 "info": "",
@@ -142,43 +118,31 @@
             order: [[0, 'asc']],
             columns: columns,
             rowCallback: function(row, data)
-            {                
+            {
                 $(row).attr("id-transaksi", data[0]);
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
-                $('td:eq(2)', row).html(printvalues(data.kemasansawal, data.satuansawal, data.satuankemasan, data.satuan));        
-                $('td:eq(3)', row).html(printvalues(data.kemasanmasuk, data.satuanmasuk, data.satuankemasan, data.satuan));        
-                $('td:eq(4)', row).html(printvalues(data.kemasankeluar, data.satuankeluar, data.satuankemasan, data.satuan));        
-                $('td:eq(5)', row).html(printvalues(data.kemasansakhir, data.satuansakhir, data.satuankemasan, data.satuan));        
             },
             columnDefs: [
                 { "orderable": false, "targets": 0 }
             ]
-        }); 
+        });
         $("#preview").on("click", function(){
             $.ajax({
             method: "POST",
             url: "/transaksi/browsestokproduk?filter=1",
             data: $("#form").serialize(),
-            success: function(msg){           
+            success: function(msg){
                     grid.clear().rows.add(msg);
-                    grid.columns.adjust().draw();  
+                    grid.columns.adjust().draw();
                     if (msg.length == 0){
                         $("#export").addClass("disabled");
                     }
                     else {
                         $("#export").removeClass("disabled");
-                    }                             
+                    }
             }
             });
         });
-        $("#kategori1").on("change", function(){
-            var value = $(this).val().trim() == "";
-            $("#isikategori1 option[value='']").prop("selected", value);
-        })
-        $("#isikategori1").on("change", function(){
-            var value = $(this).find("option:selected").val().trim() != "";
-            $("#kategori1 option").eq(1).prop("selected", value);
-        })
         $("#form input, select").on("change", function(){
             $("#export").addClass("disabled");
         })
@@ -208,7 +172,7 @@
                             //var  response = JSON.parse(msg);
                             if (typeof response.error != 'undefined'){
                                 return false;
-                            }            
+                            }
                             var data = response.data;
                             var detail =  '<table class="table" width="100%">'+
                                     '<thead>'+
@@ -236,19 +200,27 @@
                                 detail += '<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>';
                             }
                             detail += '</tbody></table>';
-                            row.child(detail).show();           
+                            row.child(detail).show();
                             tr.addClass('shown');
                             $(tr).find("a.showdetail i").attr("class","fa fa-minus-circle");
-                        }        
-                    })              
+                        }
+                    })
                 }
-                else {        
+                else {
                     row.child.show();
                     tr.addClass('shown');
                     $(this).find("i").attr("class","fa fa-minus-circle");
-                }        
+                }
             }
         } );
+        $(".number").inputmask("numeric", {
+            radixPoint: ".",
+            groupSeparator: ",",
+            digits: 2,
+            autoGroup: true,
+            rightAlign: false,
+            removeMaskOnSubmit: true,
+        });
     })
 </script>
 @endpush

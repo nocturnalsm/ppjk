@@ -2047,7 +2047,6 @@ class TransaksiController extends Controller {
 		}
 		return $importir;
 	}
-	/*
 	public function browseStokProduk(Request $request)
   {
 		if(!auth()->user()->can('stokperproduk')){
@@ -2056,12 +2055,11 @@ class TransaksiController extends Controller {
 		$filter = $request->input("filter");
 		if ($filter && $filter == "1"){
 			$postImportir = $request->input("importir");
-			$postKategori1 = $request->input("kategori1");
-			$isikategori1 = $request->input("isikategori1");
+			$postCustomer = $request->input("customer");
+			$kodeProduk = $request->input("kodeproduk");
 			$dari = $request->input("dari2");
 			$sampai = $request->input("sampai2");
-			$data = Transaksi::stokProduk($postImportir, $dari, $sampai, $postKategori1,
-									$isikategori1);
+			$data = Transaksi::stokProduk($postImportir, $postCustomer, $kodeproduk, $dari, $sampai);
 			if ($data){
 				$export = $request->input("export");
 				if ($export == "1"){
@@ -2074,97 +2072,36 @@ class TransaksiController extends Controller {
 					else {
 						$sheet->setCellValue('C1', "Semua");
 					}
-					$lastrow = 1;
-					if ($postKategori1 && trim($postKategori1) != ""){
-						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $postKategori1);
-						$sheet->setCellValue('C' .$lastrow, $isikategori1);
+					$sheet->setCellValue('A2', 'CUSTOMER');
+					if ($postCustomer && trim($postCustomer) != ""){
+						$sheet->setCellValue('C2', Transaksi::getCustomer($postCustomer)->nama_customer);
 					}
-					$lastrow += 1;
-					$sheet->setCellValue('A' .$lastrow, 'Tanggal');
-					$sheet->setCellValue('C' .$lastrow, $dari);
-					$sheet->setCellValue('D' .$lastrow, $sampai);
+					else {
+						$sheet->setCellValue('C2', "Semua");
+					}
+					$lastrow = 2;
+					if ($kodeProduk && trim($kodeProduk) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, 'Kode Produk');
+						$sheet->setCellValue('C' .$lastrow, $kodeProduk);
+					}
+					if (trim($dari) != "" || trim($sampai) != ""){
+						$lastrow += 1;
+						$sheet->setCellValue('A' .$lastrow, 'HPP Range');
+						$sheet->setCellValue('C' .$lastrow, $dari);
+						$sheet->setCellValue('D' .$lastrow, $sampai);
+					}
 					$lastrow += 2;
 
-					$sheet->setCellValue('A' .$lastrow, 'No');
-					$sheet->setCellValue('B' .$lastrow, 'Kode Produk');
-					$sheet->setCellValue('C' .$lastrow, 'Saldo Awal');
-					$sheet->setCellValue('F' .$lastrow, 'Masuk');
-					$sheet->setCellValue('I' .$lastrow, 'Keluar');
-					$sheet->setCellValue('L' .$lastrow, 'Stok Akhir');
-					$sheet->setCellValue('O' .$lastrow, "KODE BARANG");
-					$sheet->setCellValue('P' .$lastrow, "IMPORTIR");
-					$sheet->setCellValue('Q' .$lastrow, "TANGGAL");
-					$sheet->setCellValue('R' .$lastrow, "SALDO AWAL");
-					$sheet->setCellValue('U' .$lastrow, "MASUK");
-					$sheet->setCellValue('X' .$lastrow, "KELUAR");
+					$sheet->setCellValue('A' .$lastrow, 'Kode Produk');
+					$sheet->setCellValue('B' .$lastrow, 'Stok');
+					$sheet->setCellValue('C' .$lastrow, 'Avg HPP');
 
-                    $no = 0;
 					foreach ($data as $dt){
-						$detail = Transaksi::detailStokProduk($postImportir, $dari, $sampai, $dt->id);
-						if (count($detail) > 0){
-							$no += 1;
-							foreach ($detail as $det){
-    							$lastrow += 1;
-								$sheet->setCellValue('A' .$lastrow, $no);
-								$sheet->setCellValue('B' .$lastrow, $dt->kode);
-        						$sheet->setCellValue('C' .$lastrow, $dt->kemasansawal);
-        						$sheet->setCellValue('D' .$lastrow, $dt->satuansawal);
-        						$sheet->getStyle('D' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('E' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('F' .$lastrow, $dt->kemasanmasuk);
-        						$sheet->setCellValue('G' .$lastrow, $dt->satuanmasuk);
-        						$sheet->getStyle('G' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('H' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('I' .$lastrow, $dt->kemasankeluar);
-        						$sheet->setCellValue('J' .$lastrow, $dt->satuankeluar);
-        						$sheet->getStyle('J' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('K' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('L' .$lastrow, $dt->kemasansakhir);
-        						$sheet->setCellValue('M' .$lastrow, $dt->satuansakhir);
-        						$sheet->getStyle('M' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('N' .$lastrow, $dt->satuan);
-
-								$sheet->setCellValue('O' .$lastrow, $det->KODEBARANG);
-								$sheet->setCellValue('P' .$lastrow, $det->NAMA);
-								$sheet->setCellValue('Q' .$lastrow, $det->TANGGAL);
-								$sheet->setCellValue('R' .$lastrow, $det->kemasansawal);
-								$sheet->setCellValue('S' .$lastrow, $det->satuansawal);
-								$sheet->getStyle('S' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-								$sheet->setCellValue('T' .$lastrow, $det->satuan);
-								$sheet->setCellValue('U' .$lastrow, $det->kemasanmasuk);
-								$sheet->setCellValue('V' .$lastrow, $det->satuanmasuk);
-								$sheet->getStyle('V' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-								$sheet->setCellValue('W' .$lastrow, $det->satuan);
-								$sheet->setCellValue('X' .$lastrow, $det->kemasankeluar);
-								$sheet->setCellValue('Y' .$lastrow, $det->satuankeluar);
-								$sheet->getStyle('Y' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-								$sheet->setCellValue('Z' .$lastrow, $det->satuan);
-							}
-						}
-						else {
-								$no += 1;
-								$lastrow += 1;
-								$sheet->setCellValue('A' .$lastrow, $no);
-								$sheet->setCellValue('B' .$lastrow, $dt->kode);
-        						$sheet->setCellValue('C' .$lastrow, $dt->kemasansawal);
-        						$sheet->setCellValue('D' .$lastrow, $dt->satuansawal);
-        						$sheet->getStyle('D' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('E' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('F' .$lastrow, $dt->kemasanmasuk);
-        						$sheet->setCellValue('G' .$lastrow, $dt->satuanmasuk);
-        						$sheet->getStyle('G' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('H' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('I' .$lastrow, $dt->kemasankeluar);
-        						$sheet->setCellValue('J' .$lastrow, $dt->satuankeluar);
-        						$sheet->getStyle('J' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('K' .$lastrow, $dt->satuan);
-        						$sheet->setCellValue('L' .$lastrow, $dt->kemasansakhir);
-        						$sheet->setCellValue('M' .$lastrow, $dt->satuansakhir);
-        						$sheet->getStyle('M' .$lastrow)->getNumberFormat()->setFormatCode('#,##0.00');
-        						$sheet->setCellValue('N' .$lastrow, $dt->satuan);
-						}
-						$lastrow += 1;
+  						$lastrow += 1;
+							$sheet->setCellValue('A' .$lastrow, $dt->KODEPRODUK);
+							$sheet->setCellValue('B' .$lastrow, $dt->STOK);
+							$sheet->setCellValue('C' .$lastrow, $dt->AVGHPP);
 					}
 					$writer = new Xlsx($spreadsheet);
 					return response()->streamDownload(function() use ($writer){
@@ -2184,14 +2121,16 @@ class TransaksiController extends Controller {
 			$breadcrumb[] = Array("link" => "../", "text" => "Home");
 			$breadcrumb[] = Array("text" => "Browse Stok per Produk");
 			$importir = Transaksi::getImportir();
+			$customer = Transaksi::getCustomer();
 			$produk = DB::table("produk")->get();
 
 			return view("transaksi.stokproduk",["breads" => $breadcrumb,
 										"dataimportir" => $importir, "dataproduk" => $produk,
-										"datakategori1" => Array("Kode Produk"),"datakategori2" => Array("Tanggal")
+										"datacustomer" => $customer
 										]);
 		}
 	}
+
 	public function browseStokBarang(Request $request)
   {
 		if(!auth()->user()->can('stokperbarang')){
@@ -2383,7 +2322,6 @@ class TransaksiController extends Controller {
 		$data = Transaksi::getDetailStokBarang($id, $form["kategori2"], $form["dari2"], $form["sampai2"]);
 		return response()->json(["data" => $data]);
 	}
-	*/
 	public function perekamanpengeluaran($id = "")
 	{
 		if(!auth()->user()->can('master.produk.browse')){
