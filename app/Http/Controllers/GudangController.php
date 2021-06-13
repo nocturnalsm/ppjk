@@ -2833,7 +2833,7 @@ class GudangController extends Controller {
 			$customer = Transaksi::getCustomer();
 			$importir = Transaksi::getImportir();
 			$dtSatuan = Transaksi::getSatuan();
-			$dtProduk = Produk::all();
+			$dtProduk = Produk::orderBy("nama")->get();
 			return view("gudang.konversistok",["breads" => $breadcrumb,
 										"datacustomer" => $customer, "datasatuan" => $dtSatuan,
 										"dataimportir" => $importir, "dataproduk" => $dtProduk,

@@ -64,8 +64,8 @@
             <div class="col" id="divtable">
                 <table width="100%" id="grid" class="table">
                     <thead>
-                        <th>Opsi</th>
                         <th>Kode Produk</th>
+                        <th>Importir</th>
                         <th>Stok</th>
                         <th>Avg HPP</th>
                     </thead>
@@ -97,8 +97,8 @@
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
 
-        var columns = [{target: 0, data: null}, {target: 1, data: "KODEPRODUK"}, {target: 2, data: "STOK"},
-                       {target: 3, data: "AVGHPP"}
+        var columns = [{target: 0, data: "kode"}, {target: 1, data: "importir"},
+                       {target: 2, data: "stok"}, {target: 3, data: "AVGHPP"}
         ];
         var grid = $("#grid").DataTable({responsive: false,
             dom: "rtip",
@@ -120,7 +120,9 @@
             rowCallback: function(row, data)
             {
                 $(row).attr("id-transaksi", data[0]);
-                $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                //$('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                $('td:eq(2)', row).html((parseFloat(data.stok)).formatMoney(2));
+                $('td:eq(3)', row).html((parseFloat(data.AVGHPP)).formatMoney(2));
             },
             columnDefs: [
                 { "orderable": false, "targets": 0 }

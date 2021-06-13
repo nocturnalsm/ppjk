@@ -5,11 +5,11 @@
         Browse Stok per Kode Barang
     </div>
     <div class="card-body">
-        <div class="row">            
+        <div class="row">
             <div class="col-md-10">
                 <form id="form" method="POST" action="/transaksi/browsestokbarang?filter=1&export=1">
                     @csrf
-                    @can('customer.view')         
+                    @can('customer.view')
                     <div class="row">
                         <label class="col-md-2">Customer</label>
                         <div class="col-md-3">
@@ -77,21 +77,19 @@
                 <a id="preview" class="btn btn-primary">Filter</a>
                 <a id="export" class="btn btn-primary disabled">Export</a>
             </div>
-        </div>  
+        </div>
         </form>
         <div class="row mt-4 pt-4">
             <div class="col" id="divtable">
                 <table width="100%" id="grid" class="table">
                     <thead>
-                        <th>Opsi</th>
-                        <th>Kode Barang</th>                        
+                        <th>Kode Barang</th>
                         <th>Kode Produk</th>
                         <th>Customer</th>
                         <th>Faktur</th>
                         <th>No.Aju</th>
                         <th>Hrg Satuan</th>
-                        <th>DPP</th>
-                        <th>Tgl Terima</th>                                               
+                        <th>Tgl Terima</th>
                         <th>Saldo Awal</th>
                         <th>Masuk</th>
                         <th>Keluar</th>
@@ -100,9 +98,9 @@
                     <tbody></tbody>
                 </table>
             </div>
-        </div>      
+        </div>
     </div>
-</div>  
+</div>
 @endsection
 @push('stylesheets_end')
     <link href="{{ asset('jquery-ui/jquery-ui.min.css') }}" rel="stylesheet">
@@ -125,25 +123,24 @@
                     j = (j = i.length) > 3 ? j % 3 : 0;
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
-        var columns = [{target: 0, data: null, orderable : false, "classname" : "show-control"}, 
-        {target: 1, data: "KODEBARANG"}, {target: 2, data: "kode"},  {target: 3, data: "CUSTOMER"@can('quota.view') ,visible:  false @endif},  
-        {target: 4, data: "FAKTUR"}, {target: 5, data: "NOAJU"}, {target: 6, data: "HARGA"},
-        {target: 7, data: "DPP"},
-        {target: 8, data: "TGL_TERIMA"},
-        {target: 9, data: "kemasansawal"}, 
-        {target: 10, data: "kemasanmasuk"},
-        {target: 11, data: "kemasankeluar"},
-        {target: 12, data: "kemasansakhir"}
+        var columns = [
+        {target: 0, data: "KODEBARANG"}, {target: 1, data: "kode"},  {target: 2, data: "CUSTOMER"@cannot('customer.view') ,visible:  false @endif},
+        {target: 3, data: "FAKTUR"}, {target: 4, data: "NOAJU"}, {target: 5, data: "HARGA"},
+        {target: 6, data: "TGL_TERIMA"},
+        {target: 7, data: "satuansawal"},
+        {target: 8, data: "satuanmasuk"},
+        {target: 9, data: "satuankeluar"},
+        {target: 10, data: "satuansakhir"}
         ];
 
         var printvalues  = function(jmlkemasan, jmlsatuan, kemasan, satuan){
             jmlkemasan = parseFloat(jmlkemasan).formatMoney(2,"",",",".");
             jmlsatuan = parseFloat(jmlsatuan).formatMoney(2,"",",",".");
-            
+
             if (jmlkemasan){
                 var html = jmlkemasan + (kemasan ? " " + kemasan : "");
                 if (jmlsatuan){
-                    html += "<br>" + jmlsatuan + (satuan ? " " + satuan : ""); 
+                    html += "<br>" + jmlsatuan + (satuan ? " " + satuan : "");
                 }
             }
             return html;
@@ -151,7 +148,7 @@
 
         var grid = $("#grid").DataTable({responsive: false,
             dom: "rtip",
-            "language": 
+            "language":
             {
                 "lengthMenu": "Menampilkan _MENU_ record per halaman",
                 "info": "",
@@ -167,31 +164,33 @@
             order: [[1, 'asc']],
             columns: columns,
             rowCallback: function(row, data)
-            {                
+            {
                 $(row).attr("id-transaksi", data[0]);
-                $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
-                $('td:eq(6)', row).html(parseFloat(data.HARGA).formatMoney(2,"",",","."));
-                $('td:eq(7)', row).html(parseFloat(data.DPP).formatMoney(0,"",",","."));
-                $('td:eq(9)', row).html(printvalues(data.kemasansawal, data.satuansawal, data.satuankemasan, data.satuan));        
-                $('td:eq(10)', row).html(printvalues(data.kemasanmasuk, data.satuanmasuk, data.satuankemasan, data.satuan));        
-                $('td:eq(11)', row).html(printvalues(data.kemasankeluar, data.satuankeluar, data.satuankemasan, data.satuan));        
-                $('td:eq(12)', row).html(printvalues(data.kemasansakhir, data.satuansakhir, data.satuankemasan, data.satuan));        
+                var col = 0;
+                @can('customer.view')
+                col = 1;
+                @endcan
+                $('td:eq(' + (4+col) +')', row).html(parseFloat(data.HARGA).formatMoney(2,"",",","."));
+                $('td:eq(' + (6+col) +')', row).html(parseFloat(data.satuansawal).formatMoney(2,"",",","."));
+                $('td:eq(' + (7+col) +')', row).html(parseFloat(data.satuanmasuk).formatMoney(2,"",",","."));
+                $('td:eq(' + (8+col) +')', row).html(parseFloat(data.satuankeluar).formatMoney(2,"",",","."));
+                $('td:eq(' + (9+col) +')', row).html(parseFloat(data.satuansakhir).formatMoney(2,"",",","."));
             }
-        }); 
+        });
         $("#preview").on("click", function(){
             $.ajax({
             method: "POST",
             url: "/transaksi/browsestokbarang?filter=1",
             data: $("#form").serialize(),
-            success: function(msg){           
+            success: function(msg){
                     grid.clear().rows.add(msg);
-                    grid.columns.adjust().draw();  
+                    grid.columns.adjust().draw();
                     if (msg.length == 0){
                         $("#export").addClass("disabled");
                     }
                     else {
                         $("#export").removeClass("disabled");
-                    }                             
+                    }
             }
             });
         })
@@ -223,7 +222,7 @@
                             //var  response = JSON.parse(msg);
                             if (typeof response.error != 'undefined'){
                                 return false;
-                            }            
+                            }
                             var data = response.data;
                             var detail =  '<table class="table" width="100%">'+
                                     '<thead>'+
@@ -256,17 +255,17 @@
                                 detail += '<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>';
                             }
                             detail += '</tbody></table>';
-                            row.child(detail).show();           
+                            row.child(detail).show();
                             tr.addClass('shown');
                             $(tr).find("a.showdetail i").attr("class","fa fa-minus-circle");
-                        }        
-                    })              
+                        }
+                    })
                 }
-                else {        
+                else {
                     row.child.show();
                     tr.addClass('shown');
                     $(this).find("i").attr("class","fa fa-minus-circle");
-                }        
+                }
             }
         } );
     })

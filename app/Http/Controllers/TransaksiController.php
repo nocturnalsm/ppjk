@@ -1225,7 +1225,7 @@ class TransaksiController extends Controller {
 				if ($postheader){
 					$detail = $request->input("detail");
 					parse_str($postheader, $header);
-					$id = Transaksi::saveTransaksiKonversi($header, $detail);
+						$id = Transaksi::saveTransaksiKonversi($header, $detail);
 				}
 			}
 			else if ($type == "mutasi"){
@@ -2056,10 +2056,10 @@ class TransaksiController extends Controller {
 		if ($filter && $filter == "1"){
 			$postImportir = $request->input("importir");
 			$postCustomer = $request->input("customer");
-			$kodeProduk = $request->input("kodeproduk");
-			$dari = $request->input("dari2");
-			$sampai = $request->input("sampai2");
-			$data = Transaksi::stokProduk($postImportir, $postCustomer, $kodeproduk, $dari, $sampai);
+			$kodeProduk = $request->input("isikategori1");
+			$dari = $request->input("dari");
+			$sampai = $request->input("sampai");
+			$data = Transaksi::stokProduk($postImportir, $postCustomer, $kodeProduk, $dari, $sampai);
 			if ($data){
 				$export = $request->input("export");
 				if ($export == "1"){
@@ -2094,14 +2094,16 @@ class TransaksiController extends Controller {
 					$lastrow += 2;
 
 					$sheet->setCellValue('A' .$lastrow, 'Kode Produk');
-					$sheet->setCellValue('B' .$lastrow, 'Stok');
-					$sheet->setCellValue('C' .$lastrow, 'Avg HPP');
+					$sheet->setCellValue('B' .$lastrow, 'Importir');
+					$sheet->setCellValue('C' .$lastrow, 'Stok');
+					$sheet->setCellValue('D' .$lastrow, 'Avg HPP');
 
 					foreach ($data as $dt){
   						$lastrow += 1;
-							$sheet->setCellValue('A' .$lastrow, $dt->KODEPRODUK);
-							$sheet->setCellValue('B' .$lastrow, $dt->STOK);
-							$sheet->setCellValue('C' .$lastrow, $dt->AVGHPP);
+							$sheet->setCellValue('A' .$lastrow, $dt->kode);
+							$sheet->setCellValue('B' .$lastrow, $dt->importir);
+							$sheet->setCellValue('C' .$lastrow, $dt->stok);
+							$sheet->setCellValue('D' .$lastrow, $dt->AVGHPP);
 					}
 					$writer = new Xlsx($spreadsheet);
 					return response()->streamDownload(function() use ($writer){
@@ -2182,94 +2184,43 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
 					}
 					$lastrow += 2;
-					$sheet->setCellValue('A' .$lastrow, 'No');
-					$sheet->setCellValue('B' .$lastrow, 'Kode Barang');
-					$sheet->setCellValue('C' .$lastrow, 'Kode Produk');
-					$sheet->setCellValue('D' .$lastrow, 'Customer');
-					$sheet->setCellValue('E' .$lastrow, 'Faktur');
-					$sheet->setCellValue('F' .$lastrow, 'No.Aju');
-					$sheet->setCellValue('G' .$lastrow, 'Kurs');
-					$sheet->setCellValue('H' .$lastrow, 'Harga Satuan');
-					$sheet->setCellValue('I' .$lastrow, 'DPP');
-					$sheet->setCellValue('J' .$lastrow, 'Tgl Terima');
-					$sheet->setCellValue('K' .$lastrow, 'Saldo Awal');
-					$sheet->setCellValue('N' .$lastrow, 'Masuk');
-					$sheet->setCellValue('Q' .$lastrow, 'Keluar');
-					$sheet->setCellValue('T' .$lastrow, 'Stok Akhir');
-					$sheet->setCellValue('W' .$lastrow, "No.DO");
-					$sheet->setCellValue('X' .$lastrow, "Tgl DO");
-					$sheet->setCellValue('Y' .$lastrow, "No Inv Jual");
-					$sheet->setCellValue('Z' .$lastrow, "Tanggal");
-					$sheet->setCellValue('AA' .$lastrow, "Keluar");
+					$sheet->setCellValue('A' .$lastrow, 'Kode Barang');
+					$sheet->setCellValue('B' .$lastrow, 'Kode Produk');
+					$sheet->setCellValue('C' .$lastrow, 'Customer');
+					$sheet->setCellValue('D' .$lastrow, 'Faktur');
+					$sheet->setCellValue('E' .$lastrow, 'No.Aju');
+					$sheet->setCellValue('F' .$lastrow, 'Kurs');
+					$sheet->setCellValue('G' .$lastrow, 'Harga Satuan');
+					$sheet->setCellValue('H' .$lastrow, 'Tgl Terima');
+					$sheet->setCellValue('I' .$lastrow, 'Saldo Awal');
+					$sheet->setCellValue('K' .$lastrow, 'Masuk');
+					$sheet->setCellValue('M' .$lastrow, 'Keluar');
+					$sheet->setCellValue('O' .$lastrow, 'Stok Akhir');
 
           $no = 0;
           $lastrow += 1;
 					foreach ($data as $dt){
-						$detail = Transaksi::getDetailStokBarang($dt->ID, $postKategori2, $dari2, $sampai2);
-						if (count($detail) > 0){
-							$no += 1;
-							foreach ($detail as $det){
-								$sheet->setCellValue('A' .$lastrow, $no);
-								$sheet->setCellValue('B' .$lastrow, $dt->KODEBARANG);
-								$sheet->setCellValue('C' .$lastrow, $dt->kode);
-								$sheet->setCellValue('D' .$lastrow, $dt->CUSTOMER);
-								$sheet->setCellValue('E' .$lastrow, $dt->FAKTUR);
-								$sheet->setCellValue('F' .$lastrow, $dt->NOAJU);
-								$sheet->setCellValue('G' .$lastrow, $dt->NDPBM);
-								$sheet->setCellValue('H' .$lastrow, $dt->HARGA);
-								$sheet->setCellValue('I' .$lastrow, $dt->DPP);
-								$sheet->setCellValue('J' .$lastrow, $dt->TGL_TERIMA);
-    						$sheet->setCellValue('K' .$lastrow, $dt->kemasansawal);
-    						$sheet->setCellValue('L' .$lastrow, $dt->satuansawal);
-    						$sheet->setCellValue('M' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('N' .$lastrow, $dt->kemasanmasuk);
-    						$sheet->setCellValue('O' .$lastrow, $dt->satuanmasuk);
+						//$detail = Transaksi::getDetailStokBarang($dt->ID, $postKategori2, $dari2, $sampai2);
+						//if (count($detail) > 0){
+								$sheet->setCellValue('A' .$lastrow, $dt->KODEBARANG);
+								$sheet->setCellValue('B' .$lastrow, $dt->kode);
+								$sheet->setCellValue('C' .$lastrow, $dt->CUSTOMER);
+								$sheet->setCellValue('D' .$lastrow, $dt->FAKTUR);
+								$sheet->setCellValue('E' .$lastrow, $dt->NOAJU);
+								$sheet->setCellValue('F' .$lastrow, $dt->NDPBM);
+								$sheet->setCellValue('G' .$lastrow, $dt->HARGA);
+								$sheet->setCellValue('H' .$lastrow, $dt->TGL_TERIMA);
+    						$sheet->setCellValue('I' .$lastrow, $dt->satuansawal);
+    						$sheet->setCellValue('J' .$lastrow, $dt->satuan);
+    						$sheet->setCellValue('K' .$lastrow, $dt->satuanmasuk);
+    						$sheet->setCellValue('L' .$lastrow, $dt->satuan);
+    						$sheet->setCellValue('M' .$lastrow, $dt->satuankeluar);
+    						$sheet->setCellValue('N' .$lastrow, $dt->satuan);
+    						$sheet->setCellValue('O' .$lastrow, $dt->satuansakhir);
     						$sheet->setCellValue('P' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('Q' .$lastrow, $dt->kemasankeluar);
-    						$sheet->setCellValue('R' .$lastrow, $dt->satuankeluar);
-    						$sheet->setCellValue('S' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('T' .$lastrow, $dt->kemasansakhir);
-    						$sheet->setCellValue('U' .$lastrow, $dt->satuansakhir);
-    						$sheet->setCellValue('V' .$lastrow, $dt->satuan);
-
-								$sheet->setCellValue('W' .$lastrow, $det->NO_DO);
-								$sheet->setCellValue('X' .$lastrow, $det->TGL_DO);
-								$sheet->setCellValue('Y' .$lastrow, $det->NO_INV_JUAL);
-								$sheet->setCellValue('Z' .$lastrow, $det->TGL_KELUAR);
-								$sheet->setCellValue('AA' .$lastrow, $det->kemasankeluar);
-								$sheet->setCellValue('AB' .$lastrow, $det->satuankeluar);
-								$sheet->setCellValue('AC' .$lastrow, $det->satuan);
 						    $lastrow += 1;
 
-							}
-							$lastrow += 1;
-						}
-						else {
-								$no += 1;
-								$sheet->setCellValue('A' .$lastrow, $no);
-								$sheet->setCellValue('B' .$lastrow, $dt->KODEBARANG);
-								$sheet->setCellValue('C' .$lastrow, $dt->kode);
-								$sheet->setCellValue('D' .$lastrow, $dt->CUSTOMER);
-								$sheet->setCellValue('E' .$lastrow, $dt->FAKTUR);
-								$sheet->setCellValue('F' .$lastrow, $dt->NOAJU);
-								$sheet->setCellValue('G' .$lastrow, $dt->NDPBM);
-								$sheet->setCellValue('H' .$lastrow, $dt->HARGA);
-								$sheet->setCellValue('I' .$lastrow, $dt->DPP);
-								$sheet->setCellValue('J' .$lastrow, $dt->TGL_TERIMA);
-    						$sheet->setCellValue('K' .$lastrow, $dt->kemasansawal);
-    						$sheet->setCellValue('L' .$lastrow, $dt->satuansawal);
-    						$sheet->setCellValue('M' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('N' .$lastrow, $dt->kemasanmasuk);
-    						$sheet->setCellValue('O' .$lastrow, $dt->satuanmasuk);
-    						$sheet->setCellValue('P' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('Q' .$lastrow, $dt->kemasankeluar);
-    						$sheet->setCellValue('R' .$lastrow, $dt->satuankeluar);
-    						$sheet->setCellValue('S' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('T' .$lastrow, $dt->kemasansakhir);
-    						$sheet->setCellValue('U' .$lastrow, $dt->satuansakhir);
-    						$sheet->setCellValue('V' .$lastrow, $dt->satuan);
-    						$lastrow += 1;
-    					}
+
     				}
 
 						$writer = new Xlsx($spreadsheet);
@@ -2297,8 +2248,8 @@ class TransaksiController extends Controller {
 			return view("transaksi.stokbarang",["breads" => $breadcrumb,
 									    "datacustomer" => $customer,
 										"dataimportir" => $importir,
-										"datakategori1" => Array("Saldo Akhir", "Kode Barang"),
-										"datakategori2" => Array("Tanggal Terima", "Tanggal DO")
+										"datakategori1" => Array("Kode Barang", "Kode Produk"),
+										"datakategori2" => Array("Tanggal Terima")
 										]);
     	}
 	}

@@ -86,6 +86,12 @@
                     @can('gudang.konversistok')
                     <a class="list-group-item list-group-item-action" href="./gudang/konversistok">Konversi Stok</a>
                     @endcan
+                    @can('stokperbarang')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/browsestokbarang">Browse Stok per Barang</a>
+                    @endcan
+                    @can('stokperproduk')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/browsestokproduk">Browse Stok per Produk</a>
+                    @endcan
                 </ul>
             </div>
         </div>

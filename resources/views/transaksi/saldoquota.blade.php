@@ -127,8 +127,8 @@
                 $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
                 colNo = 1;
                 @endcan
-                $('td:eq(' + (colNo + 2) +')', row).html(parseFloat(data.TERPAKAI).formatMoney(2,"",",","."));
-                $('td:eq(' + (colNo + 3) +')', row).html(parseFloat(data.AWAL).formatMoney(2,"",",","."));
+                $('td:eq(' + (colNo + 2) +')', row).html(parseFloat(data.AWAL).formatMoney(2,"",",","."));
+                $('td:eq(' + (colNo + 3) +')', row).html(parseFloat(data.TERPAKAI).formatMoney(2,"",",","."));
                 $('td:eq(' + (colNo + 4) +')', row).html(parseFloat(data.AKHIR).formatMoney(2,"",",","."));
             },
             columnDefs: [
