@@ -92,6 +92,9 @@
                     @can('stokperproduk')
                     <a class="list-group-item list-group-item-action" href="./transaksi/browsestokproduk">Browse Stok per Produk</a>
                     @endcan
+                    @can('invoice.transaksi')
+                    <a class="list-group-item list-group-item-action" href="./transaksi/invoice">Perekaman Invoice</a>
+                    @endcan
                 </ul>
             </div>
         </div>

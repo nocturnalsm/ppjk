@@ -68,6 +68,7 @@
                         <th>Importir</th>
                         <th>Stok</th>
                         <th>Avg HPP</th>
+                        <th>Satuan</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -98,7 +99,8 @@
         };
 
         var columns = [{target: 0, data: "kode"}, {target: 1, data: "importir"},
-                       {target: 2, data: "stok"}, {target: 3, data: "AVGHPP"}
+                       {target: 2, data: "stok"}, {target: 3, data: "AVGHPP"},
+                       {target: 4, data: "satuan"}
         ];
         var grid = $("#grid").DataTable({responsive: false,
             dom: "rtip",

@@ -1259,6 +1259,7 @@ class Transaksi extends Model
             DB::table("tbl_detail_bayar")->insert($arrDetail);
         }
     }
+
     public static function calculateBayar($id)
     {
         $dtTotal = DB::table("tbl_detail_bayar")
@@ -1723,7 +1724,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_detail_barang tb"), "tk.KODEBARANG", "=", "tb.ID")
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
-                    ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
+                    ->join(DB::raw("satuan s"), "tk.SATKONVERSI", "=", "s.id")
                     ->whereRaw("USERGUDANG IS NULL AND tk.TGL_KONVERSI <= '" .Date("Y-m-d", strtotime($dari)) ."'")
                     ->whereRaw("TGL_NOPEN >= '2021-01-01'");
         $awal2 = DB::table(DB::raw("konversistok tk"))
@@ -1734,7 +1735,7 @@ class Transaksi extends Model
                     ->join(DB::raw("tbl_header_invoice ho"), "ho.ID", '=', "do.ID_HEADER")
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
                     ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
-                    ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
+                    ->join(DB::raw("satuan s"), "tk.SATKONVERSI", "=", "s.id")
                     ->whereRaw("TGL_NOPEN >= '2021-01-01'")
                     ->whereRaw("USERGUDANG IS NULL AND ho.TGL_JUAL <= '" .Date("Y-m-d", strtotime($dari)) ."'");
 
@@ -1771,14 +1772,14 @@ class Transaksi extends Model
         $subJoin = $awal1->unionAll($awal2);
 
         $subJoinPrime = DB::query()->fromSub($subJoin, 'd')
-                          ->selectRaw("d.ID, d.IMPORTIR, d.KODEBARANG, "
+                          ->selectRaw("d.ID, d.IMPORTIR, d.KODEBARANG, d.satuan,"
                                      ."SUM(IFNULL(d.satuansawal,0)) + SUM(IFNULL(d.satuanmasuk,0)) - SUM(IFNULL(d.satuankeluar,0)) as satuanstok,"
                                      ."(d.HARGA*d.NDPBM+d.TAX) * (SUM(IFNULL(d.satuansawal,0)) + SUM(IFNULL(d.satuanmasuk,0)) - SUM(IFNULL(d.satuankeluar,0))) AS SUMHPP")
-                          ->groupBy("d.ID","d.IMPORTIR","d.KODEBARANG", "d.HARGA", "d.NDPBM", "d.TAX");
+                          ->groupBy("d.ID","d.IMPORTIR","d.KODEBARANG", "d.HARGA", "d.NDPBM", "d.TAX","d.satuan");
 
         $data = DB::table(DB::raw("produk p"))
-                  ->selectRaw("p.id, kode, i.NAMA as importir, sum(t.satuanstok) as stok, SUM(t.SUMHPP) / SUM(t.satuanstok) AS AVGHPP")
-                  ->groupBy("p.id", "p.kode","i.NAMA")
+                  ->selectRaw("p.id, kode, i.NAMA as importir, sum(t.satuanstok) as stok, SUM(t.SUMHPP) / SUM(t.satuanstok) AS AVGHPP,t.satuan")
+                  ->groupBy("p.id", "p.kode","i.NAMA","t.satuan")
                   ->orderBy("p.kode")
                   ->orderBy("i.NAMA");
 
@@ -1824,12 +1825,11 @@ class Transaksi extends Model
         //echo $data->printquery();die();
         return $data->get();
     }
-    public static function stokBarang($customer, $importir, $kategori1, $isikategori1, $kategori2, $dari2, $sampai2)
+    public static function stokBarang($customer, $importir, $kategori1, $isikategori1, $dari2, $sampai2)
     {
         $array1 =  Array("Kode Barang" => "tb.KODEBARANG", "Kode Produk" => "p.kode");
-        $array2 = Array("Tanggal Terima" => "t.TGL_TERIMA", 'Tanggal DO' => "do.TGL_DO");
-        $dari2 = Date("Y-m-d", strtotime($dari2));
-        $sampai2 = Date("Y-m-d", strtotime($sampai2));
+        $dari2 = str_replace(",", "", $dari2);
+        $sampai2 = str_replace(",","",$sampai2);
 
         $where = " 1 = 1 ";
         if ($kategori1 != ""){
@@ -1841,45 +1841,13 @@ class Transaksi extends Model
         if (trim($importir) != ""){
             $where .= " AND IMPORTIR = '" .$importir ."'";
         }
-        $awal1 = DB::table(DB::raw("konversistok tk"))
-                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU, 0 AS TGLDO,"
-                            ."IF(th.FAKTUR = 'A', 'Semua', IF(th.FAKTUR = 'P', 'Sebagian', "
-                            ."IF (th.FAKTUR = 'T', 'Tidak', ''))) AS FAKTUR, th.NDPBM,"
-                            ."tb.HARGA, tk.TGL_KONVERSI AS TGL_TERIMA,"
-                            ."JMLSATKONVERSI AS satuansawal, 0 as satuanmasuk, 0 as satuankeluar,"
-                            ."s.satuan as satuan")
-                    ->join(DB::raw("tbl_detail_barang tb"), "tk.KODEBARANG", "=", "tb.ID")
-                    ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
-                    ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
-                    ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw($where)
-                    ->whereRaw("TGL_NOPEN >= '2021-01-01'")
-                    ->whereRaw("USERGUDANG IS NULL")
-                    ->where("tk.TGL_KONVERSI", "<", $dari2);
-
-        $awal2 = DB::table(DB::raw("tbl_detail_invoice do"))
-                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU, 0 AS TGLDO,"
-                            ."IF(th.FAKTUR = 'A', 'Semua', IF(th.FAKTUR = 'P', 'Sebagian', IF (th.FAKTUR = 'T', 'Tidak', ''))) AS FAKTUR, th.NDPBM,"
-                            ."tb.HARGA, tk.TGL_KONVERSI AS TGL_TERIMA,"
-                            ."-do.JMLSATJUAL AS satuansawal, 0 as satuanmasuk, 0 as satuankeluar,"
-                            ."s.satuan as satuan")
-                    ->join(DB::raw("tbl_header_invoice ho"),"ho.ID","=","do.ID_HEADER")
-                    ->join(DB::raw("tbl_detail_barang tb"), "do.KODEBARANG", "=", "tb.ID")
-                    ->join(DB::raw("konversistok tk"), "tk.KODEBARANG", "=", "tb.ID")
-                    ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
-                    ->join(DB::raw("produk p"), "tk.produk_id", "=", "p.id")
-                    ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
-                    ->whereRaw($where)
-                    ->whereRaw("TGL_NOPEN >= '2021-01-01'")
-                    ->whereRaw("USERGUDANG IS NULL")
-                    ->where("ho.TGL_JUAL", "<", $dari2);
 
         $saldo1 = DB::table(DB::raw("konversistok tk"))
-                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU, 0 AS TGLDO,"
+                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU,"
                             ."IF(th.FAKTUR = 'A', 'Semua', IF(th.FAKTUR = 'P', 'Sebagian', "
                             ."IF (th.FAKTUR = 'T', 'Tidak', ''))) AS FAKTUR, th.NDPBM,"
-                            ."tb.HARGA, tk.TGL_KONVERSI AS TGL_TERIMA,"
-                            ."0 AS satuansawal, JMLSATKONVERSI as satuanmasuk, 0 as satuankeluar,"
+                            ."tb.HARGA*th.NDPBM+tk.TAX as HPP, "
+                            ."JMLSATKONVERSI as satuanmasuk, 0 as satuankeluar,"
                             ."s.satuan as satuan")
                     ->join(DB::raw("tbl_detail_barang tb"), "tk.KODEBARANG", "=", "tb.ID")
                     ->join(DB::raw("tbl_penarikan_header th"), "tb.ID_HEADER", "=", "th.ID")
@@ -1887,15 +1855,14 @@ class Transaksi extends Model
                     ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=", "s.id")
                     ->whereRaw($where)
                     ->whereRaw("TGL_NOPEN >= '2021-01-01'")
-                    ->whereRaw("USERGUDANG IS NULL")
-                    ->whereBetween("tk.TGL_KONVERSI", [$dari2, $sampai2]);
+                    ->whereRaw("USERGUDANG IS NULL");
 
         $saldo2 = DB::table(DB::raw("tbl_detail_invoice do"))
-                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU, 0 AS TGLDO,"
+                    ->selectRaw("tb.ID, tb.KODEBARANG, tk.PRODUK_ID, th.CUSTOMER, th.NOAJU, "
                             ."IF(th.FAKTUR = 'A', 'Semua', IF(th.FAKTUR = 'P', 'Sebagian', "
                             ."IF (th.FAKTUR = 'T', 'Tidak', ''))) AS FAKTUR, th.NDPBM,"
-                            ."tb.HARGA, tk.TGL_KONVERSI AS TGL_TERIMA,"
-                            ."0 AS satuansawal, 0 as satuanmasuk, -JMLSATJUAL as satuankeluar,"
+                            ."tb.HARGA*th.NDPBM+tk.TAX as HPP,"
+                            ."0 as satuanmasuk, JMLSATJUAL as satuankeluar,"
                             ."s.satuan as satuan")
                     ->join(DB::raw("tbl_header_invoice ho"),"ho.ID","=","do.ID_HEADER")
                     ->join(DB::raw("tbl_detail_barang tb"), "do.KODEBARANG", "=", "tb.ID")
@@ -1905,31 +1872,25 @@ class Transaksi extends Model
                     ->join(DB::raw("satuan s"), "do.SATJUAL", "=", "s.id")
                     ->whereRaw($where)
                     ->whereRaw("TGL_NOPEN >= '2021-01-01'")
-                    ->whereRaw("USERGUDANG IS NULL")
-                    ->whereBetween("ho.TGL_JUAL", [$dari2, $sampai2]);
+                    ->whereRaw("USERGUDANG IS NULL");
 
-        $sub = $awal1->unionAll($awal2)->unionAll($saldo1)->unionAll($saldo2);
+        $sub = $saldo1->unionAll($saldo2);
 
         $data = DB::query()->fromSub($sub, "t")
                     ->selectRaw("t.ID, t.KODEBARANG, p.kode, c.nama_customer AS CUSTOMER, t.NDPBM, t.FAKTUR, "
-                               ."t.NOAJU, SUM(TGLDO) AS CEKDO,"
-                               ."t.HARGA, t.TGL_TERIMA,"
-                               ."SUM(IFNULL(t.satuansawal,0)) as satuansawal,"
+                               ."t.NOAJU, t.HPP, "
                                ."SUM(IFNULL(t.satuanmasuk,0)) as satuanmasuk,"
                                ."SUM(IFNULL(t.satuankeluar,0)) As satuankeluar,"
-                               ."SUM(IFNULL(t.satuansawal,0)) + SUM(IFNULL(t.satuanmasuk,0)) - SUM(IFNULL(t.satuankeluar,0)) as satuansakhir,"
+                               ."SUM(IFNULL(t.satuanmasuk,0)) - SUM(IFNULL(t.satuankeluar,0)) as satuansakhir,"
                                ."t.satuan")
                     ->join(DB::raw("produk p"), "p.id","=","t.produk_id")
                     ->join(DB::raw("plbbandu_app15.tb_customer c"), "c.id_customer", "=", "t.CUSTOMER")
                     ->orderBy("t.KODEBARANG");
 
-        if ($kategori2 == 'Tanggal Terima'){
-            $data = $data->whereBetween($array2[$kategori2], [$dari2, $sampai2]);
-        }
         $data = $data->groupBy("t.ID", "t.KODEBARANG", "p.kode", "c.nama_customer", "t.NDPBM", "t.FAKTUR", "t.NOAJU",
-                               "t.HARGA", "t.TGL_TERIMA", "t.satuan");
-        if ($kategori2 == 'Tanggal DO'){
-            $data = $data->havingRaw("SUM(TGLDO) > 0");
+                               "t.HPP", "t.satuan");
+        if (trim($dari2) != "" && trim($sampai2) != ''){
+            $data = $data->havingRaw("SUM(IFNULL(t.satuanmasuk,0)) - SUM(IFNULL(t.satuankeluar,0)) BETWEEN {$dari2} AND {$sampai2}");
         }
         //print_r($data->dd());die();
         return $data->get();
@@ -2031,21 +1992,15 @@ class Transaksi extends Model
             DB::table("tbl_pengeluaran")->insert($arrDetail);
         }
     }
-    public static function getDetailStokBarang($id, $kategori, $dari, $sampai)
+    public static function getDetailStokBarang($id)
     {
-        $dari = Date("Y-m-d", strtotime($dari));
-        $sampai = Date("Y-m-d", strtotime($sampai));
-        $data = DB::table(DB::raw("detail_do do"))
-                    ->selectRaw("tb.KODEBARANG, dorder.ID, NO_DO, DATE_FORMAT(TGL_DO,'%d-%m-%Y') AS TGL_DO,"
-                            ."NO_INV_JUAL, DATE_FORMAT(TGL_KELUAR,'%d-%m-%Y') AS TGL_KELUAR,"
-                            ."IFNULL(JMLKMSKELUAR,0) As kemasankeluar,"
-                            ."IFNULL(JMLSATHARGAKELUAR,0) as satuankeluar,"
-                            ."'' as satuankemasan, s.satuan as satuan")
+        $data = DB::table(DB::raw("tbl_detail_invoice do"))
+                    ->selectRaw("do.KODEBARANG, ho.ID,"
+                            ."NO_INV_JUAL, DATE_FORMAT(TGL_JUAL,'%d-%m-%Y') AS TGL_INV_JUAL,"
+                            ."do.HARGA, IFNULL(JMLSATJUAL,0) as JMLKELUAR")
                     ->join(DB::raw("tbl_detail_barang tb"),"do.KODEBARANG", "=", "tb.ID")
-                    ->join(DB::raw("deliveryorder dorder"), "do.ID_HEADER", "=", "dorder.ID")
-                    ->join(DB::raw("satuan s"), "tb.SATUAN_ID", "=","s.id")
-                    ->where("do.KODEBARANG", $id)
-                    ->whereBetween("TGL_KELUAR", [$dari, $sampai]);
+                    ->join(DB::raw("tbl_header_invoice ho"), "do.ID_HEADER", "=", "ho.ID")
+                    ->where("do.KODEBARANG", $id);
         return $data->get();
     }
     public static function getTransaksiQuota($id, $includeDetail = true)
@@ -2342,5 +2297,72 @@ class Transaksi extends Model
             $data->whereRaw($strWhere);
         }
         return $data->get();
+    }
+    public static function getInvoice($id)
+    {
+        if ($id == ""){
+            $header = new Invoice;
+            $detail = [];
+        }
+        else {
+            $header = DB::table(DB::raw("tbl_header_invoice h"))
+                        ->selectRaw("h.*")
+                        ->join(DB::raw("ref_pembeli p"), "h.PEMBELI_ID","=", "p.ID")
+                        ->where("h.ID", $id);
+            if ($header->exists()){
+                $header = $header->first();
+            }
+            else {
+                return false;
+            }
+            $detail = DB::table(DB::raw("tbl_detail_invoice di"))
+                        ->selectRaw("di.*, db.KODEBARANG AS NAMABARANG, pr.nama, st.satuan")
+                        ->join(DB::raw("tbl_detail_barang db"), "di.KODEBARANG", "=", "db.ID")
+                        ->join(DB::raw("konversistok tk"), "db.ID", "=", "tk.KODEBARANG")
+                        ->join(DB::raw("produk pr"), "pr.id", "=", "tk.PRODUK_ID")
+                        ->leftJoin(DB::raw("satuan st"), "st.id", "=", "di.SATJUAL")
+                        ->where("di.ID_HEADER", $id);
+
+            $detail = $detail->get();
+        }
+        if ($header){
+            $header->TGL_JUAL = $header->TGL_JUAL == "" ? "" : Date("d-m-Y", strtotime($header->TGL_JUAL));
+        }
+        return Array("header" => $header, "detail" => $detail);
+    }
+    public static function saveInvoice($action, $header, $detail)
+    {
+        $arrHeader = Array("TGL_JUAL" => trim($header["tgljual"]) == "" ? Date("Y-m-d") : Date("Y-m-d", strtotime($header["tgljual"])),
+                           "PEMBELI_ID" => $header["pembeli"],
+                           "NO_INV_JUAL" => $header["noinv"]
+                         );
+
+        if ($action == "insert"){
+            $idtransaksi = DB::table("tbl_header_invoice")->insertGetId($arrHeader);
+        }
+        else if ($action == "update"){
+            $idtransaksi = $header["idtransaksi"];
+            DB::table("tbl_header_invoice")->where("ID", $idtransaksi)->update($arrHeader);
+            DB::table("tbl_detail_invoice")->where("ID_HEADER", $idtransaksi)->delete();
+        }
+        $arrDetail = Array();
+        if (is_array($detail) && count($detail) > 0){
+            foreach ($detail as $item){
+                $arrDetail[] = Array("ID_HEADER" => $idtransaksi,
+                                    "KODEBARANG" => $item["KODEBARANG"],
+                                    "SATJUAL" => $item["SATJUAL"],
+                                    "JMLSATJUAL" => $item["JMLSATJUAL"] != "" ? str_replace(",","",$item["JMLSATJUAL"]) : 0,
+                                    "HARGA" => $item["HARGA"] != "" ? str_replace(",","",$item["HARGA"]) : 0
+                                    );
+            }
+            DB::table("tbl_detail_invoice")->insert($arrDetail);
+        }
+    }
+    public static function deleteInvoice($id)
+    {
+        if (trim($id) != ""){
+            DB::table("tbl_detail_invoice")->where("ID_HEADER", $id)->delete();
+            DB::table("tbl_header_invoice")->where("ID", $id)->delete();
+        }
     }
 }

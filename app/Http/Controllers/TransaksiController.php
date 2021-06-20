@@ -1160,6 +1160,25 @@ class TransaksiController extends Controller {
 					}
 				}
 			}
+			else if ($type == "invoice"){
+				if ($postheader){
+					$detail = $request->input("detail");
+					parse_str($postheader, $header);
+					if ($header["idtransaksi"] == ""){
+						$action = "insert";
+					}
+					else {
+						$action = "update";
+					}
+					$id = Transaksi::saveInvoice($action, $header, $detail);
+				}
+				else {
+					$id = $request->input("delete");
+					if ($id && $id != ""){
+						Transaksi::deleteInvoice($id);
+					}
+				}
+			}
 			else if ($type == "deliveryorder"){
 				if ($postheader){
 					$detail = $request->input("detail");
@@ -1357,6 +1376,22 @@ class TransaksiController extends Controller {
 		}
 		else {
 			$response = $data;
+		}
+		return response()->json($response);
+	}
+	public function searchproduk(Request $request)
+	{
+		$inv = $request->input("kode");
+		$data = DB::table("konversistok")
+							->join("produk", "konversistok.PRODUK_ID","=","produk.id")
+							->join("tbl_detail_barang", "tbl_detail_barang.ID","=","konversistok.KODEBARANG")
+							->where("tbl_detail_barang.KODEBARANG", $inv)
+							->select("tbl_detail_barang.ID", "produk.nama");
+		if ($data->exists()){
+			$response = $data->first();
+		}
+		else {
+			$response["error"] = "Kode Barang tidak ada";
 		}
 		return response()->json($response);
 	}
@@ -2097,13 +2132,14 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('B' .$lastrow, 'Importir');
 					$sheet->setCellValue('C' .$lastrow, 'Stok');
 					$sheet->setCellValue('D' .$lastrow, 'Avg HPP');
-
+					$sheet->setCellValue('E' .$lastrow, 'Satuan');
 					foreach ($data as $dt){
   						$lastrow += 1;
 							$sheet->setCellValue('A' .$lastrow, $dt->kode);
 							$sheet->setCellValue('B' .$lastrow, $dt->importir);
 							$sheet->setCellValue('C' .$lastrow, $dt->stok);
 							$sheet->setCellValue('D' .$lastrow, $dt->AVGHPP);
+							$sheet->setCellValue('E' .$lastrow, $dt->satuan);
 					}
 					$writer = new Xlsx($spreadsheet);
 					return response()->streamDownload(function() use ($writer){
@@ -2145,15 +2181,14 @@ class TransaksiController extends Controller {
 			$postImportir = $request->input("importir");
 			$postKategori1 = $request->input("kategori1");
 			$isikategori1 = $request->input("isikategori1");
-			$postKategori2 = $request->input("kategori2");
 			$dari2 = $request->input("dari2");
 			$sampai2 = $request->input("sampai2");
 
 			$data = Transaksi::stokBarang($postCustomer, $postImportir, $postKategori1,
-									$isikategori1, $postKategori2, $dari2, $sampai2);
+									$isikategori1, $dari2, $sampai2);
 			if ($data){
 				$export = $request->input("export");
-                if ($export == "1"){
+        if ($export == "1"){
 					$spreadsheet = new Spreadsheet();
 					$sheet = $spreadsheet->getActiveSheet();
 					$sheet->setCellValue('A1', 'CUSTOMER');
@@ -2171,17 +2206,17 @@ class TransaksiController extends Controller {
 						$sheet->setCellValue('C2', "Semua");
 					}
 					$lastrow = 2;
-		            if ($postKategori1 && trim($postKategori1) != ""){
+		        if ($postKategori1 && trim($postKategori1) != ""){
 						$lastrow += 1;
 						$sheet->setCellValue('A' .$lastrow, $postKategori1);
 						$sheet->setCellValue('C' .$lastrow, $isikategori1);
 					}
-					if ($postKategori2 && trim($postKategori2) != ""){
+					if (trim($dari2) != "" && trim($sampai2) != ""){
 						$lastrow += 1;
-						$sheet->setCellValue('A' .$lastrow, $postKategori2);
-						$sheet->setCellValue('C' .$lastrow, $dari2 == "" ? "-" : Date("d M Y", strtotime($dari2)));
+						$sheet->setCellValue('A' .$lastrow, 'Range Saldo Akhir');
+						$sheet->setCellValue('C' .$lastrow, str_replace(",","",$dari2));
 						$sheet->setCellValue('D' .$lastrow, "sampai");
-						$sheet->setCellValue('E' .$lastrow, $sampai2 == "" ? "-" : Date("d M Y", strtotime($sampai2)));
+						$sheet->setCellValue('E' .$lastrow, str_replace(",","",$sampai2));
 					}
 					$lastrow += 2;
 					$sheet->setCellValue('A' .$lastrow, 'Kode Barang');
@@ -2190,13 +2225,11 @@ class TransaksiController extends Controller {
 					$sheet->setCellValue('D' .$lastrow, 'Faktur');
 					$sheet->setCellValue('E' .$lastrow, 'No.Aju');
 					$sheet->setCellValue('F' .$lastrow, 'Kurs');
-					$sheet->setCellValue('G' .$lastrow, 'Harga Satuan');
-					$sheet->setCellValue('H' .$lastrow, 'Tgl Terima');
-					$sheet->setCellValue('I' .$lastrow, 'Saldo Awal');
-					$sheet->setCellValue('K' .$lastrow, 'Masuk');
-					$sheet->setCellValue('M' .$lastrow, 'Keluar');
-					$sheet->setCellValue('O' .$lastrow, 'Stok Akhir');
-
+					$sheet->setCellValue('G' .$lastrow, 'HPP');
+					$sheet->setCellValue('H' .$lastrow, 'Masuk');
+					$sheet->setCellValue('I' .$lastrow, 'Keluar');
+					$sheet->setCellValue('J' .$lastrow, 'Stok Akhir');
+					$sheet->setCellValue('K' .$lastrow, 'Satuan');
           $no = 0;
           $lastrow += 1;
 					foreach ($data as $dt){
@@ -2208,16 +2241,11 @@ class TransaksiController extends Controller {
 								$sheet->setCellValue('D' .$lastrow, $dt->FAKTUR);
 								$sheet->setCellValue('E' .$lastrow, $dt->NOAJU);
 								$sheet->setCellValue('F' .$lastrow, $dt->NDPBM);
-								$sheet->setCellValue('G' .$lastrow, $dt->HARGA);
-								$sheet->setCellValue('H' .$lastrow, $dt->TGL_TERIMA);
-    						$sheet->setCellValue('I' .$lastrow, $dt->satuansawal);
-    						$sheet->setCellValue('J' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('K' .$lastrow, $dt->satuanmasuk);
-    						$sheet->setCellValue('L' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('M' .$lastrow, $dt->satuankeluar);
-    						$sheet->setCellValue('N' .$lastrow, $dt->satuan);
-    						$sheet->setCellValue('O' .$lastrow, $dt->satuansakhir);
-    						$sheet->setCellValue('P' .$lastrow, $dt->satuan);
+								$sheet->setCellValue('G' .$lastrow, $dt->HPP);
+    						$sheet->setCellValue('H' .$lastrow, $dt->satuanmasuk);
+    						$sheet->setCellValue('I' .$lastrow, $dt->satuankeluar);
+    						$sheet->setCellValue('J' .$lastrow, $dt->satuansakhir);
+    						$sheet->setCellValue('K' .$lastrow, $dt->satuan);
 						    $lastrow += 1;
 
 
@@ -2246,10 +2274,9 @@ class TransaksiController extends Controller {
 			$customer = Transaksi::getCustomer();
 
 			return view("transaksi.stokbarang",["breads" => $breadcrumb,
-									    "datacustomer" => $customer,
+									  "datacustomer" => $customer,
 										"dataimportir" => $importir,
-										"datakategori1" => Array("Kode Barang", "Kode Produk"),
-										"datakategori2" => Array("Tanggal Terima")
+										"datakategori1" => Array("Kode Barang", "Kode Produk")
 										]);
     	}
 	}
@@ -2269,8 +2296,7 @@ class TransaksiController extends Controller {
 			abort(403, 'User does not have the right roles.');
 		}
 		$id = $request->input("id");
-		parse_str($request->input("form"), $form);
-		$data = Transaksi::getDetailStokBarang($id, $form["kategori2"], $form["dari2"], $form["sampai2"]);
+		$data = Transaksi::getDetailStokBarang($id);
 		return response()->json(["data" => $data]);
 	}
 	public function perekamanpengeluaran($id = "")
@@ -2907,5 +2933,43 @@ class TransaksiController extends Controller {
 										"datakategori1" => Array("Tanggal Nopen","Tanggal BL")
 										]);
 		}
+	}
+	public function invoice(Request $request)
+  {
+		$canBrowse = auth()->user()->can('invoice.browse');
+		$canEdit = auth()->user()->can('invoice.transaksi');
+
+		$dtTransaksi = Array();
+		$id = $request->id ?? "";
+		if ($id != ""){
+			if (!$canBrowse){
+					abort(403, "User does not have the right roles");
+			}
+		}
+		else {
+			if (!$canEdit){
+					abort(403, "User does not have the right roles");
+			}
+			$notransaksi = " (Baru)";
+		}
+		$dtTransaksi = Transaksi::getInvoice($id);
+		if (!$dtTransaksi){
+				abort(404, 'Data tidak ada');
+		}
+
+		$breadcrumb[] = Array("link" => "/", "text" => "Home");
+
+		$breadcrumb[] = Array("text" => "Perekaman Invoice");
+
+		$dtPembeli = Transaksi::getPembeli();
+		$dtSatuan = Transaksi::getSatuan();
+
+		$data = [
+				"header" => isset($dtTransaksi["header"]) ? $dtTransaksi["header"] : "{}" , "breads" => $breadcrumb,
+				"pembeli" => $dtPembeli, "satuan" => $dtSatuan,
+				"detail" => isset($dtTransaksi["detail"]) ? json_encode($dtTransaksi["detail"]) : "{}",
+				"readonly" => $canEdit ? '' : 'readonly'
+			];
+		return view("transaksi.invoice", $data);
 	}
 }

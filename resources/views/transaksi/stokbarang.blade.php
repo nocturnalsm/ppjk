@@ -54,20 +54,12 @@
                     </div>
                     <div class="row">
                         <div class="col-md-2">
-                            Kategori
+                            Range Saldo Akhir
                         </div>
-                        <div class="col-md-3">
-                            <select class="form-control form-control-sm" id="kategori2" name="kategori2">
-                                @foreach($datakategori2 as $kat)
-                                <option value="{{ $kat }}">{{ $kat }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <label class="px-sm-3 col-md-1">Periode</label>
                         <div class="col-md-5">
-                            <input autocomplete="off" type="text" id="dari2" name="dari2" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                            <input autocomplete="off" type="text" id="dari2" name="dari2" class="number form-control d-inline form-control-sm" style="width: 120px">
                             &nbsp;&nbsp;sampai&nbsp;&nbsp;
-                            <input autocomplete="off" type="text" id="sampai2" name="sampai2" class="datepicker form-control d-inline form-control-sm" style="width: 120px">
+                            <input autocomplete="off" type="text" id="sampai2" name="sampai2" class="number form-control d-inline form-control-sm" style="width: 120px">
                         </div>
                     </div>
             </div>
@@ -83,17 +75,17 @@
             <div class="col" id="divtable">
                 <table width="100%" id="grid" class="table">
                     <thead>
+                        <th>Opsi</th>
                         <th>Kode Barang</th>
                         <th>Kode Produk</th>
                         <th>Customer</th>
                         <th>Faktur</th>
                         <th>No.Aju</th>
-                        <th>Hrg Satuan</th>
-                        <th>Tgl Terima</th>
-                        <th>Saldo Awal</th>
+                        <th>HPP</th>
                         <th>Masuk</th>
                         <th>Keluar</th>
                         <th>Saldo Akhir</th>
+                        <th>Satuan</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -123,14 +115,13 @@
                     j = (j = i.length) > 3 ? j % 3 : 0;
             return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
         };
-        var columns = [
-        {target: 0, data: "KODEBARANG"}, {target: 1, data: "kode"},  {target: 2, data: "CUSTOMER"@cannot('customer.view') ,visible:  false @endif},
-        {target: 3, data: "FAKTUR"}, {target: 4, data: "NOAJU"}, {target: 5, data: "HARGA"},
-        {target: 6, data: "TGL_TERIMA"},
-        {target: 7, data: "satuansawal"},
-        {target: 8, data: "satuanmasuk"},
-        {target: 9, data: "satuankeluar"},
-        {target: 10, data: "satuansakhir"}
+        var columns = [ {target: 0, data: null},
+        {target: 1, data: "KODEBARANG"}, {target: 2, data: "kode"},  {target: 3, data: "CUSTOMER"@cannot('customer.view') ,visible:  false @endif},
+        {target: 4, data: "FAKTUR"}, {target: 5, data: "NOAJU"}, {target: 6, data: "HPP"},
+        {target: 7, data: "satuanmasuk"},
+        {target: 8, data: "satuankeluar"},
+        {target: 9, data: "satuansakhir"},
+        {target: 10, data: "satuan"}
         ];
 
         var printvalues  = function(jmlkemasan, jmlsatuan, kemasan, satuan){
@@ -170,11 +161,11 @@
                 @can('customer.view')
                 col = 1;
                 @endcan
-                $('td:eq(' + (4+col) +')', row).html(parseFloat(data.HARGA).formatMoney(2,"",",","."));
-                $('td:eq(' + (6+col) +')', row).html(parseFloat(data.satuansawal).formatMoney(2,"",",","."));
-                $('td:eq(' + (7+col) +')', row).html(parseFloat(data.satuanmasuk).formatMoney(2,"",",","."));
-                $('td:eq(' + (8+col) +')', row).html(parseFloat(data.satuankeluar).formatMoney(2,"",",","."));
-                $('td:eq(' + (9+col) +')', row).html(parseFloat(data.satuansakhir).formatMoney(2,"",",","."));
+                $('td:eq(0)', row).html('<a title="Detail" class="showdetail"><i class="fa fa-plus-circle"></i></a>');
+                $('td:eq(' + (5+col) +')', row).html(parseFloat(data.HPP).formatMoney(2,"",",","."));
+                $('td:eq(' + (6+col) +')', row).html(parseFloat(data.satuanmasuk).formatMoney(2,"",",","."));
+                $('td:eq(' + (7+col) +')', row).html(parseFloat(data.satuankeluar).formatMoney(2,"",",","."));
+                $('td:eq(' + (8+col) +')', row).html(parseFloat(data.satuansakhir).formatMoney(2,"",",","."));
             }
         });
         $("#preview").on("click", function(){
@@ -200,6 +191,14 @@
         $("#export").on("click", function(){
             $("#form").submit();
         })
+        $(".number").inputmask("numeric", {
+            radixPoint: ".",
+            groupSeparator: ",",
+            digits: 2,
+            autoGroup: true,
+            rightAlign: false,
+            removeMaskOnSubmit: true,
+        });
         $('body').on('click', 'a.showdetail', function () {
             var tr = $(this).closest('tr');
             var row = grid.row( tr );
@@ -216,7 +215,7 @@
                     var data = Array();
                     $.ajax({
                         url: '/transaksi/detailstokbarang',
-                        data: {_token: "{{ csrf_token() }}", id: row.data().ID, form: $("#form").serialize()},
+                        data: {_token: "{{ csrf_token() }}", id: row.data().ID },
                         method: "POST",
                         success: function(response){
                             //var  response = JSON.parse(msg);
@@ -227,28 +226,22 @@
                             var detail =  '<table class="table" width="100%">'+
                                     '<thead>'+
                                         '<tr>' +
-                                            '<th>No.DO</th>' +
-                                            '<th>Tgl.DO</th>' +
-                                            '<th>No.Inv.Jual</th>' +
-                                            '<th>Tanggal</th>' +
-                                            '<th>Masuk</th>' +
-                                            '<th>Keluar</th>' +
                                             '<th>Opsi</th>' +
+                                            '<th>No.Inv.Jual</th>' +
+                                            '<th>Tgl Inv Jual</th>' +
+                                            '<th>Harga</th>' +
+                                            '<th>Keluar</th>' +
                                         '</tr>' +
                                     '</thead>' +
                                     '<tbody>';
                             if (data.length > 0){
                                 $(data).each(function(index, elem){
                                     detail += '<tr>' +
-                                                '<td>' + elem.NO_DO + '</td>' +
-                                                '<td>' + elem.TGL_DO + '</td>' +
+                                                '<td><a href="/transaksi/invoice/' + elem.ID + '"><i class="fa fa-edit"></i></a></td>' +
                                                 '<td>' + elem.NO_INV_JUAL + '</td>' +
-                                                '<td>' + elem.TGL_KELUAR + '</td>' +
-                                                '<td>' + printvalues(elem.kemasanmasuk, elem.satuanmasuk, elem.satuankemasan, elem.satuan) + '</td>' +
-                                                '<td>' + printvalues(elem.kemasankeluar, elem.satuankeluar, elem.satuankemasan, elem.satuan) + '</td>' +
-                                                '<td>';
-                                    detail += '<a title="Edit DO" class="showdo" href="/transaksi/deliveryorder/' + elem.ID +'"><i class="fa fa-edit"></i></a>';
-                                    detail += '</td></tr>';
+                                                '<td>' + elem.TGL_INV_JUAL + '</td>' +
+                                                '<td>' + parseFloat(elem.HARGA).formatMoney(2) + '</td>' +
+                                                '<td>' + parseFloat(elem.JMLKELUAR).formatMoney(2) + '</td></tr>';
                                 })
                             }
                             else {
