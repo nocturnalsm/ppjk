@@ -5,24 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use DB;
 use DataTable;
-use App\Models\JenisBarang;
 use App\Models\JenisDokumen;
-use App\Models\JenisKemasan;
-use App\Models\Satuan;
-use App\Models\PelabuhanMuat;
-use App\Models\Kantor;
-use App\Models\Penerima;
-use App\Models\Importir;
-use App\Models\Produk;
-use App\Models\Rate;
+use App\Models\KodeTransaksi;
 use App\Models\Bank;
 use App\Models\Rekening;
-use App\Models\Pembeli;
-use App\Models\Pemasok;
-use App\Models\Gudang;
 use App\Models\Customer;
-use App\Models\JenisTruk;
-use App\Models\Ekspedisi;
 
 class MasterController extends Controller
 {
@@ -32,87 +19,18 @@ class MasterController extends Controller
 			abort(403, 'User does not have the right roles.');
 		}
 	}
-	public function jenisbarang(Request $request)
+	public function kodetransaksi(Request $request)
 	{
 		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Jenis Barang");
-		return view("master.jenisbarang", ["breads" => $breadcrumb,
+		$breadcrumb[] = Array("text" => "Kode Transaksi");
+		return view("master.kodetransaksi", ["breads" => $breadcrumb,
         								   "columns" => Array("Kode","Uraian")]);
 	}
-	public function getdata_jenisbarang(Request $request)
+	public function getdata_kodetransaksi(Request $request)
 	{
-		$dataSource = JenisBarang::select('jenisbarang_id','kode','uraian');
+		$dataSource = KodeTransaksi::select('KODETRANSAKSI_ID','KODE','URAIAN');
 		$dataTable = datatables()->of($dataSource);
 		return $dataTable->toJson();
-	}
-	public function satuan()
-	{
-		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Satuan");
-		return view("master.satuan", ["breads" => $breadcrumb,
-                               "columns" => Array("Kode","Satuan")]);
-	}
-	public function getdata_satuan()
-	{
-		$dataSource = Satuan::select('id','kode','satuan');
-		$dataTable = datatables()->of($dataSource);
-		return $dataTable->toJson();
-	}
-	public function produk()
-	{
-		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Produk");
-		$satuan = Satuan::select('id','satuan')->get();
-		return view("master.produk", ["breads" => $breadcrumb,
-								"satuan" => $satuan,
-								"columns" => Array("Kode","Nama","HS Code","Satuan","Harga")]);
-	}
-	public function getdata_produk()
-	{
-		$dataSource = Produk::select('produk.id','produk.kode','nama', DB::raw('satuan.id as satuan_id'), 'hscode','spesifikasi','satuan','harga','tgl_rekam')
-							 ->leftJoin('satuan', function($join){
-								$join->on('produk.satuan_id','=','satuan.id');
-							 });
-		$dataTable = datatables()->of($dataSource);
-		return $dataTable->toJson();
-	}
-	public function penerima()
-	{
-		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Penerima");
-		return view("master.penerima",["breads" => $breadcrumb,
-									   "columns" => Array("Kode","Penerima")]);
-	}
-	public function getdata_penerima()
-	{
-		$dataSource = Penerima::select('penerima_id','kode','uraian');
-		$dataTable = datatables()->of($dataSource);
-		return $dataTable->toJson();
-	}
-	public function jeniskemasan()
-	{
-		$breadcrumb[] = Array("link" => "../", "text" => "Home");
-		$breadcrumb[] = Array("text" => "Jenis Kemasan");
-		return view("master.jeniskemasan",[   "breads" => $breadcrumb,
-									 "columns" => Array("Kode","Kemasan")]);
-	}
-	public function getdata_jeniskemasan()
-	{
-			$dataSource = JenisKemasan::select('jeniskemasan_id','kode','uraian');
-			$dataTable = datatables()->of($dataSource);
-			return $dataTable->toJson();
-	}
-	public function getdata_gudang()
-	{
-			$dataSource = Gudang::select("GUDANG_ID","KODE","URAIAN");
-			$dataTable = datatables()->of($dataSource);
-			return $dataTable->toJson();
-	}
-	public function gudang()
-	{
-			$breadcrumb[] = Array("link" => "../", "text" => "Home");
-			$breadcrumb[] = Array("text" => "Gudang");
-			return view("master.gudang",   ["breads" => $breadcrumb, "columns" => Array("Kode","Nama Gudang")]);
 	}
 	public function getdata_bank()
 	{
@@ -213,7 +131,7 @@ class MasterController extends Controller
 	{
 		$breadcrumb[] = Array("link" => "../", "text" => "Home");
 		$breadcrumb[] = Array("text" => "Pembeli");
-		$customer = DB::table("plbbandu_app15.tb_customer")
+		$customer = DB::table("tb_customer")
 					   ->select("id_customer", "nama_customer")
 					   ->orderBy("nama_customer")->get();
 		return view("master.pembeli",   ["breads" => $breadcrumb,
@@ -223,7 +141,7 @@ class MasterController extends Controller
 	{
 		$dataSource = Pembeli::select('ID','KODE', 'CUSTOMER', 'NAMA', 'ALAMAT', 'KTPNPWP', 'KETERANGAN',
 								DB::raw('customer.nama_customer as NAMACUSTOMER'))
-							   ->joinSub(DB::table('plbbandu_app15.tb_customer')
+							   ->joinSub(DB::table('tb_customer')
 							   				->select('id_customer', 'nama_customer'),
 							             'customer', function($join){
 											$join->on('customer.id_customer', '=', 'ref_pembeli.CUSTOMER');
@@ -302,15 +220,15 @@ class MasterController extends Controller
 			parse_str($fields, $input);
 			try {
 				switch ($action){
-					case "satuan":
+					case "kodetransaksi":
 						if ($input["input-action"] == "add"){
-							$result = Satuan::add($input);
+							$result = KodeTransaksi::add($input);
 						}
 						else if ($input["input-action"] == "edit"){
-							$result = Satuan::edit($input);
+							$result = KodeTransaksi::edit($input);
 						}
 						else if ($input["input-action"] == "delete"){
-							$result = Satuan::drop($input["id"]);
+							$result = KodeTransaksi::drop($input["id"]);
 						}
 						break;
 					case "produk":
